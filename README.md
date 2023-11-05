@@ -1,6 +1,20 @@
 # BoomBlazer
 
-Jeu **inspiré** de Bomberman multijoueur pour occuper les pauses déjeuner.
+Bomberman-**inspired** multiplayer game to bring entertainment during lunch
+breaks
 
-## Dépendances
-* [windows-curses](deps/windows_curses-2.3.0-cp36-cp36m-win_amd64.whl) (https://pypi.org/project/windows-curses/)
+## Dependencies
+* [windows-curses](https://pypi.org/project/windows-curses/) (For Windows only)
+
+
+## How to install
+Simply run this command:
+`python -m pip install git+https://github.com/RLStrug/Boomblazer`
+
+
+## Usage
+To launch a server on port 1337 using the map "mapfile.txt" run:
+`boomblazer-server 1337 mapfile.txt`
+
+To play the game using ncurses user interface run:
+`boomblazer-ncurses`
