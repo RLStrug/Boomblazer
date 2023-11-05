@@ -25,7 +25,7 @@ from typing import Sequence
 
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map import Map
+from boomblazer.map_environment import MapEnvironment
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR
@@ -222,7 +222,9 @@ class CursesInterface(BaseUI):
                     players_list = json.loads(arg)
                     need_redraw = True
                 elif cmd == b"MAP":
-                    self.client.game_handler = GameHandler(Map.from_json(arg))
+                    self.client.game_handler = GameHandler(
+                        MapEnvironment.from_json(arg)
+                    )
                     waiting = False
         self.play_game()
         self.stdscr.nodelay(False)  # User input is blocking
@@ -241,7 +243,7 @@ class CursesInterface(BaseUI):
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
-                self.stdscr.insstr(0, 0, str(self.client.game_handler.map))
+                self.stdscr.insstr(0, 0, str(self.client.game_handler.map_environment))
 
             key = self.stdscr.getch()
             if key == curses.KEY_UP or key == ord("z"):
@@ -264,7 +266,9 @@ class CursesInterface(BaseUI):
                     continue
                 cmd, arg = msg
                 if cmd == b"MAP":
-                    self.client.game_handler = GameHandler(Map.from_json(arg))
+                    self.client.game_handler = GameHandler(
+                        MapEnvironment.from_json(arg)
+                    )
                     need_redraw = True
 
 

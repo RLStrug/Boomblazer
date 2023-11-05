@@ -5,18 +5,18 @@ Enumerations:
         Represents a cell content on the map
 
 Classes:
-    Map:
-        The current game map state
+    MapEnvironment:
+        The current game map environment state
 
 Type aliases:
-    MapDict:
-        Result of the conversion from a Map to a dict
-    MapMapping:
-        Mapping that can be used to create a Map
+    MapEnvironmentDict:
+        Result of the conversion from a MapEnvironment to a dict
+    MapEnvironmentMapping:
+        Mapping that can be used to create a MapEnvironment
 
 Exception classes:
-    MapError: Exception
-        Error raised when a Map intialization data is invalid
+    MapEnvironmentError: Exception
+        Error raised when a MapEnvironment intialization data is invalid
 """
 
 import json
@@ -40,8 +40,8 @@ from boomblazer.player import PlayerDict
 from boomblazer.player import PlayerMapping
 
 
-class MapError(Exception):
-    """Error raised when a Map intialization data is invalid
+class MapEnvironmentError(Exception):
+    """Error raised when a MapEnvironment intialization data is invalid
 
     This can happen if the map version number is missing, the map environment
     is too high or too large, the environment contains invalid cells, too many
@@ -58,18 +58,18 @@ class MapCellEnum(Enum):
     # fire = "*"  # fire created by an explosion
 
 
-MapMapping = Mapping[str, Union[
+MapEnvironmentMapping = Mapping[str, Union[
     int, Sequence[Sequence[str]], Sequence[PlayerMapping],
     Sequence[BombMapping]
 ]]
-MapDict = Dict[str, Union[
+MapEnvironmentDict = Dict[str, Union[
     int, List[List[str]], List[PlayerDict],
     List[BombDict]
 ]]
 
 
-class Map:
-    """Represents a game map current state
+class MapEnvironment:
+    """Represents a game map environment current state
 
     An instance of this class contains data about everything on the map.
     This includes players, bombs, fire blasts and the map environment.
@@ -101,16 +101,16 @@ class Map:
 
     Class methods:
         from_file:
-            Instanciates a Map from a file
+            Instanciates a MapEnvironment from a file
         from_dict:
-            Instanciates a Map from a dict
+            Instanciates a MapEnvironment from a dict
         from_json:
-            Instanciates a Map from json data
+            Instanciates a MapEnvironment from json data
 
     Special methods:
         __init__:
-            Initializes a game Map
-        __getitem__:
+            Initializes a game MapEnvironment
+        __getitem__Environment:
             Gets a cell from the current map environment state
         __setitem__:
             Sets a cell from the current map environment state
@@ -155,7 +155,7 @@ class Map:
             players: Iterable[Player], bombs: Optional[Iterable[Bomb]] = None,
             fires: Optional[Iterable[Fire]] = None
     ) -> None:
-        """Initializes a game Map
+        """Initializes a game MapEnvironment
 
         Parameters:
             version: int
@@ -186,28 +186,28 @@ class Map:
 
         # check size
         if len(self._state) > self.MAX_HEIGHT:
-            raise MapError("Map high as fuck")
+            raise MapEnvironmentError("Map high as fuck")
         if any(len(i) > self.MAX_WIDTH for i in self._state):
-            raise MapError("Map wide as your mama")
+            raise MapEnvironmentError("Map wide as your mama")
 
     # ---------------------------------------- #
     # IMPORT
     # ---------------------------------------- #
 
     @classmethod
-    def from_file(cls, map_filename: str, players: Iterable[Player]) -> "Map":
-        """Instanciates a Map from a file
+    def from_file(cls, map_filename: str, players: Iterable[Player]) -> "MapEnvironment":
+        """Instanciates a MapEnvironment from a file
 
         Used by the server when starting a new game
 
         Parameters:
             map_filename: str
-                Path to teh file containing the initial map data
+                Path to the file containing the initial map data
             players: Iterable[Player]
                 Players that joined the game
 
-        Return value: Map
-            A map instance initialized from the file
+        Return value: MapEnvironment
+            A MapEnvironment instance initialized from the file
         """
         with open(map_filename, "r", encoding="ascii") as map_file:
             data = map_file.read().splitlines()
@@ -215,20 +215,20 @@ class Map:
         # get version number
         version_tag = data.pop(0)
         if not version_tag.startswith("#V"):
-            raise MapError(
+            raise MapEnvironmentError(
                 "Map file must start with version number (e.g. '#V1')"
             )
         try:
             version_number = int(version_tag[2:])
         except ValueError as exc:
-            raise MapError("Version number should be a number... >:(") from exc
+            raise MapEnvironmentError("Version number should be a number... >:(") from exc
 
         # check content
         if any(
                 cell not in cls.__ALLOWED_CHARS
                 for row in data for cell in row
         ):
-            raise MapError("Bad characters in map")
+            raise MapEnvironmentError("Bad characters in map")
 
         # create state
         state: List[List[MapCellEnum]] = [
@@ -242,22 +242,22 @@ class Map:
 
         # create players
         if len(players) > len(cls.__SPAWN_CHARS):
-            raise MapError("Too many players")
+            raise MapEnvironmentError("Too many players")
         players: List[Player] = players
 
-        map_ = cls(version_number, state, players)
-        map_._init_players_position(data)
+        map_environment = cls(version_number, state, players)
+        map_environment._init_players_position(data)
 
-        return map_
+        return map_environment
 
     @classmethod
-    def from_dict(cls, data: MapMapping) -> "Map":
-        """Instanciates a Map from a dict
+    def from_dict(cls, data: MapEnvironmentMapping) -> "MapEnvironment":
+        """Instanciates a MapEnvironment from a dict
 
         Used as intermediate constructor from JSON data
 
         Parameters:
-            data: MapMapping
+            data: MapEnvironmentMapping
                 A mapping that should contain the following keys and values:
                     version: int
                         The map version number
@@ -270,8 +270,8 @@ class Map:
                     fires: Iterable[FireMapping]
                         The fire blasts currently raging
 
-        Return value: Map
-            A map instance initialized from data
+        Return value: MapEnvironment
+            A MapEnvironment instance initialized from data
         """
         state = [
             [
@@ -293,8 +293,8 @@ class Map:
         return cls(data["version"], state, players, bombs, fires)
 
     @classmethod
-    def from_json(cls, json_str: str, *args, **kwargs) -> "Map":
-        """Instanciates a Map from json data
+    def from_json(cls, json_str: str, *args, **kwargs) -> "MapEnvironment":
+        """Instanciates a MapEnvironment from json data
 
         Used when a client recieves an update from the server
 
@@ -306,8 +306,8 @@ class Map:
             **kwargs:
                 keyword arguments to pass to json.loads
 
-        Return value: Map
-            A map instance initialized from the JSON data
+        Return value: MapEnvironment
+            A MapEnvironment instance initialized from the JSON data
         """
         json_data = json.loads(json_str, *args, **kwargs)
         return cls.from_dict(json_data)
@@ -316,10 +316,10 @@ class Map:
     # EXPORT
     # ---------------------------------------- #
 
-    def to_dict(self) -> MapDict:
+    def to_dict(self) -> MapEnvironmentDict:
         """Returns the current instance data in the form of a dict
 
-        Return value: MapDict
+        Return value: MapEnvironmentDict
             A dictionary containing the map version number, the environment
             state, the living players, and the planted bombs
         """
@@ -341,7 +341,7 @@ class Map:
                 keyword arguments to pass to json.loads
 
         Return value: str
-            Serialized Map data as a JSON object
+            Serialized MapEnvironment data as a JSON object
         """
         return json.dumps(self.to_dict(), *args, **kwargs)
 
@@ -507,11 +507,11 @@ def __test_module() -> None:
 
     player_1 = Player("p1")
     player_2 = Player("p2")
-    map_1 = Map.from_file("res/maps/map.txt", [player_1, player_2])
+    map_1 = MapEnvironment.from_file("res/maps/map.txt", [player_1, player_2])
     print(map_1)
     json_map = map_1.to_json(indent=4)
     print(json_map)
-    map_2 = Map.from_json(json_map)
+    map_2 = MapEnvironment.from_json(json_map)
     print(map_2)
 
 

@@ -1,4 +1,4 @@
-"""Implements a game map environment
+"""Implements a network communication protocol fro the game
 
 Classes:
     Network:

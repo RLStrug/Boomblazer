@@ -23,7 +23,7 @@ from typing import Type
 
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map import Map
+from boomblazer.map_environment import MapEnvironment
 from boomblazer.network import AddressType
 from boomblazer.network import MessageType
 from boomblazer.network import Network
@@ -162,8 +162,10 @@ class Server:
         """
         self.wait_host()
         self.wait_players()
-        map_ = Map.from_file(self._map_filename, list(self.clients.values()))
-        self.game_handler = GameHandler(map_)
+        map_environment = MapEnvironment.from_file(
+            self._map_filename, list(self.clients.values())
+        )
+        self.game_handler = GameHandler(map_environment)
         self.launch_game()
 
     def wait_host(self) -> None:
@@ -231,7 +233,7 @@ class Server:
                 for player, action in self._player_actions.items()
             ]
 
-            self.game_handler.tick(*actions)
+            self.game_handler.tick(actions)
             self.send_map()
             self.reset_player_actions()
 
@@ -352,8 +354,8 @@ class Server:
     def send_map(self) -> None:
         """Sends the current map state
         """
-        map_ = self.game_handler.map.to_json().encode("utf8")
-        self.send_message(b"MAP", map_)
+        map_environment = self.game_handler.map_environment.to_json()
+        self.send_message(b"MAP", map_environment.encode("utf8"))
 
     # ---------------------------------------- #
     # CONTEXT MANAGER

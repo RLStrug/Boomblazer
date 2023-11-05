@@ -24,7 +24,7 @@ from typing import Sequence
 
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map import Map
+from boomblazer.map_environment import MapEnvironment
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR
 
@@ -149,9 +149,9 @@ class CommandLineInterface(BaseUI):
             for player in player_list:
                 print(f"\t{player}")
         elif cmd == b"MAP":
-            map_ = Map.from_json(arg)
+            map_environment = MapEnvironment.from_json(arg)
             print("\n" * shutil.get_terminal_size().lines)
-            print(map_)
+            print(map_environment)
         return False
 
 

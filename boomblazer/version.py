@@ -1,5 +1,4 @@
-"""
-Stores the software version of the game
+"""Stores the software version of the game
 
 Constants:
     VERSION: tuple[int, int, int]
