@@ -105,5 +105,6 @@ class Network:
             self.sock.sendto(msg, addr)
 
     def close(self) -> None:
-        """Closes the network connection"""
+        """Closes the network connection
+        """
         self.sock.close()

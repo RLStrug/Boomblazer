@@ -25,10 +25,11 @@ from typing import TYPE_CHECKING
 from typing import Union
 
 if TYPE_CHECKING:
-    from player import Player
+    from boomblazer.player import Player
 
 class BombError(Exception):
-    """Error raised when something goes wrong within a Bomb instance"""
+    """Error raised when something goes wrong within a Bomb instance
+    """
 
 
 BombDict = Dict[str, Union[str, Tuple[int, int], int]]

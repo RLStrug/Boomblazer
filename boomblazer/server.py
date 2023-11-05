@@ -21,18 +21,19 @@ from typing import Sequence
 from typing import Tuple
 from typing import Type
 
-from game_handler import GameHandler
-from game_handler import MoveActionEnum
-from map import Map
-from network import AddressType
-from network import MessageType
-from network import Network
-from player import Player
-from utils import create_logger
+from boomblazer.game_handler import GameHandler
+from boomblazer.game_handler import MoveActionEnum
+from boomblazer.map import Map
+from boomblazer.network import AddressType
+from boomblazer.network import MessageType
+from boomblazer.network import Network
+from boomblazer.player import Player
+from boomblazer.utils import create_logger
 
 
 class ServerError(Exception):
-    """Exception thrown when an error occurs in the server"""
+    """Exception thrown when an error occurs in the server
+    """
 
 
 # XXX Should this use a Network or inherit from it?
@@ -164,7 +165,8 @@ class Server:
         self.launch_game()
 
     def wait_host(self) -> None:
-        """Waits for the host to connect before accepting other clients"""
+        """Waits for the host to connect before accepting other clients
+        """
         self._logger.info("Waiting for host")
         while self.host is None:
             msg, addr = self.recv_message()
@@ -177,7 +179,8 @@ class Server:
                 self.add_player(addr, arg)
 
     def wait_players(self) -> None:
-        """Waits for players to connect until host launches game"""
+        """Waits for players to connect until host launches game
+        """
         self._logger.info("Waiting for players")
         ready_to_play = False
         while not ready_to_play:
@@ -216,7 +219,8 @@ class Server:
     # ---------------------------------------- #
 
     def tick(self):
-        """Updates the game environment every tick"""
+        """Updates the game environment every tick
+        """
         while self.game_is_running:
             start_time = time.monotonic()
 
@@ -235,11 +239,13 @@ class Server:
                 time.sleep(self.TICK_FREQUENCY - time_spent)
 
     def reset_player_actions(self):
-        """Resets players' commands after the end of the tick"""
+        """Resets players' commands after the end of the tick
+        """
         self._player_actions = {}
 
     def handle_players_inputs(self):
-        """Handle each player's action for current tick"""
+        """Handle each player's action for current tick
+        """
         while self.game_is_running:
             msg, addr = self.recv_message()
             if msg is None or addr not in self.clients:
@@ -325,7 +331,8 @@ class Server:
     # ---------------------------------------- #
 
     def send_players_list(self) -> None:
-        """Sends the list of connected players' name"""
+        """Sends the list of connected players' name
+        """
         players_list = json.dumps(
             [player.name for player in self.clients.values()]
         ).encode("utf8")
@@ -341,7 +348,8 @@ class Server:
         self.send_message(b"STOP", reason)
 
     def send_map(self) -> None:
-        """Sends the current map state"""
+        """Sends the current map state
+        """
         map_ = self.game_handler.map.to_json().encode("utf8")
         self.send_message(b"MAP", map_)
 
@@ -350,7 +358,8 @@ class Server:
     # ---------------------------------------- #
 
     def close(self) -> None:
-        """Closes the server"""
+        """Closes the server
+        """
         self.network.close()
         # XXX free game_handler, clients?
 

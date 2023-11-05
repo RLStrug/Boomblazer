@@ -23,10 +23,10 @@ from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
-from game_handler import GameHandler
-from game_handler import MoveActionEnum
-from map import Map
-from ui.base_ui import BaseUI
+from boomblazer.game_handler import GameHandler
+from boomblazer.game_handler import MoveActionEnum
+from boomblazer.map import Map
+from boomblazer.ui.base_ui import BaseUI
 
 
 class CursesInterface(BaseUI):
@@ -54,12 +54,18 @@ class CursesInterface(BaseUI):
     __slots__ = ("stdscr",)
 
     def __init__(self, stdscr: curses.window, *args, **kwargs) -> None:
-        """Initiates the curses user interface"""
+        """Initiates the curses user interface
+
+        Parameters:
+        stdscr: curses._CursesWindow
+            The screen controller
+        """
         super().__init__(*args, **kwargs)
         self.stdscr = stdscr
 
     def main_menu(self) -> None:
-        """Creates or joins the game and go to the lobby"""
+        """Creates or joins the game and go to the lobby
+        """
         waiting = True
         choices = enum.IntEnum(
             "MainMenuChoiceEnum",
@@ -148,11 +154,13 @@ class CursesInterface(BaseUI):
         self.lobby_menu()
 
     def create_menu(self) -> None:
-        """Gather server port, creates it, and joins it"""
+        """Gather server port, creates it, and joins it
+        """
         raise NotImplementedError("Cannot create game yet")
 
     def lobby_menu(self) -> None:
-        """Wait in lobby for host to start game"""
+        """Wait in lobby for host to start game
+        """
         waiting = True
         need_redraw = True
         if self.client.is_host:
@@ -219,7 +227,8 @@ class CursesInterface(BaseUI):
 
 
     def play_game(self) -> None:
-        """Sends player actions and displays game state"""
+        """Sends player actions and displays game state
+        """
         playing = True
         need_redraw = True
 

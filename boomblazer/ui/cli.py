@@ -22,9 +22,9 @@ from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
-from ui.base_ui import BaseUI
-from game_handler import MoveActionEnum
-from map import Map
+from boomblazer.ui.base_ui import BaseUI
+from boomblazer.game_handler import MoveActionEnum
+from boomblazer.map import Map
 
 
 class CommandLineInterface(BaseUI):
@@ -48,7 +48,8 @@ class CommandLineInterface(BaseUI):
     __slots__ = ()
 
     def __init__(self, *args, **kwargs) -> None:
-        """Initiates the command line user interface"""
+        """Initiates the command line user interface
+        """
         super().__init__(*args, **kwargs)
 
     def main_menu(self, args: argparse.Namespace) -> None:
@@ -80,7 +81,8 @@ class CommandLineInterface(BaseUI):
         self.play_game()
 
     def play_game(self) -> None:
-        """Sends player actions and displays game state"""
+        """Sends player actions and displays game state
+        """
         if self.client.is_host:
             print('Send "start" to start the game')
 

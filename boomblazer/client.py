@@ -13,12 +13,12 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
-from game_handler import GameHandler
-from game_handler import MoveActionEnum
-from network import AddressType
-from network import MessageType
-from network import Network
-from utils import create_logger
+from boomblazer.game_handler import GameHandler
+from boomblazer.game_handler import MoveActionEnum
+from boomblazer.network import AddressType
+from boomblazer.network import MessageType
+from boomblazer.network import Network
+from boomblazer.utils import create_logger
 
 
 class Client:

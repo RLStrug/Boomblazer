@@ -1,3 +1,6 @@
 __pycache__
 .ignore
 .mypy_cache
+.venv
+*.egg-info
+build

@@ -14,7 +14,8 @@ from typing import Tuple
 
 
 class FireError(Exception):
-    """Error raised when something goes wrong within a Fire instance"""
+    """Error raised when something goes wrong within a Fire instance
+    """
 
 
 class Fire:

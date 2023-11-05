@@ -21,11 +21,12 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from bomb import Bomb
+from boomblazer.bomb import Bomb
 
 
 class CannotDropBombError(Exception):
-    """Error raised when a Player tries to plant a bomb unsuccessfully"""
+    """Error raised when a Player tries to plant a bomb unsuccessfully
+    """
 
 
 PlayerDict = Dict[str, Union[str, Tuple[int, int], int]]
@@ -208,15 +209,18 @@ class Player:
         return Bomb(self.position, self, self._bomb_range)
 
     def increment_bomb_range(self) -> None:
-        """Makes the player's planted bombs have a larger blast range"""
+        """Makes the player's planted bombs have a larger blast range
+        """
         self._bomb_range += 1
 
     def increment_max_bomb_count(self) -> None:
-        """Allows the player to plant more bombs at the same time"""
+        """Allows the player to plant more bombs at the same time
+        """
         self._max_bomb_count += 1
 
     def decrement_current_bomb_count(self) -> None:
-        """Forces the player to plant less bombs at the same time"""
+        """Forces the player to plant less bombs at the same time
+        """
         self._current_bomb_count -= 1
 
     # ---------------------------------------- #

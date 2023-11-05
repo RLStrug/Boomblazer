@@ -21,16 +21,17 @@ from types import TracebackType
 from typing import Optional
 from typing import Type
 
-from client import Client
-from network import AddressType
-from server import Server
-from utils import create_logger
+from boomblazer.client import Client
+from boomblazer.network import AddressType
+from boomblazer.server import Server
+from boomblazer.utils import create_logger
 
 
 _LOCAL_ADDRESS = "127.0.0.1"
 
 class GameState(enum.Enum):
-    """Defines in what states the game currently is"""
+    """Defines in what states the game currently is
+    """
     MAIN_MENU = enum.auto()
     LOBBY = enum.auto()
     PLAYING = enum.auto()

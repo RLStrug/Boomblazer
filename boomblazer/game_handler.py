@@ -14,16 +14,17 @@ from typing import Iterable
 from typing import List
 from typing import Tuple
 
-from bomb import Bomb
-from fire import Fire
-from map import Map
-from map import MapCellEnum
-from player import CannotDropBombError
-from player import Player
+from boomblazer.bomb import Bomb
+from boomblazer.fire import Fire
+from boomblazer.map import Map
+from boomblazer.map import MapCellEnum
+from boomblazer.player import CannotDropBombError
+from boomblazer.player import Player
 
 
 class MoveActionEnum(Enum):
-    """Represents the movements performed by players"""
+    """Represents the movements performed by players
+    """
     DONT_MOVE = 0
     MOVE_UP = 1
     MOVE_DOWN = 2
@@ -249,7 +250,8 @@ class GameHandler:
 
 
 def __test_module() -> None:
-    """Test the correct behaviour of GameHandler"""
+    """Test the correct behaviour of GameHandler
+    """
 
     player_1 = Player("1")
     player_2 = Player("2", max_bomb_count=10)

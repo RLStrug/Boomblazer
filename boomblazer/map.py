@@ -30,13 +30,13 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from bomb import Bomb
-from bomb import BombDict
-from bomb import BombMapping
-from fire import Fire
-from player import Player
-from player import PlayerDict
-from player import PlayerMapping
+from boomblazer.bomb import Bomb
+from boomblazer.bomb import BombDict
+from boomblazer.bomb import BombMapping
+from boomblazer.fire import Fire
+from boomblazer.player import Player
+from boomblazer.player import PlayerDict
+from boomblazer.player import PlayerMapping
 
 
 class MapError(Exception):
@@ -49,7 +49,8 @@ class MapError(Exception):
 
 
 class MapCellEnum(Enum):
-    """Represents a cell content on the map"""
+    """Represents a cell content on the map
+    """
     WALL = "X"  # not destructible wall
     BOX = "+"  # destructible
     EMPTY = " "
@@ -492,7 +493,8 @@ class Map:
 
 
 def __test_module() -> None:
-    """Test the correct behaviour of GameHandler"""
+    """Test the correct behaviour of GameHandler
+    """
 
     player_1 = Player("p1")
     player_2 = Player("p2")

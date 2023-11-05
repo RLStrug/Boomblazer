@@ -27,9 +27,9 @@ Constants:
 import argparse
 import sys
 
-from version import VERSION_STR
-import server
-import ui
+from boomblazer import server
+from boomblazer import ui
+from boomblazer.version import VERSION_STR
 
 
 ####################
@@ -55,7 +55,9 @@ ui_mapping = {
 
 parser = argparse.ArgumentParser(prog="BoomBlazer")
 parser.add_argument("-V", "--version", action="version", version=version_text)
-parser.add_argument("ui", choices=ui_mapping.keys(), default="ncurses")
+parser.add_argument(
+    "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"
+)
 args, argv_rest = parser.parse_known_args()
 
 ####################
