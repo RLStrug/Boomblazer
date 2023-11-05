@@ -26,6 +26,7 @@ from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Mapping
+from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
@@ -150,8 +151,9 @@ class Map:
     __ALLOWED_CHARS = [e.value for e in MapCellEnum] + __SPAWN_CHARS
 
     def __init__(
-        self, version: int, state: Sequence[Sequence[MapCellEnum]],
-        bombs: Iterable[Bomb], players: Iterable[Player]
+            self, version: int, state: Sequence[Sequence[MapCellEnum]],
+            players: Iterable[Player], bombs: Optional[Iterable[Bomb]] = None,
+            fires: Optional[Iterable[Fire]] = None
     ) -> None:
         """Initializes a game Map
 
@@ -168,9 +170,13 @@ class Map:
         """
         self._version = version
         self._state = [list(row) for row in state]
-        self._bombs = list(bombs)
         self._players = list(players)
-        self._fires = []
+        if bombs is None:
+            bombs = []
+        self._bombs = list(bombs)
+        if fires is None:
+            fires = []
+        self._fires = list(fires)
 
         # check version
         if self._version != 1:
@@ -218,7 +224,10 @@ class Map:
             raise MapError("Version number should be a number... >:(") from exc
 
         # check content
-        if any(cell not in cls.__ALLOWED_CHARS for row in data for cell in row):
+        if any(
+                cell not in cls.__ALLOWED_CHARS
+                for row in data for cell in row
+        ):
             raise MapError("Bad characters in map")
 
         # create state
@@ -231,15 +240,12 @@ class Map:
             for row in data
         ]
 
-        # create bombs list
-        bombs: List[Bomb] = []
-
         # create players
         if len(players) > len(cls.__SPAWN_CHARS):
             raise MapError("Too many players")
         players: List[Player] = players
 
-        map_ = cls(version_number, state, bombs, players)
+        map_ = cls(version_number, state, players)
         map_._init_players_position(data)
 
         return map_
@@ -257,32 +263,34 @@ class Map:
                         The map version number
                     state: Sequence[Sequence[str]]
                         The map current environment state
-                    players: Iterable[Player]
+                    players: Iterable[PlayerMapping]
                         The currently living players
-                    bombs: Iterable[Bomb]
+                    bombs: Iterable[BombMapping]
                         The bombs currently planted
+                    fires: Iterable[FireMapping]
+                        The fire blasts currently raging
 
         Return value: Map
             A map instance initialized from data
         """
-        data2 = {
-            "version": data["version"],
-            "state": [
-                [
-                    MapCellEnum.EMPTY
-                    if cell in cls.__SPAWN_CHARS else MapCellEnum(cell)
-                    for cell in row
-                ]
-                for row in data["state"]
-            ],
-            "players": [Player.from_dict(p) for p in data["players"]],
-        }
-        # Bombs need to be attached to a player, so we need to reconstruct
-        # bombs after players
-        data2["bombs"] =  [
-            Bomb.from_dict(b, data2["players"]) for b in data["bombs"]
+        state = [
+            [
+                MapCellEnum.EMPTY
+                if cell in cls.__SPAWN_CHARS else MapCellEnum(cell)
+                for cell in row
+            ]
+            for row in data["state"]
         ]
-        return cls(**data2)
+        players = [
+            Player.from_dict(player) for player in data["players"]
+        ]
+        bombs = [
+            Bomb.from_dict(bomb, players) for bomb in data["bombs"]
+        ]
+        fires =  [
+            Fire.from_dict(fire) for fire in data["fires"]
+        ]
+        return cls(data["version"], state, players, bombs, fires)
 
     @classmethod
     def from_json(cls, json_str: str, *args, **kwargs) -> "Map":
@@ -318,8 +326,9 @@ class Map:
         return {
             "version": self._version,
             "state": [[cell.value for cell in row] for row in self._state],
-            "bombs": [bomb.to_dict() for bomb in self._bombs],
             "players": [player.to_dict() for player in self._players],
+            "bombs": [bomb.to_dict() for bomb in self._bombs],
+            "fires": [fire.to_dict() for fire in self._fires],
         }
 
     def to_json(self, *args, **kwargs) -> str:

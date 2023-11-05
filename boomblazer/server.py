@@ -114,7 +114,7 @@ class Server:
     )
 
     # TICK_FREQUENCY = 1/60
-    TICK_FREQUENCY = 1/2  # DEBUG
+    TICK_FREQUENCY = 1/30  # DEBUG
 
     def __init__(
             self, addr: AddressType, map_filename: Path, *,

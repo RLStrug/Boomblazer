@@ -89,10 +89,12 @@ class Bomb:
 
     __slots__ = ("_x", "_y", "_player", "_bomb_range", "_tick",)
 
-    BOMB_TICKS_DELAY: int = 30
+    BOMB_TICKS_DELAY = 30
 
-    def __init__(self, position: Sequence[int], player: "Player",
-            bomb_range: int) -> None:
+    def __init__(
+            self, position: Sequence[int], player: "Player",
+            bomb_range: int, tick: int = BOMB_TICKS_DELAY
+    ) -> None:
         """Initializes a newly planted bomb
 
         Parameters:
@@ -104,11 +106,10 @@ class Bomb:
             bomb_range:
                 The range of the explosion blast
         """
-        self._x: int = position[0]
-        self._y: int = position[1]
-        self._player: "Player" = player
-        self._bomb_range: int = bomb_range
-        self._tick: int = self.BOMB_TICKS_DELAY
+        self._x, self._y = position
+        self._player = player
+        self._bomb_range = bomb_range
+        self._tick = tick
 
     # ---------------------------------------- #
     # BOMB TICK
@@ -186,6 +187,8 @@ class Bomb:
                         The name of the player who planted the bomb
                     bomb_range: int
                         The range of the bomb blast
+                    tick: int
+                        The number of remaining ticks befaure explosion
             players_list: Iterable[Player]
                 The players present in the game. This is used to find the owner
                 of the bomb from the player's name
@@ -204,7 +207,7 @@ class Bomb:
         else:  # If the for loop finished without finding a matching player
             raise BombError(f"Cannot find owner of bomb ({data['player']})")
 
-        return cls(data["position"], player, data["bomb_range"])
+        return cls(data["position"], player, data["bomb_range"], data["tick"])
 
     # ---------------------------------------- #
     # EXPORT
@@ -213,11 +216,13 @@ class Bomb:
         """Returns the current instance data in the form of a dict
 
         Return value: BombDict
-            A dictionary containing the position, planter's name, and range of
-            the explosion blast of the bomb
+            A dictionary containing the position, planter's name, range of
+            the explosion blast of the bomb, and the number of ticks remaining
+            before the explosion
         """
         return {
             "position": self.position,
             "player": self.player.name,
             "bomb_range": self._bomb_range,
+            "tick": self._tick,
         }
