@@ -4,9 +4,6 @@ Entry point of the package
 Will either start a server or a client with UI depending on arguments
 
 Constants:
-    version_text: str
-        The message displayed when the user asks for the software version of
-        the game
     ui_mapping: dict[str, types.Moduletype]
         Associates a string with the module containing the server otr client UI
     parser: argparse.ArgumentParser
@@ -29,18 +26,13 @@ import sys
 
 from boomblazer import server
 from boomblazer import ui
+from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR
 
 
-####################
-# Program metadata
-####################
-
-version_text = f"BoomBlazer {VERSION_STR}"
-
-####################
+##########################################
 # Mapping helper to select the client UI
-####################
+##########################################
 
 ui_mapping = {
     "server": server,
@@ -54,15 +46,17 @@ ui_mapping = {
 ####################
 
 parser = argparse.ArgumentParser(prog="BoomBlazer")
-parser.add_argument("-V", "--version", action="version", version=version_text)
+parser.add_argument(
+    "-V", "--version", action="version", version=f"{GAME_NAME} {VERSION_STR}"
+)
 parser.add_argument(
     "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"
 )
 args, argv_rest = parser.parse_known_args()
 
-####################
+###############
 # Launch game
-####################
+###############
 
 program = ui_mapping[args.ui]
 if program is NotImplemented:

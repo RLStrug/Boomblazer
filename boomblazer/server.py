@@ -29,6 +29,8 @@ from boomblazer.network import MessageType
 from boomblazer.network import Network
 from boomblazer.player import Player
 from boomblazer.utils import create_logger
+from boomblazer.version import GAME_NAME
+from boomblazer.version import VERSION_STR
 
 
 class ServerError(Exception):
@@ -407,6 +409,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-q", "--quiet", action="store_true")
     parser.add_argument("--log-file", type=Path)
+    parser.add_argument(
+        "-V", "--version", action="version",
+        version=f"{GAME_NAME} {VERSION_STR}"
+    )
     parser.add_argument("address", nargs="?", default="0.0.0.0")
     parser.add_argument("port", type=int)
     parser.add_argument("map_filename", type=Path)

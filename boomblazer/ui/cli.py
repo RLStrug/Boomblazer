@@ -25,6 +25,8 @@ from typing import Sequence
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map import Map
+from boomblazer.version import GAME_NAME
+from boomblazer.version import VERSION_STR
 
 
 class CommandLineInterface(BaseUI):
@@ -160,10 +162,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         argv: Sequence[str] | None
             If None, uses command line arguments
     """
-    parser = argparse.ArgumentParser(prog="BoomBlazer cli")
+    parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-q", "--quiet", action="store_true")
     parser.add_argument("--log-file", type=Path)
+    parser.add_argument(
+        "-V", "--version", action="version",
+        version=f"{GAME_NAME} {VERSION_STR}"
+    )
     subparsers = parser.add_subparsers(dest="cmd")
 
     parser_host = subparsers.add_parser("host")
