@@ -136,9 +136,9 @@ class GameHandler:
             if move == MoveActionEnum.MOVE_UP:
                 new_player_position = (player_x, player_y - 1)
             elif move == MoveActionEnum.MOVE_DOWN:
-                new_player_position = (player_x, player_y - 1)
+                new_player_position = (player_x, player_y + 1)
             elif move == MoveActionEnum.MOVE_RIGHT:
-                new_player_position = (player_x - 1, player_y)
+                new_player_position = (player_x + 1, player_y)
             elif move == MoveActionEnum.MOVE_LEFT:
                 new_player_position = (player_x - 1, player_y)
 
