@@ -1,0 +1,21 @@
+#V1
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+X                                  F            X
+X                                               X
+X       A                                       X
+X                                               X
+X      +++++++++                                X
+X                                 C             X
+X                                               X
+X                                               X
+X         E                                     X
+X                  ++++++++++                   X
+X                                               X
+X                                               X
+X                          ++++++++++++++++++++ X
+X                                               X
+X                                     B         X
+X           D                                   X
+X                                               X
+X                                               X
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
