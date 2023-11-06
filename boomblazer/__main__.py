@@ -1,5 +1,4 @@
-"""
-Entry point of the package
+"""Entry point of the package when called as a module
 
 Will either start a server or a client with UI depending on arguments
 
