@@ -94,7 +94,7 @@ class MapEnvironment:
             The current map environment state
         _bombs: list[Bomb]
             The bombs currently planted on the map
-        _players[Player]
+        _players: list[Player]
             The currently living players
         _fires: list[Fire]
             The currently active fire blasts
