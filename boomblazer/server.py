@@ -379,7 +379,7 @@ class Server:
             self, exc_type: Optional[Type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
-    ) -> bool:
+    ) -> Optional[bool]:
         """Exits a context manager (with statement)
 
         Parameters:
@@ -393,9 +393,9 @@ class Server:
                 The traceback of the exception that occured during the context
                 management, or `None` if none occured
 
-        Return value: bool
-            Always returns `False`. This means that if an exception occurred,
-            it should be propagated, not ignored
+        Return value: Optional[bool]
+            Always returns `False` or `None`. This means that if an exception
+            occurred, it should be propagated, not ignored
         """
         self.close()
 
