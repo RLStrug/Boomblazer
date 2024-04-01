@@ -1,11 +1,17 @@
 """Implements a game client
 
+Exceptions:
+    GameOverError:
+        Exception raised when server tells the game is over
+
 Classes:
     Client:
         The implementation of a client
 """
 
 import logging
+import json
+import selectors
 from pathlib import Path
 from types import TracebackType
 from typing import Iterable
@@ -15,10 +21,16 @@ from typing import Type
 
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
+from boomblazer.map_environment import MapEnvironment
 from boomblazer.network import AddressType
 from boomblazer.network import MessageType
 from boomblazer.network import Network
 from boomblazer.utils import create_logger
+
+
+class GameOverError(Exception):
+    """Exception raised when server tells the game is over
+    """
 
 
 class Client:
@@ -52,6 +64,8 @@ class Client:
             Exits a context manager (with statement)
 
     Methods:
+        tick:
+            Updates the game environment every time the server sends a message
         recv_message:
             Recieves a message from the server hosting the game
         send_message:
@@ -109,7 +123,49 @@ class Client:
         self.network = Network(self._logger)
         self.username = username
         self.is_host = is_host
-        self.game_handler = None
+        self.game_handler = GameHandler()
+
+    # ---------------------------------------- #
+    # GAME
+    # ---------------------------------------- #
+
+    def tick(self, timeout: Optional[float] = None) -> bool:
+        """Updates the game environment every time the server sends a message
+
+        Parameters:
+            timeout: Optional[int]
+                If > 0, specifies the maximum wait time in seconds
+                If <= 0, return immediately if no message is available
+                If `None`, wait indefinitely until message is available
+
+        Return value: bool
+            `True` if the game environment has been updated
+            `False` if message was invalid or with no effect
+        """
+
+        sel = selectors.DefaultSelector()
+        sel.register(self.network.sock, selectors.EVENT_READ)
+        events = sel.select(timeout)
+
+        if events == []:
+            return False
+
+        msg, addr = self.recv_message()
+        if msg is None or addr != self.server_addr:
+            return False
+
+        cmd, arg = msg
+        if cmd == b"PLAYERS_LIST":
+            self.game_handler.map_environment.players = json.loads(arg)
+            return True
+        if cmd == b"MAP":
+            self.game_handler = GameHandler(
+                MapEnvironment.from_json(arg)
+            )
+            return True
+        if cmd == b"STOP":
+            raise GameOverError()
+        return False
 
     # ---------------------------------------- #
     # NETWORK WRAPPER
@@ -200,6 +256,7 @@ class Client:
     def close(self) -> None:
         """Closes the network connections
         """
+        self.send_quit()
         self.network.close()
         # XXX free game_handler?
 

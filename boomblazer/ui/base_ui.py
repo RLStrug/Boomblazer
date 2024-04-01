@@ -22,6 +22,7 @@ from typing import Optional
 from typing import Type
 
 from boomblazer.client import Client
+from boomblazer.client import GameOverError
 from boomblazer.network import AddressType
 from boomblazer.server import Server
 from boomblazer.utils import create_logger
@@ -43,11 +44,22 @@ class GameState(enum.Enum):
 class BaseUI(ABC):
     """The base class for client UIs
 
+    Class constants:
+        _MAX_CONNECT_TRIES: int
+            The number of times a client should try connecting to a server
+        _MAX_CONNECT_WAIT: float
+            The number of seconds a client should wait for server answer before
+            trying again to connect or giving up
+
     Members:
         _logger: logging.Logger
             Logs the messages of the UI
         client: Client
             The client associated with this UI
+        is_in_game: bool
+            Tells the local client and / or server that the game is over
+        is_game_state_updated: threading.Semaphore
+            Tells the UI that the game state has been updated
 
     Special methods:
         __init__:
@@ -69,8 +81,11 @@ class BaseUI(ABC):
     """
 
     __slots__ = (
-        "_logger", "client",
+        "_logger", "client", "is_in_game", "is_game_state_updated"
     )
+
+    _MAX_CONNECT_TRIES = 3
+    _MAX_CONNECT_WAIT = 3.0
 
     def __init__(
             self, *,
@@ -87,10 +102,31 @@ class BaseUI(ABC):
         """
         self._logger = create_logger(__name__, verbosity, log_file)
         self.client = None
+        self.is_in_game = False
+        self.is_game_state_updated = None
+
+    def _client_runner(self):
+        """Runs the client until game is over
+
+        Will release a semaphore token if game state was updated
+        """
+        try:
+            while self.is_in_game:
+                # Do not wait indefinitely in case game ended
+                if self.client.tick(1.0):
+                    # Try to consume the token first in case updating local
+                    # state is somehow slower than recieving updates from
+                    # network
+                    self.is_game_state_updated.acquire(blocking=False)
+                    self.is_game_state_updated.release()
+        except GameOverError:
+            self.is_in_game = False
+        self.client.close()
+
 
     def join_game(
             self, addr: AddressType, username: str, is_host: bool = False
-    ) -> None:
+    ) -> bool:
         """Joins a game
 
         Parameters:
@@ -100,11 +136,22 @@ class BaseUI(ABC):
                 The player's name
             is_host: bool
                 Specifies if this is the host client
+
+        Return value: bool
+            Indicates if joining was successful or not
         """
         self.client = Client(
             addr, username.encode("utf8"), is_host, logger=self._logger
         )
-        self.client.send_join()
+        for _ in range(self._MAX_CONNECT_TRIES):
+            self.client.send_join()
+            if self.client.tick(self._MAX_CONNECT_WAIT):
+                self.is_in_game = True
+                self.is_game_state_updated = threading.Semaphore()
+                threading.Thread(target=self._client_runner).start()
+                return True
+        self._logger.error("Failed to connect to %s:%d", addr[0], addr[1])
+        return False
 
     def create_game(self, *args, **kwargs) -> None:
         """Creates a game
@@ -135,9 +182,7 @@ class BaseUI(ABC):
     def close(self) -> None:
         """Closes the client
         """
-        if self.client is not None:
-            self.client.close()
-            self.client = None
+        self.is_in_game = False
 
     def __enter__(self) -> "BaseUI":
         """Enters a context manager (with statement)

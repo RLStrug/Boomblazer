@@ -12,6 +12,7 @@ Classes:
 from enum import Enum
 from typing import Iterable
 from typing import List
+from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
@@ -67,14 +68,19 @@ class GameHandler:
 
     __slots__ = ("_map_environment",)
 
-    def __init__(self, map_environment: MapEnvironment) -> None:
+    def __init__(
+            self, map_environment: Optional[MapEnvironment] = None
+    ) -> None:
         """Initializes a new game state
 
         Parameters:
             map_environment: MapEnvironment
                 The starting state of the game map
         """
-        self._map_environment = map_environment
+        if map_environment is None:
+            self._map_environment = MapEnvironment(0)
+        else:
+            self._map_environment = map_environment
 
     # ---------------------------------------- #
     # RUN GAME

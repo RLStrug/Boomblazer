@@ -43,7 +43,7 @@ class Server:
     """Server that clients can connect to.
 
     Class constants:
-        TICK_FREQUENCY: int
+        TICK_FREQUENCY: float
             The frequency at which the game updates
 
     Members:
@@ -364,6 +364,7 @@ class Server:
     def close(self) -> None:
         """Closes the server
         """
+        self.send_stop_game("Server closing")
         self.network.close()
         # XXX free game_handler, clients?
 

@@ -90,29 +90,17 @@ class CommandLineInterface(BaseUI):
 
         sel = selectors.DefaultSelector()
         sel.register(sys.stdin, selectors.EVENT_READ)
-        sel.register(self.client.network.sock, selectors.EVENT_READ)
 
-        while True:
-            events = sel.select()
-            for key, _ in events:
-                if key.fileobj == sys.stdin:
-                    cmd = input()
-                    if self.handle_user_input(cmd):
-                        return
-                else:
-                    msg, addr = self.client.recv_message()
-                    if msg is None or addr != self.client.server_addr:
-                        continue
+        while self.is_in_game:
+            event = sel.select(0)  # [] if no event
+            if event:
+                cmd = input()
+                self.handle_user_input(cmd)
+            elif self.is_game_state_updated.acquire(blocking=False):
+                self.handle_network_input()
 
-                    cmd, arg = msg
-                    if self.handle_network_input(cmd, arg):
-                        return
-
-    def handle_user_input(self, cmd: str) -> bool:
+    def handle_user_input(self, cmd: str) -> None:
         """Sends user input to server as player actions
-
-        Return value: bool
-            True if game over, False otherwise
         """
         if cmd == "start":
             self.client.send_start()
@@ -128,31 +116,20 @@ class CommandLineInterface(BaseUI):
             self.client.send_plant_bomb()
         elif cmd == "quit":
             self.client.send_quit()
-            return True
+            self.is_in_game = False
         else:
             print("up: z ; down: s ; left: q ; right: d ; bomb: b ; quit")
-        return False
 
-    def handle_network_input(self, cmd: bytes, arg: bytes) -> bool:
+    def handle_network_input(self) -> None:
         """Recieves game info from the server
-
-        Return value: bool
-            True if game over, False otherwise
         """
-        if cmd == b"STOP":
-            print(arg)
-            return True
-
-        if cmd == b"PLAYERS_LIST":
-            player_list = json.loads(arg)
+        if self.client.game_handler.map_environment.version == 0:
             print("Players:")
-            for player in player_list:
+            for player in self.client.game_handler.map_environment.players:
                 print(f"\t{player}")
-        elif cmd == b"MAP":
-            map_environment = MapEnvironment.from_json(arg)
+        else:
             print("\n" * shutil.get_terminal_size().lines)
-            print(map_environment)
-        return False
+            print(self.client.game_handler.map_environment)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

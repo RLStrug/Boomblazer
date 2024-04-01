@@ -118,6 +118,10 @@ class MapEnvironment:
             Returns a printable representation of the map environment state
 
     Methods:
+        _init_v0:
+            Initializes a list of players without environment data
+        _init_v1:
+            Initializes a game MapEnvironment version 1
         to_dict:
             Returns the current instance data in the form of a dict
         to_json:
@@ -130,6 +134,8 @@ class MapEnvironment:
             Move players to their respective spawn points
 
     Properties:
+        version (read-only:
+            The map version number
         state:
             The current map environment state
         bombs:
@@ -151,8 +157,10 @@ class MapEnvironment:
     __ALLOWED_CHARS = [e.value for e in MapCellEnum] + __SPAWN_CHARS
 
     def __init__(
-            self, version: int, state: Sequence[Sequence[MapCellEnum]],
-            players: Iterable[Player], bombs: Optional[Iterable[Bomb]] = None,
+            self, version: int,
+            state: Optional[Sequence[Sequence[MapCellEnum]]] = None,
+            players: Optional[Iterable[Player]] = None,
+            bombs: Optional[Iterable[Bomb]] = None,
             fires: Optional[Iterable[Fire]] = None
     ) -> None:
         """Initializes a game MapEnvironment
@@ -169,6 +177,52 @@ class MapEnvironment:
                 The currently living players
         """
         self._version = version
+        self._state = None
+        self._players = None
+        self._bombs = None
+        self._fires = None
+
+        # check version
+        if self._version == 0:
+            # Only contains the players list
+            self._init_v0(players)
+        elif self._version == 1:
+            self._init_v1(state, players, bombs, fires)
+        else:
+            raise NotImplementedError(
+                f"Map version {version} is not implemented yet"
+            )
+
+    def _init_v0(self, players: Iterable[Player]) -> None:
+        """Initializes a list of players without environment data
+
+        Parameters:
+            players: Iterable[Player]
+                The currently living players
+        """
+        if players is None:
+            players = []
+        self._players = list(players)
+
+    def _init_v1(
+            self, state: Sequence[Sequence[MapCellEnum]],
+            players: Iterable[Player], bombs: Optional[Iterable[Bomb]] = None,
+            fires: Optional[Iterable[Fire]] = None
+    ) -> None:
+        """Initializes a MapEnvironment version 1
+
+        Parameters:
+            state: Sequence[Sequence[MapCellEnum]]
+                The current map environment state
+            bombs: Iterable[Bomb]
+                The bombs currently planted on the map
+            players: Iterable[Player]
+                The currently living players
+        """
+        if state is None or players is None:
+            raise MapEnvironmentError(
+                "Version 1 needs a state and a player list"
+            )
         self._state = [list(row) for row in state]
         self._players = list(players)
         if bombs is None:
@@ -178,17 +232,12 @@ class MapEnvironment:
             fires = []
         self._fires = list(fires)
 
-        # check version
-        if self._version != 1:
-            raise NotImplementedError(
-                "Map version other than 1 is not implemented yet"
-            )
-
         # check size
         if len(self._state) > self.MAX_HEIGHT:
             raise MapEnvironmentError("Map high as fuck")
         if any(len(i) > self.MAX_WIDTH for i in self._state):
             raise MapEnvironmentError("Map wide as your mama")
+
 
     # ---------------------------------------- #
     # IMPORT
@@ -370,6 +419,18 @@ class MapEnvironment:
                 The new value of the selected cell
         """
         self._state[position[1]][position[0]] = value
+
+    # ---------------------------------------- #
+    # VERSION
+    # ---------------------------------------- #
+    @property
+    def version(self) -> int:
+        """Returns the map version number
+
+        Return value: int
+            The map version number
+        """
+        return self._version
 
     # ---------------------------------------- #
     # BOMBS

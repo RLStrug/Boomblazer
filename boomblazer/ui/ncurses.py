@@ -152,8 +152,12 @@ class CursesInterface(BaseUI):
         address = textboxes[choices.ADDRESS].gather().strip()
         port = int(textboxes[choices.PORT].gather())
         name = textboxes[choices.NAME].gather().strip()
-        self.join_game((address, port), name, is_host=is_host)
-        self.lobby_menu()
+
+        self.stdscr.clear()
+        self.stdscr.insstr(0, 0, f"Connecting to {address}:{port}")
+
+        if self.join_game((address, port), name, is_host=is_host):
+            self.lobby_menu()
 
     def create_menu(self) -> None:
         """Gather server port, creates it, and joins it
@@ -180,17 +184,17 @@ class CursesInterface(BaseUI):
             )
             labels = ("Exit",)
         current_choice = choices(0)
-        players_list = []
+        players_list = self.client.game_handler.map_environment.players
 
         self.stdscr.nodelay(True)  # User input is non blocking
-        sel = selectors.DefaultSelector()
-        sel.register(self.client.network.sock, selectors.EVENT_READ)
 
-        while waiting:
+        while self.client.game_handler.map_environment.version == 0:
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
-                for idx, player_name in enumerate(players_list):
+                for idx, player_name in enumerate(
+                        self.client.game_handler.map_environment.players
+                ):
                     self.stdscr.insstr(idx, 0, player_name)
                 for idx, label in enumerate(labels):
                     self.stdscr.insstr(
@@ -212,20 +216,10 @@ class CursesInterface(BaseUI):
                 self.client.send_start()
             current_choice = choices(current_choice % len(choices))
 
-            # For each message recieved from the server
-            for _ in sel.select(0):  # 0 = Non blocking
-                msg, addr = self.client.recv_message()
-                if msg is None or addr != self.client.server_addr:
-                    continue
-                cmd, arg = msg
-                if cmd == b"PLAYERS_LIST":
-                    players_list = json.loads(arg)
-                    need_redraw = True
-                elif cmd == b"MAP":
-                    self.client.game_handler = GameHandler(
-                        MapEnvironment.from_json(arg)
-                    )
-                    waiting = False
+            if self.is_game_state_updated.acquire(blocking=False):
+                need_redraw = True
+            if not self.is_in_game:
+                return
         self.play_game()
         self.stdscr.nodelay(False)  # User input is blocking
 
@@ -233,13 +227,9 @@ class CursesInterface(BaseUI):
     def play_game(self) -> None:
         """Sends player actions and displays game state
         """
-        playing = True
         need_redraw = True
 
-        sel = selectors.DefaultSelector()
-        sel.register(self.client.network.sock, selectors.EVENT_READ)
-
-        while playing:
+        while self.is_in_game:
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
@@ -257,19 +247,10 @@ class CursesInterface(BaseUI):
             elif key == ord("\n") or key == ord("b"):
                 self.client.send_plant_bomb()
             elif key == ord("Q"):
-                return
+                self.is_in_game = False
 
-            # For each message recieved from the server
-            for _ in sel.select(0):  # 0 = Non blocking
-                msg, addr = self.client.recv_message()
-                if msg is None or addr != self.client.server_addr:
-                    continue
-                cmd, arg = msg
-                if cmd == b"MAP":
-                    self.client.game_handler = GameHandler(
-                        MapEnvironment.from_json(arg)
-                    )
-                    need_redraw = True
+            if self.is_game_state_updated.acquire(blocking=False):
+                need_redraw = True
 
 
 def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
