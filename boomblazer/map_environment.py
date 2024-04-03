@@ -374,7 +374,9 @@ class MapEnvironment:
         """
         return {
             "version": self._version,
-            "state": [[cell.value for cell in row] for row in self._state],
+            "state": [
+                "".join(cell.value for cell in row) for row in self._state
+            ],
             "players": [player.to_dict() for player in self._players],
             "bombs": [bomb.to_dict() for bomb in self._bombs],
             "fires": [fire.to_dict() for fire in self._fires],

@@ -114,7 +114,7 @@ class Server:
     )
 
     # TICK_FREQUENCY = 1/60
-    TICK_FREQUENCY = 1/30  # DEBUG
+    TICK_FREQUENCY = 1/3  # DEBUG
 
     def __init__(
             self, addr: AddressType, map_filename: Path, *,
@@ -268,6 +268,8 @@ class Server:
                     self._player_actions[player] = (False, MoveActionEnum.MOVE_RIGHT)
             elif cmd == b"BOMB":
                 self._player_actions[player] = (True, MoveActionEnum.DONT_MOVE)
+            elif cmd == b"QUIT":
+                self.remove_player(addr)
 
 
     # ---------------------------------------- #
@@ -296,13 +298,18 @@ class Server:
             addr:
                 The player's IP and port
         """
-        if addr == self.host:
-            self.send_stop_game(b"Host disconnected")
-            # TODO close server thread
-        elif addr in self.clients:
+        player = self.clients[addr]
+        if addr in self.clients:
+            self.game_handler.map_environment.players.remove(player)
             del self.clients[addr]
-            self.send_players_list()
-            # TODO remove player from game handler
+        if addr == self.host:
+            pass
+            # TODO select new host or close server?
+            # self.send_stop_game(b"Host disconnected")
+        if len(self.clients) == 0:
+            self.close()
+
+        self.send_players_list()
 
     # ---------------------------------------- #
     # NETWORK WRAPPER
@@ -350,12 +357,16 @@ class Server:
                 The reason why the server closes
         """
         self.send_message(b"STOP", reason)
+        self.game_is_running = False
 
     def send_map(self) -> None:
         """Sends the current map state
         """
-        map_environment = self.game_handler.map_environment.to_json()
-        self.send_message(b"MAP", map_environment.encode("utf8"))
+        map_environment = self.game_handler.map_environment
+        self.send_message(
+            b"MAP",
+            map_environment.to_json(separators=(',',':')).encode("utf8")
+        )
 
     # ---------------------------------------- #
     # CONTEXT MANAGER
@@ -364,7 +375,8 @@ class Server:
     def close(self) -> None:
         """Closes the server
         """
-        self.send_stop_game("Server closing")
+        self.game_is_running = False
+        self.send_stop_game(b"Server closing")
         self.network.close()
         # XXX free game_handler, clients?
 
