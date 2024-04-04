@@ -2,7 +2,7 @@
 
 Classes:
     Bomb:
-        The implementation of a bomb
+        Implements a bomb that will explode after a fixed amount of time
 
 Type aliases:
     BombDict:
@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING
 from typing import Union
 
 if TYPE_CHECKING:
-    from boomblazer.player import Player
+    from boomblazer.entity.player import Player
 
 class BombError(Exception):
     """Error raised when something goes wrong within a Bomb instance

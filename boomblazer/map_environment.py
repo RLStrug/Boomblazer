@@ -31,13 +31,13 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from boomblazer.bomb import Bomb
-from boomblazer.bomb import BombDict
-from boomblazer.bomb import BombMapping
-from boomblazer.fire import Fire
-from boomblazer.player import Player
-from boomblazer.player import PlayerDict
-from boomblazer.player import PlayerMapping
+from boomblazer.entity.bomb import Bomb
+from boomblazer.entity.bomb import BombDict
+from boomblazer.entity.bomb import BombMapping
+from boomblazer.entity.fire import Fire
+from boomblazer.entity.player import Player
+from boomblazer.entity.player import PlayerDict
+from boomblazer.entity.player import PlayerMapping
 
 
 class MapEnvironmentError(Exception):

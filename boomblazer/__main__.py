@@ -23,7 +23,7 @@ Constants:
 import argparse
 import sys
 
-from boomblazer import server
+from boomblazer.network import server
 from boomblazer import ui
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR

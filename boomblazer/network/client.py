@@ -6,7 +6,7 @@ Exceptions:
 
 Classes:
     Client:
-        The implementation of a client
+        Implements client side of the network protocol
 """
 
 import logging
@@ -22,9 +22,9 @@ from typing import Type
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
-from boomblazer.network import AddressType
-from boomblazer.network import MessageType
-from boomblazer.network import Network
+from boomblazer.network.network import AddressType
+from boomblazer.network.network import MessageType
+from boomblazer.network.network import Network
 from boomblazer.utils import create_logger
 
 
@@ -34,7 +34,7 @@ class GameOverError(Exception):
 
 
 class Client:
-    """The implementation of a client that sends and recieves to/from a server
+    """Implements client side of the network protocol
 
     This class handles all the communication from the player to the server
     hosting the game. It translates the player's actions performed through the

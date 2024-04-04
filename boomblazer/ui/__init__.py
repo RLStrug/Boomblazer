@@ -9,10 +9,12 @@ Submodules:
         Implements a curses interface
 """
 
+from . import base_ui
 from . import cli
 from . import ncurses
 
 __all__ = [
+    "base_ui",
     "cli",
     "ncurses",
 ]

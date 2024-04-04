@@ -16,12 +16,12 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
-from boomblazer.bomb import Bomb
-from boomblazer.fire import Fire
+from boomblazer.entity.bomb import Bomb
+from boomblazer.entity.fire import Fire
 from boomblazer.map_environment import MapEnvironment
 from boomblazer.map_environment import MapCellEnum
-from boomblazer.player import CannotDropBombError
-from boomblazer.player import Player
+from boomblazer.entity.player import CannotDropBombError
+from boomblazer.entity.player import Player
 
 
 class MoveActionEnum(Enum):

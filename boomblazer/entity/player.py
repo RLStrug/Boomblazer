@@ -21,7 +21,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from boomblazer.bomb import Bomb
+from boomblazer.entity.bomb import Bomb
 
 
 class CannotDropBombError(Exception):

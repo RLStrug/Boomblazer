@@ -1,8 +1,8 @@
-"""Implements a network communication protocol fro the game
+"""Implements a network communication protocol for the game
 
 Classes:
     Network:
-        Game network protocol
+        Base class for game network connection
 
 Constants:
     _SEPARATOR: bytes
@@ -27,7 +27,7 @@ AddressType = Tuple[str, int]  # (address, port)
 _SEPARATOR = b":"
 
 class Network:
-    """Game network protocol
+    """Base class for game network connection
 
     Members:
         sock: socket.socket

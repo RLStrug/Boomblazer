@@ -1,8 +1,9 @@
-"""Implements the explosion fire in the game
+"""Implements the explosion fire blast in the game
 
 Classes:
     Fire:
-        The implementation of fire blast resulting from a Bomb explosion
+        Implements a fire blast resulting from a bomb explosion that will
+        dissipate after a fixed amount of time
 
 Type aliases:
     FireDict:

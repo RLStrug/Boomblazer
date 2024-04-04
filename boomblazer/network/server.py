@@ -1,8 +1,8 @@
-"""Implements a game client
+"""Implements a game server
 
 Classes:
     Server:
-        Server that clients can connect to.
+        Implements server side of the network protocol
 
 Exception classes:
     ServerError: Exception
@@ -24,10 +24,10 @@ from typing import Type
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
-from boomblazer.network import AddressType
-from boomblazer.network import MessageType
-from boomblazer.network import Network
-from boomblazer.player import Player
+from boomblazer.network.network import AddressType
+from boomblazer.network.network import MessageType
+from boomblazer.network.network import Network
+from boomblazer.entity.player import Player
 from boomblazer.utils import create_logger
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR
@@ -40,7 +40,7 @@ class ServerError(Exception):
 
 # XXX Should this use a Network or inherit from it?
 class Server:
-    """Server that clients can connect to.
+    """Implements server side of the network protocol
 
     Class constants:
         TICK_FREQUENCY: float
