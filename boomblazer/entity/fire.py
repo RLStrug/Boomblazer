@@ -23,6 +23,8 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
+from boomblazer.config import config
+
 
 class FireError(Exception):
     """Error raised when something goes wrong within a Fire instance
@@ -38,10 +40,6 @@ class Fire:
 
     When a fire blast is instanciated, it will automatically disspate after a
     fixed amount of game ticks. It will kill players that cross its path.
-
-    Class constants:
-        FIRE_TICKS_DELAY: int
-            The amount of ticks after which the fire blast dissipates
 
     Members:
         _x: int
@@ -73,10 +71,9 @@ class Fire:
             The number of game ticks left before the fire blast dissipates
     """
 
-    FIRE_TICKS_DELAY: int = 5
-
     def __init__(
-            self, position: Tuple[int, int], tick: int = FIRE_TICKS_DELAY
+            self, position: Tuple[int, int],
+            tick: int = config.server.fire_timer_ticks
     ) -> None:
         """Initializes a new fire blast
 

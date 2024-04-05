@@ -5,6 +5,8 @@ Submodules:
         Implements the bombs in the game
     client:
         Implements a game client
+    config:
+        Game configuration variables
     fire:
         Implements the explosion fire in the game
     game_handler:
@@ -25,6 +27,7 @@ Submodules:
         Stores the software version of the game
 """
 
+from . import config
 from . import entity
 from . import game_handler
 from . import map_environment
@@ -34,6 +37,7 @@ from . import utils
 from . import version
 
 __all__ = [
+    "config",
     "entity",
     "game_handler",
     "map_environment",

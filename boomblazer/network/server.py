@@ -21,6 +21,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Type
 
+from boomblazer.config import config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -41,10 +42,6 @@ class ServerError(Exception):
 # XXX Should this use a Network or inherit from it?
 class Server:
     """Implements server side of the network protocol
-
-    Class constants:
-        TICK_FREQUENCY: float
-            The frequency at which the game updates
 
     Members:
         game_handler: GameHandler
@@ -112,9 +109,6 @@ class Server:
         "game_handler", "network", "clients", "host", "_map_filename",
         "_logger", "is_self_hosted", "game_is_running", "_player_actions",
     )
-
-    # TICK_FREQUENCY = 1/60
-    TICK_FREQUENCY = 1/3  # DEBUG
 
     def __init__(
             self, addr: AddressType, map_filename: Path, *,
@@ -239,8 +233,8 @@ class Server:
 
             end_time = time.monotonic()
             time_spent = end_time - start_time
-            if time_spent < self.TICK_FREQUENCY:
-                time.sleep(self.TICK_FREQUENCY - time_spent)
+            if time_spent < config.server.tick_frequency:
+                time.sleep(config.server.tick_frequency - time_spent)
 
     def reset_player_actions(self):
         """Resets players' commands after the end of the tick
@@ -291,22 +285,26 @@ class Server:
     def remove_player(self, addr: AddressType) -> None:
         """Removes a player from the clients list
 
-        If the client was the host, close the server
+        If the client was the host, close the server???
         Else, send all players the updated players list
 
         Parameters:
             addr:
                 The player's IP and port
         """
-        player = self.clients[addr]
         if addr in self.clients:
-            self.game_handler.map_environment.players.remove(player)
+            # If players are not in the game yet (lobby)
+            if self.game_handler is not None:
+                player = self.clients[addr]
+                # If player not dead yet
+                if player in self.game_handler.map_environment.players:
+                    self.game_handler.map_environment.players.remove(player)
             del self.clients[addr]
         if addr == self.host:
             pass
             # TODO select new host or close server?
             # self.send_stop_game(b"Host disconnected")
-        if len(self.clients) == 0:
+        if len(self.clients) == 0 and self.game_is_running:
             self.close()
 
         self.send_players_list()

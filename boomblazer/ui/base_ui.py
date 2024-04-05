@@ -21,6 +21,7 @@ from types import TracebackType
 from typing import Optional
 from typing import Type
 
+from boomblazer.config import config
 from boomblazer.network.client import Client
 from boomblazer.network.client import GameOverError
 from boomblazer.network.network import AddressType
@@ -43,13 +44,6 @@ class GameState(enum.Enum):
 
 class BaseUI(ABC):
     """The base class for client UIs
-
-    Class constants:
-        _MAX_CONNECT_TRIES: int
-            The number of times a client should try connecting to a server
-        _MAX_CONNECT_WAIT: float
-            The number of seconds a client should wait for server answer before
-            trying again to connect or giving up
 
     Members:
         _logger: logging.Logger
@@ -83,9 +77,6 @@ class BaseUI(ABC):
     __slots__ = (
         "_logger", "client", "is_in_game", "is_game_state_updated"
     )
-
-    _MAX_CONNECT_TRIES = 3
-    _MAX_CONNECT_WAIT = 3.0
 
     def __init__(
             self, *,
@@ -143,9 +134,9 @@ class BaseUI(ABC):
         self.client = Client(
             addr, username.encode("utf8"), is_host, logger=self._logger
         )
-        for _ in range(self._MAX_CONNECT_TRIES):
+        for _ in range(config.client.max_connect_tries):
             self.client.send_join()
-            if self.client.tick(self._MAX_CONNECT_WAIT):
+            if self.client.tick(config.client.max_connect_wait):
                 self.is_in_game = True
                 self.is_game_state_updated = threading.Semaphore()
                 threading.Thread(target=self._client_runner).start()

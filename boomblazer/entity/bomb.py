@@ -24,8 +24,11 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
+from boomblazer.config import config
+
 if TYPE_CHECKING:
     from boomblazer.entity.player import Player
+
 
 class BombError(Exception):
     """Error raised when something goes wrong within a Bomb instance
@@ -41,10 +44,6 @@ class Bomb:
 
     When a bomb is instanciated, it will automatically explode after a fixed
     amount of game ticks. It will destroy boxes and kill players in its blast.
-
-    Class constants:
-        BOMB_TICKS_DELAY: int
-            The amount of ticks after which a new bomb will explode
 
     Members:
         _x: int
@@ -89,11 +88,9 @@ class Bomb:
 
     __slots__ = ("_x", "_y", "_player", "_bomb_range", "_tick",)
 
-    BOMB_TICKS_DELAY = 30
-
     def __init__(
             self, position: Sequence[int], player: "Player",
-            bomb_range: int, tick: int = BOMB_TICKS_DELAY
+            bomb_range: int, tick: int = config.server.bomb_timer_ticks
     ) -> None:
         """Initializes a newly planted bomb
 

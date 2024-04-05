@@ -21,6 +21,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
+from boomblazer.config import config
 from boomblazer.entity.bomb import Bomb
 
 
@@ -35,13 +36,6 @@ PlayerMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 class Player:
     """Represents a game player
-
-    Class constants:
-        MAX_BOMB_COUNT_START: int
-            The initial maximum amount of bombs a player can plant at the same
-            time
-        BOMB_RANGE_START: int
-            The initial range of a bomb explosion blast
 
     Members:
         _name: str
@@ -95,13 +89,10 @@ class Player:
         "_bomb_range",
     )
 
-    MAX_BOMB_COUNT_START = 1
-    BOMB_RANGE_START = 2
-
     def __init__(self, name: str, position: Tuple[int, int] = (0, 0), *,
-            max_bomb_count: int = MAX_BOMB_COUNT_START,
+            max_bomb_count: int = config.server.player_bomb_count,
             current_bomb_count: int = 0,
-            bomb_range: int = BOMB_RANGE_START
+            bomb_range: int = config.server.player_bomb_range
     ) -> None:
         """Initialize the player data
 

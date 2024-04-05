@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
+from boomblazer.config import config
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -86,7 +87,15 @@ class CommandLineInterface(BaseUI):
         """Sends player actions and displays game state
         """
         if self.client.is_host:
-            print('Send "start" to start the game')
+            print(f'Send "{config.cli.start_cmds[0]}" to start the game')
+        print(
+            f"up: {config.cli.up_cmds[0]} ; "
+            f"down: {config.cli.down_cmds[0]} ; "
+            f"left: {config.cli.left_cmds[0]} ; "
+            f"right: {config.cli.right_cmds[0]} ; "
+            f"bomb: {config.cli.bomb_cmds[0]} ; "
+            f"quit: {config.cli.quit_cmds[0]}"
+        )
 
         sel = selectors.DefaultSelector()
         sel.register(sys.stdin, selectors.EVENT_READ)
@@ -102,23 +111,21 @@ class CommandLineInterface(BaseUI):
     def handle_user_input(self, cmd: str) -> None:
         """Sends user input to server as player actions
         """
-        if cmd == "start":
+        if cmd in config.cli.start_cmds:
             self.client.send_start()
-        elif cmd == "z":
+        elif cmd in config.cli.up_cmds:
             self.client.send_move(MoveActionEnum.MOVE_UP)
-        elif cmd == "s":
+        elif cmd in config.cli.down_cmds:
             self.client.send_move(MoveActionEnum.MOVE_DOWN)
-        elif cmd == "q":
+        elif cmd in config.cli.left_cmds:
             self.client.send_move(MoveActionEnum.MOVE_LEFT)
-        elif cmd == "d":
+        elif cmd in config.cli.right_cmds:
             self.client.send_move(MoveActionEnum.MOVE_RIGHT)
-        elif cmd == "b":
+        elif cmd in config.cli.bomb_cmds:
             self.client.send_plant_bomb()
-        elif cmd == "quit":
+        elif cmd in config.cli.quit_cmds:
             self.client.send_quit()
             self.is_in_game = False
-        else:
-            print("up: z ; down: s ; left: q ; right: d ; bomb: b ; quit")
 
     def handle_network_input(self) -> None:
         """Recieves game info from the server
