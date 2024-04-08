@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Implements a curses interface
 
 This file can be run as a script.
@@ -23,6 +24,7 @@ from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
+from boomblazer.argument_parser import base_parser
 from boomblazer.config import config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
@@ -280,14 +282,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         argv: Sequence[str] | None
             If None, uses command line arguments
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--verbose", action="count", default=0)
-    parser.add_argument("-q", "--quiet", action="store_true")
-    parser.add_argument("--log-file", type=Path)
-    parser.add_argument(
-        "-V", "--version", action="version",
-        version=f"{GAME_NAME} {VERSION_STR}"
-    )
+    parser = argparse.ArgumentParser(parents=[base_parser])
     args = parser.parse_args(argv)
 
     return curses.wrapper(c_main, args)

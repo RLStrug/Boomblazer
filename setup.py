@@ -10,7 +10,7 @@ setup(
     description="Game inspired by bomberman",
     author="Sylvain Marcuzzi, Lucas Perez",
     url="https://github.com/RLStrug/Boomblazer",
-    license="GPL3",
+    license="GNU Affero GPL3",
     keywords="game multiplayer network bomberman",
     packages=find_packages(),
     install_requires=[

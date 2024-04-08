@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Entry point of the package when called as a module
 
 Will either start a server or a client with UI depending on arguments
@@ -44,14 +45,14 @@ ui_mapping = {
 # Argument parsing
 ####################
 
-parser = argparse.ArgumentParser(prog="BoomBlazer")
+parser = argparse.ArgumentParser()
 parser.add_argument(
     "-V", "--version", action="version", version=f"{GAME_NAME} {VERSION_STR}"
 )
 parser.add_argument(
     "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"
 )
-args, argv_rest = parser.parse_known_args()
+args = parser.parse_args(sys.argv[1:2])  # Only parse the first argument
 
 ###############
 # Launch game
@@ -61,6 +62,6 @@ program = ui_mapping[args.ui]
 if program is NotImplemented:
     raise NotImplementedError(f"{args.ui} interface has yet to be implemented")
 
-ret_code = program.main(argv_rest)
+ret_code = program.main(sys.argv[2:])
 
 sys.exit(ret_code)
