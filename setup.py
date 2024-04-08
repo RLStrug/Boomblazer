@@ -1,8 +1,8 @@
 from setuptools import find_packages
 from setuptools import setup
 
-from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
+from .boomblazer.version import GAME_NAME
+from .boomblazer.version import VERSION_STR
 
 setup(
     name=GAME_NAME,
@@ -19,7 +19,7 @@ setup(
     python_requires=">3.5",
     entry_points={
         "console_scripts": [
-            "boomblazer-server = boomblazer.server:main",
+            "boomblazer-server = boomblazer.network.server:main",
             "boomblazer-cli = boomblazer.ui.cli:main",
             "boomblazer-ncurses = boomblazer.ui.ncurses:main",
         ]
