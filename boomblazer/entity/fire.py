@@ -23,7 +23,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from boomblazer.config import config
+from boomblazer.config.server import server_config
 
 
 class FireError(Exception):
@@ -73,7 +73,7 @@ class Fire:
 
     def __init__(
             self, position: Tuple[int, int],
-            tick: int = config.server.fire_timer_ticks
+            tick: int = server_config.fire_timer_ticks
     ) -> None:
         """Initializes a new fire blast
 

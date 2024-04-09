@@ -14,7 +14,7 @@ Submodules:
     map_environment:
         Implements a game map environment
     network:
-        Implements a network communication protocol fro the game
+        Implements a network communication protocol for the game
     player:
         Implements a game player
     server:

@@ -21,7 +21,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-from boomblazer.config import config
+from boomblazer.config.server import server_config
 from boomblazer.entity.bomb import Bomb
 
 
@@ -90,9 +90,9 @@ class Player:
     )
 
     def __init__(self, name: str, position: Tuple[int, int] = (0, 0), *,
-            max_bomb_count: int = config.server.player_bomb_count,
+            max_bomb_count: int = server_config.player_bomb_count,
             current_bomb_count: int = 0,
-            bomb_range: int = config.server.player_bomb_range
+            bomb_range: int = server_config.player_bomb_range
     ) -> None:
         """Initialize the player data
 

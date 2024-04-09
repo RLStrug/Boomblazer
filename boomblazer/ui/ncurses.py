@@ -25,7 +25,7 @@ from typing import Optional
 from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
-from boomblazer.config import config
+from boomblazer.config.ncurses import ncurses_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -89,11 +89,11 @@ class CursesInterface(BaseUI):
                     else curses.A_NORMAL)
 
             key = self.stdscr.getch()
-            if key in config.ncurses.menu_down_buttons:
+            if key in ncurses_config.menu_down_buttons:
                 current_choice += 1
-            elif key in config.ncurses.menu_up_buttons:
+            elif key in ncurses_config.menu_up_buttons:
                 current_choice += len(choices) - 1
-            elif key in config.ncurses.menu_select_buttons:
+            elif key in ncurses_config.menu_select_buttons:
                 waiting = False
             current_choice = choices(current_choice % len(choices))
 
@@ -136,11 +136,11 @@ class CursesInterface(BaseUI):
                 self.stdscr.insstr(idx, len(label) + 1, textbox.gather())
 
             key = self.stdscr.getch()
-            if key in config.ncurses.menu_down_buttons:
+            if key in ncurses_config.menu_down_buttons:
                 current_choice += 1
-            elif key in config.ncurses.menu_up_buttons:
+            elif key in ncurses_config.menu_up_buttons:
                 current_choice += len(choices) - 1
-            elif key in config.ncurses.menu_select_buttons:
+            elif key in ncurses_config.menu_select_buttons:
                 if current_choice is choices.JOIN:
                     waiting = False
                 elif current_choice is choices.EXIT:
@@ -209,11 +209,11 @@ class CursesInterface(BaseUI):
             key = self.stdscr.getch()
             if key != -1:
                 need_redraw = True
-            if key in config.ncurses.menu_down_buttons:
+            if key in ncurses_config.menu_down_buttons:
                 current_choice += 1
-            elif key in config.ncurses.menu_up_buttons:
+            elif key in ncurses_config.menu_up_buttons:
                 current_choice += len(choices) - 1
-            elif key in config.ncurses.menu_select_buttons:
+            elif key in ncurses_config.menu_select_buttons:
                 if current_choice is choices.EXIT:
                     return
                 self.client.send_start()

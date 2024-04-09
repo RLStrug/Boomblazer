@@ -1,8 +1,8 @@
 from setuptools import find_packages
 from setuptools import setup
 
-from .boomblazer.version import GAME_NAME
-from .boomblazer.version import VERSION_STR
+from boomblazer.version import GAME_NAME
+from boomblazer.version import VERSION_STR
 
 setup(
     name=GAME_NAME,

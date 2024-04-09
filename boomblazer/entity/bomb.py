@@ -24,7 +24,7 @@ from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
-from boomblazer.config import config
+from boomblazer.config.server import server_config
 
 if TYPE_CHECKING:
     from boomblazer.entity.player import Player
@@ -90,7 +90,7 @@ class Bomb:
 
     def __init__(
             self, position: Sequence[int], player: "Player",
-            bomb_range: int, tick: int = config.server.bomb_timer_ticks
+            bomb_range: int, tick: int = server_config.bomb_timer_ticks
     ) -> None:
         """Initializes a newly planted bomb
 

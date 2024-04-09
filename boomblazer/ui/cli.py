@@ -24,7 +24,7 @@ from typing import Optional
 from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
-from boomblazer.config import config
+from boomblazer.config.cli import cli_config
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -89,14 +89,14 @@ class CommandLineInterface(BaseUI):
         """Sends player actions and displays game state
         """
         if self.client.is_host:
-            print(f'Send "{config.cli.start_cmds[0]}" to start the game')
+            print(f'Send "{cli_config.start_cmds[0]}" to start the game')
         print(
-            f"up: {config.cli.up_cmds[0]} ; "
-            f"down: {config.cli.down_cmds[0]} ; "
-            f"left: {config.cli.left_cmds[0]} ; "
-            f"right: {config.cli.right_cmds[0]} ; "
-            f"bomb: {config.cli.bomb_cmds[0]} ; "
-            f"quit: {config.cli.quit_cmds[0]}"
+            f"up: {cli_config.up_cmds[0]} ; "
+            f"down: {cli_config.down_cmds[0]} ; "
+            f"left: {cli_config.left_cmds[0]} ; "
+            f"right: {cli_config.right_cmds[0]} ; "
+            f"bomb: {cli_config.bomb_cmds[0]} ; "
+            f"quit: {cli_config.quit_cmds[0]}"
         )
 
         sel = selectors.DefaultSelector()
@@ -113,19 +113,19 @@ class CommandLineInterface(BaseUI):
     def handle_user_input(self, cmd: str) -> None:
         """Sends user input to server as player actions
         """
-        if cmd in config.cli.start_cmds:
+        if cmd in cli_config.start_cmds:
             self.client.send_start()
-        elif cmd in config.cli.up_cmds:
+        elif cmd in cli_config.up_cmds:
             self.client.send_move(MoveActionEnum.MOVE_UP)
-        elif cmd in config.cli.down_cmds:
+        elif cmd in cli_config.down_cmds:
             self.client.send_move(MoveActionEnum.MOVE_DOWN)
-        elif cmd in config.cli.left_cmds:
+        elif cmd in cli_config.left_cmds:
             self.client.send_move(MoveActionEnum.MOVE_LEFT)
-        elif cmd in config.cli.right_cmds:
+        elif cmd in cli_config.right_cmds:
             self.client.send_move(MoveActionEnum.MOVE_RIGHT)
-        elif cmd in config.cli.bomb_cmds:
+        elif cmd in cli_config.bomb_cmds:
             self.client.send_plant_bomb()
-        elif cmd in config.cli.quit_cmds:
+        elif cmd in cli_config.quit_cmds:
             self.client.send_quit()
             self.is_in_game = False
 

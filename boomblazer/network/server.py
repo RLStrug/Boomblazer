@@ -23,7 +23,7 @@ from typing import Tuple
 from typing import Type
 
 from boomblazer.argument_parser import base_parser
-from boomblazer.config import config
+from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -235,8 +235,8 @@ class Server:
 
             end_time = time.monotonic()
             time_spent = end_time - start_time
-            if time_spent < config.server.tick_frequency:
-                time.sleep(config.server.tick_frequency - time_spent)
+            if time_spent < server_config.tick_frequency:
+                time.sleep(server_config.tick_frequency - time_spent)
 
     def reset_player_actions(self):
         """Resets players' commands after the end of the tick

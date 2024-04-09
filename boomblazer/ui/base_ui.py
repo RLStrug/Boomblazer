@@ -21,7 +21,7 @@ from types import TracebackType
 from typing import Optional
 from typing import Type
 
-from boomblazer.config import config
+from boomblazer.config.client import client_config
 from boomblazer.network.client import Client
 from boomblazer.network.client import GameOverError
 from boomblazer.network.network import AddressType
@@ -134,9 +134,9 @@ class BaseUI(ABC):
         self.client = Client(
             addr, username.encode("utf8"), is_host, logger=self._logger
         )
-        for _ in range(config.client.max_connect_tries):
+        for _ in range(client_config.max_connect_tries):
             self.client.send_join()
-            if self.client.tick(config.client.max_connect_wait):
+            if self.client.tick(client_config.max_connect_wait):
                 self.is_in_game = True
                 self.is_game_state_updated = threading.Semaphore()
                 threading.Thread(target=self._client_runner).start()
