@@ -15,7 +15,6 @@ import selectors
 import threading
 from pathlib import Path
 from types import TracebackType
-from typing import Iterable
 from typing import Optional
 from typing import Tuple
 from typing import Type

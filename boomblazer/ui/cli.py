@@ -15,7 +15,6 @@ Functions:
 """
 
 import argparse
-import json
 import selectors
 import shutil
 import sys
@@ -27,9 +26,6 @@ from boomblazer.argument_parser import base_parser
 from boomblazer.config.cli import cli_config
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map_environment import MapEnvironment
-from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
 
 
 class CommandLineInterface(BaseUI):

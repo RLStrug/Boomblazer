@@ -21,9 +21,7 @@ from types import TracebackType
 from typing import Optional
 from typing import Type
 
-from boomblazer.config.client import client_config
 from boomblazer.network.client import Client
-from boomblazer.network.client import GameOverError
 from boomblazer.network.network import AddressType
 from boomblazer.network.server import Server
 from boomblazer.utils import create_logger

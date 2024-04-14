@@ -17,8 +17,6 @@ import curses
 import curses.ascii
 import curses.textpad
 import enum
-import json
-import selectors
 import sys
 from pathlib import Path
 from typing import Optional
@@ -26,12 +24,8 @@ from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
 from boomblazer.config.ncurses import ncurses_config
-from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map_environment import MapEnvironment
 from boomblazer.ui.base_ui import BaseUI
-from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
 
 
 class CursesInterface(BaseUI):
@@ -230,7 +224,6 @@ class CursesInterface(BaseUI):
     def lobby_menu(self) -> None:
         """Wait in lobby for host to start game
         """
-        waiting = True
         need_redraw = True
         if self.client.is_host:
             choices = enum.IntEnum(
@@ -247,7 +240,6 @@ class CursesInterface(BaseUI):
             )
             labels = ("Exit",)
         current_choice = choices(0)
-        players_list = self.client.game_handler.map_environment.players
 
         self.stdscr.nodelay(True)  # User input is non blocking
 

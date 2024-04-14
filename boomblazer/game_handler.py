@@ -22,6 +22,7 @@ from boomblazer.map_environment import MapEnvironment
 from boomblazer.map_environment import MapCellEnum
 from boomblazer.entity.player import CannotDropBombError
 from boomblazer.entity.player import Player
+from boomblazer.entity.position import Position
 
 
 class MoveActionEnum(Enum):
@@ -93,8 +94,8 @@ class GameHandler:
         This will update the game map, players, bombs and fire blasts
 
         Parameters:
-            actions (variadic positionals): tuple[Player, bool, MoveActionEnum]
-                Represent the action of a player during this tick
+            actions : Iterable[tuple[Player, bool, MoveActionEnum]]
+                Represent the action of players during this tick
                 The first member of the tuple is the player performing the
                 action
                 The second is True if the player is planting a bomb, else False
@@ -111,8 +112,8 @@ class GameHandler:
         """Treat players'actions for this tick (move or drop bomb)
 
         Parameters:
-            actions (variadic positionals): tuple[Player, bool, MoveActionEnum]
-                Represent the action of a player during this tick
+            actions : Iterable[tuple[Player, bool, MoveActionEnum]]
+                Represent the action of players during this tick
                 The first member of the tuple is the player performing the
                 action
                 The second is True if the player is planting a bomb, else False
@@ -126,27 +127,26 @@ class GameHandler:
             if player not in self._map_environment.players:
                 continue
 
-            player_x, player_y = player.position
             # if cell is fire, do not drop because player will be killed
             if (
                     drop_bomb and
-                    not self._map_environment.bomb_here((player_x, player_y)) and
-                    self._map_environment[(player_x, player_y)] == MapCellEnum.EMPTY
+                    not self._map_environment.bomb_here(player.position) and
+                    self._map_environment[player.position] == MapCellEnum.EMPTY
             ):
                 try:
                     dropped_bombs.append(player.create_bomb())
                 except CannotDropBombError:
                     pass
 
-            new_player_position = (player_x, player_y)
+            new_player_position = player.position
             if move == MoveActionEnum.MOVE_UP:
-                new_player_position = (player_x, player_y - 1)
+                new_player_position = player.position.up()
             elif move == MoveActionEnum.MOVE_DOWN:
-                new_player_position = (player_x, player_y + 1)
+                new_player_position = player.position.down()
             elif move == MoveActionEnum.MOVE_RIGHT:
-                new_player_position = (player_x + 1, player_y)
+                new_player_position = player.position.right()
             elif move == MoveActionEnum.MOVE_LEFT:
-                new_player_position = (player_x - 1, player_y)
+                new_player_position = player.position.left()
 
             if self._map_environment[new_player_position] == MapCellEnum.EMPTY:
                 player.position = new_player_position
@@ -217,10 +217,9 @@ class GameHandler:
     # ---------------------------------------- #
     # HELPERS
     # ---------------------------------------- #
-    # TODO Create type alias Coord = Tuple[int, int]
     def _explode_bomb(
         self, bomb: Bomb
-    ) -> Tuple[List[Tuple[int, int]], List[Fire]]:
+    ) -> Tuple[List[Position], List[Fire]]:
         """Detonates a bomb, spawing Fire objects on the map
 
         Parameters:
@@ -235,18 +234,14 @@ class GameHandler:
         exploded_boxes_coord = []
         fires = [Fire(bomb.position)]
 
-        bomb_range = bomb.bomb_range
-        bomb_x, bomb_y = bomb.position
         directions = (
-            # DOWN,      UP,  RIGHT,   LEFT
-            (0, 1), (0, -1), (1, 0), (-1, 0),
+            bomb.position.up, bomb.position.down, bomb.position.left,
+            bomb.position.right
         )
 
-        for move_x, move_y in directions:
-            for distance in range(1, bomb_range + 1):
-                blast_coords = (
-                    bomb_x + (move_x * distance), bomb_y + (move_y * distance)
-                )
+        for move in directions:
+            for distance in range(1, bomb.bomb_range + 1):
+                blast_coords = move(distance)
                 blasted_cell = self._map_environment[blast_coords]
                 if blasted_cell is MapCellEnum.WALL:
                     break

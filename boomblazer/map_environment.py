@@ -38,6 +38,7 @@ from boomblazer.entity.fire import Fire
 from boomblazer.entity.player import Player
 from boomblazer.entity.player import PlayerDict
 from boomblazer.entity.player import PlayerMapping
+from boomblazer.entity.position import Position
 
 
 class MapEnvironmentError(Exception):
@@ -400,17 +401,17 @@ class MapEnvironment:
     # CELL GET/SET
     # ---------------------------------------- #
 
-    def __getitem__(self, position: Tuple[int, int]) -> MapCellEnum:
+    def __getitem__(self, position: Position) -> MapCellEnum:
         """Gets a cell from the current map environment state
 
         Parameters:
-            position: tuple[int, int]
+            position: Position
                 The coordinates of the cell to fetch
         """
-        return self._state[position[1]][position[0]]
+        return self._state[position.y][position.x]
 
     def __setitem__(
-            self, position: Tuple[int, int], value: MapCellEnum
+            self, position: Position, value: MapCellEnum
     ) -> None:
         """Sets a cell from the current map environment state
 
@@ -420,7 +421,7 @@ class MapEnvironment:
             value: MapCellEnum
                 The new value of the selected cell
         """
-        self._state[position[1]][position[0]] = value
+        self._state[position.y][position.x] = value
 
     # ---------------------------------------- #
     # VERSION

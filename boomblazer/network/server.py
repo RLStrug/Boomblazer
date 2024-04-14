@@ -34,8 +34,6 @@ from boomblazer.network.network import MessageType
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
 from boomblazer.utils import create_logger
-from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
 
 
 class ServerError(Exception):

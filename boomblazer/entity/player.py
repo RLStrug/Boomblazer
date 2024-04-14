@@ -18,11 +18,11 @@ Exception classes:
 from typing import Dict
 from typing import Mapping
 from typing import Sequence
-from typing import Tuple
 from typing import Union
 
 from boomblazer.config.server import server_config
 from boomblazer.entity.bomb import Bomb
+from boomblazer.entity.position import Position
 
 
 class CannotDropBombError(Exception):
@@ -30,7 +30,7 @@ class CannotDropBombError(Exception):
     """
 
 
-PlayerDict = Dict[str, Union[str, Tuple[int, int], int]]
+PlayerDict = Dict[str, Union[str, Position, int]]
 PlayerMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
@@ -40,10 +40,8 @@ class Player:
     Members:
         _name: str
             The player's name
-        _x: int
-            The column (horizontal position) at which the player is located
-        _y: int
-            The row (vertical position) at which the player is located
+        _position: Position
+            The position at which the player is located
         _max_bomb_count: int
             The current maximum amount of bombs a player can plant at the same
             time
@@ -85,11 +83,11 @@ class Player:
     """
 
     __slots__ = (
-        "_name", "_x", "_y", "_max_bomb_count", "_current_bomb_count",
+        "_name", "_position", "_max_bomb_count", "_current_bomb_count",
         "_bomb_range",
     )
 
-    def __init__(self, name: str, position: Tuple[int, int] = (0, 0), *,
+    def __init__(self, name: str, position: Sequence[int] = (0, 0), *,
             max_bomb_count: int = server_config.player_bomb_count,
             current_bomb_count: int = 0,
             bomb_range: int = server_config.player_bomb_range
@@ -99,7 +97,7 @@ class Player:
         Parameters:
             name: str
                 The player's name
-            position: tuple[int, int], default=(0,0)
+            position: Sequence[int] (length = 2), default=(0,0)
                 The player's position
 
         Keyword only parameters:
@@ -112,7 +110,7 @@ class Player:
                 The range in blocks of a bomb explosion blast
         """
         self._name = name
-        self._x, self._y = position
+        self._position = Position(*position)
         self._max_bomb_count = max_bomb_count
         self._current_bomb_count = current_bomb_count
         self._bomb_range = bomb_range
@@ -121,27 +119,22 @@ class Player:
     # GETTERS / SETTERS
     # ---------------------------------------- #
     @property
-    def position(self) -> Tuple[int, int]:
-        """Returns The X and Y coordinates of the bomb
+    def position(self) -> Position:
+        """Returns the player's coordinates
 
-        Return value: Tuple[int, int]
-            The X and Y coordinates of the bomb
+        Return value: Position
+            The player's coordinates
         """
-        return self._x, self._y
+        return self._position
 
     @position.setter
-    def position(self, value: Tuple[int, int]) -> None:
-        """Sets The X and Y coordinates of the bomb
+    def position(self, value: Sequence[int]) -> None:
+        """Sets the player's coordinates
 
-        Return value: Tuple[int, int]
-            The X and Y coordinates of the bomb
+        Parameters: Sequence[int] (length = 2)
+            The player's coordinates
         """
-        if len(value) != 2 \
-                or not isinstance(value[0], int) \
-                or not isinstance(value[1], int):
-            raise ValueError("A position is of type (int, int)!")
-        self._x = value[0]
-        self._y = value[1]
+        self._position = Position(*value)
 
     @property
     def name(self) -> str:
@@ -197,7 +190,7 @@ class Player:
         if self._current_bomb_count >= self._max_bomb_count:
             raise CannotDropBombError
         self._current_bomb_count += 1
-        return Bomb(self.position, self, self._bomb_range)
+        return Bomb(self._position, self, self._bomb_range)
 
     def increment_bomb_range(self) -> None:
         """Makes the player's planted bombs have a larger blast range

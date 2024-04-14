@@ -20,11 +20,11 @@ from typing import Dict
 from typing import Iterable
 from typing import Mapping
 from typing import Sequence
-from typing import Tuple
 from typing import TYPE_CHECKING
 from typing import Union
 
 from boomblazer.config.server import server_config
+from boomblazer.entity.position import Position
 
 if TYPE_CHECKING:
     from boomblazer.entity.player import Player
@@ -35,7 +35,7 @@ class BombError(Exception):
     """
 
 
-BombDict = Dict[str, Union[str, Tuple[int, int], int]]
+BombDict = Dict[str, Union[str, Position, int]]
 BombMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
@@ -46,10 +46,8 @@ class Bomb:
     amount of game ticks. It will destroy boxes and kill players in its blast.
 
     Members:
-        _x: int
-            The column (horizontal position) at which the bomb is located
-        _y: int
-            The row (vertical position) at which the bomb is located
+        _position: Position
+            The position which the bomb is located
         _player: Player
             The player who planted the bomb.
             This information is needed because each player can only plant so
@@ -86,7 +84,7 @@ class Bomb:
             The range in blocks of the explosion blast
     """
 
-    __slots__ = ("_x", "_y", "_player", "_bomb_range", "_tick",)
+    __slots__ = ("_position", "_player", "_bomb_range", "_tick",)
 
     def __init__(
             self, position: Sequence[int], player: "Player",
@@ -96,14 +94,13 @@ class Bomb:
 
         Parameters:
             position: Sequence[int] (length = 2)
-                The first element will determine the X coordinate.
-                The second element will determine the Y coordinate
+                The coordinates of the bomb
             player:
                 The player who planted the bomb
             bomb_range:
                 The range of the explosion blast
         """
-        self._x, self._y = position
+        self._position = Position(*position)
         self._player = player
         self._bomb_range = bomb_range
         self._tick = tick
@@ -130,13 +127,13 @@ class Bomb:
     # GETTERS / SETTERS
     # ---------------------------------------- #
     @property
-    def position(self) -> Tuple[int, int]:
-        """Returns the X and Y coordinates of the bomb
+    def position(self) -> Position:
+        """Returns the coordinates of the bomb
 
         Return value: tuple[int, int]
-            A tuple containing the X and Y coordinates of the bomb
+            The coordinates of the bomb
         """
-        return self._x, self._y
+        return self._position
 
     @property
     def tick(self) -> int:
