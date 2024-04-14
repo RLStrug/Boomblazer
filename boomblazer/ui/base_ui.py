@@ -29,6 +29,7 @@ from boomblazer.network.server import Server
 from boomblazer.utils import create_logger
 
 
+_ALL_INTERFACES = "0.0.0.0"
 _LOCAL_ADDRESS = "127.0.0.1"
 
 class GameState(enum.Enum):
@@ -50,10 +51,10 @@ class BaseUI(ABC):
             Logs the messages of the UI
         client: Client
             The client associated with this UI
-        is_in_game: bool
-            Tells the local client and / or server that the game is over
-        is_game_state_updated: threading.Semaphore
-            Tells the UI that the game state has been updated
+        server: Server
+            The server associated with this UI
+        _server_thread: threading.Thread
+            Thread used to launch local server
 
     Special methods:
         __init__:
@@ -71,11 +72,11 @@ class BaseUI(ABC):
         create_game_and_join:
             Creates a game and joins it
         close:
-            Closes the client
+            Closes the client and the local server
     """
 
     __slots__ = (
-        "_logger", "client", "is_in_game", "is_game_state_updated"
+        "_logger", "client", "server", "_server_thread",
     )
 
     def __init__(
@@ -93,31 +94,12 @@ class BaseUI(ABC):
         """
         self._logger = create_logger(__name__, verbosity, log_file)
         self.client = None
-        self.is_in_game = False
-        self.is_game_state_updated = None
-
-    def _client_runner(self):
-        """Runs the client until game is over
-
-        Will release a semaphore token if game state was updated
-        """
-        try:
-            while self.is_in_game:
-                # Do not wait indefinitely in case game ended
-                if self.client.tick(1.0):
-                    # Try to consume the token first in case updating local
-                    # state is somehow slower than recieving updates from
-                    # network
-                    self.is_game_state_updated.acquire(blocking=False)
-                    self.is_game_state_updated.release()
-        except GameOverError:
-            self.is_in_game = False
-        self.client.close()
-
+        self.server = None
+        self._server_thread = None
 
     def join_game(
             self, addr: AddressType, username: str, is_host: bool = False
-    ) -> bool:
+    ) -> None:
         """Joins a game
 
         Parameters:
@@ -127,30 +109,30 @@ class BaseUI(ABC):
                 The player's name
             is_host: bool
                 Specifies if this is the host client
-
-        Return value: bool
-            Indicates if joining was successful or not
         """
         self.client = Client(
             addr, username.encode("utf8"), is_host, logger=self._logger
         )
-        for _ in range(client_config.max_connect_tries):
-            self.client.send_join()
-            if self.client.tick(client_config.max_connect_wait):
-                self.is_in_game = True
-                self.is_game_state_updated = threading.Semaphore()
-                threading.Thread(target=self._client_runner).start()
-                return True
-        self._logger.error("Failed to connect to %s:%d", addr[0], addr[1])
-        return False
+        self.client.start()
 
-    def create_game(self, *args, **kwargs) -> None:
+    def create_game(self, addr: AddressType, map_filename: Path) -> None:
         """Creates a game
+
+        Parameters:
+            addr: AddressType
+                The interface and port of the server
+            map_filename: str
+                The file containing the initial map environment data
         """
-        raise NotImplementedError("Cannot create server from UI yet")
+        self.server = Server(addr, map_filename, logger=self._logger)
+        # Unlike Client.start, which returns after connection, Server.start
+        # returns after game is over. So we need to execute it in a different
+        # thread
+        self._server_thread = threading.Thread(target=self.server.start)
+        self._server_thread.start()
 
     def create_game_and_join(
-            self, port: int, username: str, map_filename: str
+            self, port: int, username: str, map_filename: Path
     ) -> None:
         """Creates a game and joins it
 
@@ -162,18 +144,26 @@ class BaseUI(ABC):
             map_filename: str
                 The file containing the initial map environment data
         """
-        addr = (_LOCAL_ADDRESS, port)
-        self.create_game(addr, map_filename)
-        self.join_game(addr, username, True)
+        addr_for_server = (_ALL_INTERFACES, port)
+        self.create_game(addr_for_server, map_filename)
+
+        addr_for_client = (_LOCAL_ADDRESS, port)
+        self.join_game(addr_for_client, username, True)
 
     # ---------------------------------------- #
     # CONTEXT MANAGER
     # ---------------------------------------- #
 
     def close(self) -> None:
-        """Closes the client
+        """Closes the client and the local server
         """
-        self.is_in_game = False
+        if self.server is not None:
+            if self._server_thread is not None:
+                self.server.is_game_running = False
+                self._server_thread.join()
+            self.server.close()
+        if self.client is not None:
+            self.client.close()
 
     def __enter__(self) -> "BaseUI":
         """Enters a context manager (with statement)

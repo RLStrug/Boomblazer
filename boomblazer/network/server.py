@@ -12,10 +12,12 @@ Exception classes:
 
 import argparse
 import json
+import logging
+import selectors
 import sys
+import threading
 import time
 from pathlib import Path
-from threading import Thread
 from types import TracebackType
 from typing import Optional
 from typing import Sequence
@@ -45,6 +47,15 @@ class ServerError(Exception):
 class Server:
     """Implements server side of the network protocol
 
+    Class Constants:
+        _CLIENT_MESSAGE_WAIT_TIME: float
+            Number of seconds during which the server waits for a client
+            message before checking quickly if the game ended on abruptly.
+            Ideally, this should not be 0.0 in order to avoid using 100% CPU
+            for nothing. The value should not be too high either to avoid
+            looking unresponsive to the user, even though the event should not
+            happen often
+
     Members:
         game_handler: GameHandler
             Contains the game state and logic
@@ -61,10 +72,12 @@ class Server:
             The server logger
         is_self_hosted: bool
             Defines the host client is running on the same process
-        game_is_running: bool
+        is_game_running: bool
             Defines if the game is running or over
         _player_actions: Dict[Player, Tuple[bool, MoveActionEnum]]:
             Actions to be performed by players during next game tick
+        _tick_thread: threading.Thread
+            Thread used to update the game environment at regular interval
 
     Special method:
         __init__:
@@ -84,7 +97,7 @@ class Server:
         launch_game:
             Runs the game logic from clients inputs
         tick:
-            Updates the game environment every tick
+            Updates the game environment every tick and sends it to clients
         reset_player_actions:
             Resets players' commands after the end of the tick
         handle_players_inputs:
@@ -109,12 +122,16 @@ class Server:
 
     __slots__ = (
         "game_handler", "network", "clients", "host", "_map_filename",
-        "_logger", "is_self_hosted", "game_is_running", "_player_actions",
+        "_logger", "is_self_hosted", "is_game_running", "_player_actions",
+        "_tick_thread",
     )
+
+    _CLIENT_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
             self, addr: AddressType, map_filename: Path, *,
             verbosity: int = 0, log_file: Optional[Path] = None,
+            logger: Optional[logging.Logger] = None,
             is_self_hosted: bool = False
     ) -> None:
         """Initialize the Server object
@@ -130,18 +147,26 @@ class Server:
                 The verbosity level of the logger
             log_file: Path
                 The file in which log messages will be written
+            logger: Optional[logging.Logger]
+                Defines the logger to be used by the Client instance.
+                If this argument is given, `verbosity` and `log_files` will be
+                ignored
             is_self_hosted: bool
                 Defines the host client is running on the same process
         """
-        self._logger = create_logger(__name__, verbosity, log_file)
+        if logger is None:
+            self._logger = create_logger(__name__, verbosity, log_file)
+        else:
+            self._logger = logger
         self.network = Network(bind_addr=addr, logger=self._logger)
         self.clients = {}
         self.host = None
         self.game_handler = None
         self._map_filename = map_filename
         self.is_self_hosted = is_self_hosted
-        self.game_is_running = False
+        self.is_game_running = False
         self._player_actions = {}
+        self._tick_thread = None
 
         if not self._map_filename.is_file():
             raise ServerError("Given map file is not a file")
@@ -169,6 +194,7 @@ class Server:
         """
         self._logger.info("Waiting for host")
         while self.host is None:
+            # TODO Do not wait indefinitely
             msg, addr = self.recv_message()
             if msg is None:
                 # Skip bad message
@@ -184,6 +210,7 @@ class Server:
         self._logger.info("Waiting for players")
         ready_to_play = False
         while not ready_to_play:
+            # TODO Do not wait indefinitely
             msg, addr = self.recv_message()
             if msg is None:
                 # Skip bad message
@@ -206,22 +233,23 @@ class Server:
         Handles user input as they come on the main thread
         """
         self._logger.info("Game start")
-        self.game_is_running = True
+        self.is_game_running = True
         self.send_map()
-        tick_thread = Thread(target=self.tick)
-        tick_thread.start()
+        self._tick_thread = threading.Thread(target=self.tick)
+        self._tick_thread.start()
 
         self.handle_players_inputs()
-        self.send_stop_game(b"PLACEHOLDER wins")
+        # Should not stop game unless server is closing
+        # self.send_stop_game(b"PLACEHOLDER wins")
 
     # ---------------------------------------- #
     # GAME
     # ---------------------------------------- #
 
     def tick(self):
-        """Updates the game environment every tick
+        """Updates the game environment every tick and sends it to clients
         """
-        while self.game_is_running:
+        while self.is_game_running:
             start_time = time.monotonic()
 
             actions = [
@@ -246,7 +274,15 @@ class Server:
     def handle_players_inputs(self):
         """Handle each player's action for current tick
         """
-        while self.game_is_running:
+        sel = selectors.DefaultSelector()
+        sel.register(self.network.sock, selectors.EVENT_READ)
+
+        while self.is_game_running:
+            # Do not wait indefinitely in case game ended abruptly
+            events = sel.select(self._CLIENT_MESSAGE_WAIT_TIME)
+            if not events:
+                continue
+
             msg, addr = self.recv_message()
             if msg is None or addr not in self.clients:
                 continue
@@ -306,7 +342,7 @@ class Server:
             pass
             # TODO select new host or close server?
             # self.send_stop_game(b"Host disconnected")
-        if len(self.clients) == 0 and self.game_is_running:
+        if len(self.clients) == 0 and self.is_game_running:
             self.close()
 
         self.send_players_list()
@@ -357,7 +393,6 @@ class Server:
                 The reason why the server closes
         """
         self.send_message(b"STOP", reason)
-        self.game_is_running = False
 
     def send_map(self) -> None:
         """Sends the current map state
@@ -375,7 +410,10 @@ class Server:
     def close(self) -> None:
         """Closes the server
         """
-        self.game_is_running = False
+        self.is_game_running = False
+        if self._tick_thread is not None:
+            self._tick_thread.join()
+
         self.send_stop_game(b"Server closing")
         self.network.close()
         # XXX free game_handler, clients?

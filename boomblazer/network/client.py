@@ -12,6 +12,7 @@ Classes:
 import logging
 import json
 import selectors
+import threading
 from pathlib import Path
 from types import TracebackType
 from typing import Iterable
@@ -19,6 +20,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 
+from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
@@ -41,6 +43,15 @@ class Client:
     UI into packets readable by the server, and updates the game state from the
     packets recieved from the server
 
+    Class Constants:
+        _SERVER_MESSAGE_WAIT_TIME: float
+            Number of seconds during which the client waits for a server update
+            before checking quickly if the game ended on abruptly. Ideally,
+            this should not be 0.0 in order to avoid using 100% CPU for
+            nothing. The value should not be too high either to avoid looking
+            unresponsive to the user, even though the event should not happen
+            often
+
     Members:
         _logger: logging.Logger
             The logger used to record the Client activity
@@ -54,6 +65,17 @@ class Client:
             Defines the name of the player
         game_handler: GameHandler
             Defines the current game state
+        is_game_running: bool
+            Defines if the game is running or over
+        _tick_thread: threading.Thread
+            Thread used to update the game environment when a server packet is
+            recieved
+        update_semaphore: threading.semaphore
+            Releases a token after each update recieved from the server. Its
+            number of tokens should not exceed one in order to avoid
+            overloading the underlying UI with updates if it somehow manages to
+            be slower than network. Therefore, the Client should always try to
+            acquire a token non-blockingly before releasing one.
 
     Special methods:
         __init__:
@@ -64,6 +86,8 @@ class Client:
             Exits a context manager (with statement)
 
     Methods:
+        start:
+            Joins the server and sets up the reception af server packets
         tick:
             Updates the game environment every time the server sends a message
         recv_message:
@@ -86,12 +110,14 @@ class Client:
 
     __slots__ = (
         "_logger", "server_addr", "is_host", "network", "username",
-        "game_handler",
+        "game_handler", "is_game_running", "_tick_thread", "update_semaphore"
     )
+
+    _SERVER_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(self, server_addr: AddressType, username: bytes,
             is_host: bool = False, *,
-            verbosity: int = 0, log_files: Optional[Iterable[Path]] = None,
+            verbosity: int = 0, log_file: Optional[Path] = None,
             logger: Optional[logging.Logger] = None) -> None:
         """Initializes a new Client
 
@@ -117,55 +143,81 @@ class Client:
 
         self.server_addr = server_addr
         if logger is None:
-            self._logger = create_logger(verbosity, log_files)
+            self._logger = create_logger(__name__, verbosity, log_file)
         else:
             self._logger = logger
         self.network = Network(self._logger)
         self.username = username
         self.is_host = is_host
         self.game_handler = GameHandler()
+        self.is_game_running = False
+        self._tick_thread = None
+        self.update_semaphore = None
 
     # ---------------------------------------- #
     # GAME
     # ---------------------------------------- #
 
-    def tick(self, timeout: Optional[float] = None) -> bool:
-        """Updates the game environment every time the server sends a message
-
-        Parameters:
-            timeout: Optional[int]
-                If > 0, specifies the maximum wait time in seconds
-                If <= 0, return immediately if no message is available
-                If `None`, wait indefinitely until message is available
-
-        Return value: bool
-            `True` if the game environment has been updated
-            `False` if message was invalid or with no effect
+    def start(self) -> None:
+        """Joins the server and sets up the reception af server packets
         """
-
         sel = selectors.DefaultSelector()
         sel.register(self.network.sock, selectors.EVENT_READ)
-        events = sel.select(timeout)
 
-        if events == []:
-            return False
+        for _ in range(client_config.max_connect_tries):
+            self.send_join()
+            events = sel.select(client_config.max_connect_wait)
+            if not events:
+                continue
 
-        msg, addr = self.recv_message()
-        if msg is None or addr != self.server_addr:
-            return False
-
-        cmd, arg = msg
-        if cmd == b"PLAYERS_LIST":
-            self.game_handler.map_environment.players = json.loads(arg)
-            return True
-        if cmd == b"MAP":
-            self.game_handler = GameHandler(
-                MapEnvironment.from_json(arg)
+            self.is_game_running = True
+            self.update_semaphore = threading.Semaphore()
+            self._logger.info(
+                "Connected to %s:%d", self.server_addr[0], self.server_addr[1]
             )
-            return True
-        if cmd == b"STOP":
-            raise GameOverError()
-        return False
+            self._tick_thread = threading.Thread(target=self.tick)
+            self._tick_thread.start()
+            return
+
+        # If connection failed
+        self._logger.info(
+            "Failed to connect to %s:%d",
+            self.server_addr[0], self.server_addr[1]
+        )
+
+    def tick(self) -> None:
+        """Updates the game environment every time the server sends a message
+        """
+        sel = selectors.DefaultSelector()
+        sel.register(self.network.sock, selectors.EVENT_READ)
+
+        while self.is_game_running:
+            # Do not wait indefinitely in case game ended abruptly
+            events = sel.select(self._SERVER_MESSAGE_WAIT_TIME)
+            if not events:
+                continue
+
+            msg, addr = self.recv_message()
+            if msg is None or addr != self.server_addr:
+                continue
+
+            cmd, arg = msg
+            if cmd == b"PLAYERS_LIST":
+                self.game_handler.map_environment.players = json.loads(arg)
+            elif cmd == b"MAP":
+                self.game_handler = GameHandler(
+                    MapEnvironment.from_json(arg)
+                )
+            elif cmd == b"STOP":
+                self.is_game_running = False
+                break
+            else:
+                continue
+
+            # Try to consume the token first in case updating local state is
+            # somehow slower than recieving updates from network
+            self.update_semaphore.acquire(blocking=False)
+            self.update_semaphore.release()
 
     # ---------------------------------------- #
     # NETWORK WRAPPER
@@ -256,6 +308,9 @@ class Client:
     def close(self) -> None:
         """Closes the network connections
         """
+        self.is_game_running = False
+        if self._tick_thread is not None:
+            self._tick_thread.join()
         self.send_quit()
         self.network.close()
         # XXX free game_handler?

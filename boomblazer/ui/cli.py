@@ -102,12 +102,12 @@ class CommandLineInterface(BaseUI):
         sel = selectors.DefaultSelector()
         sel.register(sys.stdin, selectors.EVENT_READ)
 
-        while self.is_in_game:
+        while self.client.is_game_running:
             event = sel.select(0)  # [] if no event
             if event:
                 cmd = input()
                 self.handle_user_input(cmd)
-            elif self.is_game_state_updated.acquire(blocking=False):
+            elif self.client.update_semaphore.acquire(blocking=False):
                 self.handle_network_input()
 
     def handle_user_input(self, cmd: str) -> None:
@@ -127,7 +127,7 @@ class CommandLineInterface(BaseUI):
             self.client.send_plant_bomb()
         elif cmd in cli_config.quit_cmds:
             self.client.send_quit()
-            self.is_in_game = False
+            self.client.is_game_running = False
 
     def handle_network_input(self) -> None:
         """Recieves game info from the server

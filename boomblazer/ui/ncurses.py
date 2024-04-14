@@ -48,6 +48,10 @@ class CursesInterface(BaseUI):
     Methods:
         main_menu:
             Creates or joins the game and go to the lobby
+        join_menu:
+            Gather server url and port then join
+        create_menu:
+            Gather server port, game map, username, creates server, and joins it
         play_game:
             Sends player actions and displays game state
         handle_user_input:
@@ -134,6 +138,7 @@ class CursesInterface(BaseUI):
                     else curses.A_NORMAL)
             for idx, (label, textbox) in enumerate(zip(labels, textboxes)):
                 self.stdscr.insstr(idx, len(label) + 1, textbox.gather())
+            self.stdscr.refresh()
 
             key = self.stdscr.getch()
             if key in ncurses_config.menu_down_buttons:
@@ -158,14 +163,69 @@ class CursesInterface(BaseUI):
 
         self.stdscr.clear()
         self.stdscr.insstr(0, 0, f"Connecting to {address}:{port}")
+        self.stdscr.refresh()
 
-        if self.join_game((address, port), name, is_host=is_host):
+        self.join_game((address, port), name, is_host=is_host)
+        if self.client.is_game_running:
             self.lobby_menu()
 
     def create_menu(self) -> None:
-        """Gather server port, creates it, and joins it
+        """Gather server port, game map, username, creates server, and joins it
         """
-        raise NotImplementedError("Cannot create game yet")
+        waiting = True
+        choices = enum.IntEnum(
+            "JoinMenuChoiceEnum",
+            "PORT MAP NAME JOIN EXIT",
+            start=0
+        )
+        current_choice = choices(0)
+        labels = (
+            "Server port:", "Game map:", "Player name:", "Create", "Exit",
+        )
+        textboxes = tuple(
+            curses.textpad.Textbox(curses.newwin(
+                1, curses.COLS, idx, len(labels[idx]) + 1))
+            for idx in range(3)
+        )
+        while waiting:
+            self.stdscr.clear()
+            for idx, label in enumerate(labels):
+                self.stdscr.insstr(idx, 0, label,
+                    curses.A_STANDOUT if current_choice is choices(idx)
+                    else curses.A_NORMAL)
+            for idx, (label, textbox) in enumerate(zip(labels, textboxes)):
+                self.stdscr.insstr(idx, len(label) + 1, textbox.gather())
+            self.stdscr.refresh()
+
+            key = self.stdscr.getch()
+            if key in ncurses_config.menu_down_buttons:
+                current_choice += 1
+            elif key in ncurses_config.menu_up_buttons:
+                current_choice += len(choices) - 1
+            elif key in ncurses_config.menu_select_buttons:
+                if current_choice is choices.JOIN:
+                    waiting = False
+                elif current_choice is choices.EXIT:
+                    return
+                else:
+                    curses.curs_set(1)  # Display cursor
+                    textboxes[current_choice].edit()
+                    curses.curs_set(0)  # Do not display cursor
+                    current_choice += 1
+            current_choice = choices(current_choice % len(choices))
+
+        port = int(textboxes[choices.PORT].gather())
+        # TODO Map chooser menu
+        map_filename = Path(textboxes[choices.MAP].gather().strip())
+        name = textboxes[choices.NAME].gather().strip()
+
+        self.stdscr.clear()
+        self.stdscr.insstr(0, 0, f"Creating server on port {port}")
+        self.stdscr.refresh()
+
+        self.create_game_and_join(port, name, map_filename)
+        if self.client.is_game_running:
+            self.lobby_menu()
 
     def lobby_menu(self) -> None:
         """Wait in lobby for host to start game
@@ -219,9 +279,9 @@ class CursesInterface(BaseUI):
                 self.client.send_start()
             current_choice = choices(current_choice % len(choices))
 
-            if self.is_game_state_updated.acquire(blocking=False):
+            if self.client.update_semaphore.acquire(blocking=False):
                 need_redraw = True
-            if not self.is_in_game:
+            if not self.client.is_game_running:
                 return
         self.play_game()
         self.stdscr.nodelay(False)  # User input is blocking
@@ -232,7 +292,7 @@ class CursesInterface(BaseUI):
         """
         need_redraw = True
 
-        while self.is_in_game:
+        while self.client.is_game_running:
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
@@ -250,9 +310,9 @@ class CursesInterface(BaseUI):
             elif key == ord("\n") or key == ord("b"):
                 self.client.send_plant_bomb()
             elif key == ord("Q"):
-                self.is_in_game = False
+                self.client.is_game_running = False
 
-            if self.is_game_state_updated.acquire(blocking=False):
+            if self.client.update_semaphore.acquire(blocking=False):
                 need_redraw = True
 
 
