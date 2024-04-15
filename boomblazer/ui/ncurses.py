@@ -87,13 +87,14 @@ class CursesInterface(BaseUI):
                     else curses.A_NORMAL)
 
             key = self.stdscr.getch()
+            new_choice = int(current_choice)
             if key in ncurses_config.menu_down_buttons:
-                current_choice += 1
+                new_choice += 1
             elif key in ncurses_config.menu_up_buttons:
-                current_choice += len(choices) - 1
+                new_choice += len(choices) - 1
             elif key in ncurses_config.menu_select_buttons:
                 waiting = False
-            current_choice = choices(current_choice % len(choices))
+            current_choice = choices(new_choice % len(choices))
 
         if current_choice is choices.HOST:
             self.join_menu(is_host=True)
@@ -135,10 +136,11 @@ class CursesInterface(BaseUI):
             self.stdscr.refresh()
 
             key = self.stdscr.getch()
+            new_choice = int(current_choice)
             if key in ncurses_config.menu_down_buttons:
-                current_choice += 1
+                new_choice += 1
             elif key in ncurses_config.menu_up_buttons:
-                current_choice += len(choices) - 1
+                new_choice += len(choices) - 1
             elif key in ncurses_config.menu_select_buttons:
                 if current_choice is choices.JOIN:
                     waiting = False
@@ -148,8 +150,8 @@ class CursesInterface(BaseUI):
                     curses.curs_set(1)  # Display cursor
                     textboxes[current_choice].edit()
                     curses.curs_set(0)  # Do not display cursor
-                    current_choice += 1
-            current_choice = choices(current_choice % len(choices))
+                    new_choice += 1
+            current_choice = choices(new_choice % len(choices))
 
         address = textboxes[choices.ADDRESS].gather().strip()
         port = int(textboxes[choices.PORT].gather())
@@ -192,10 +194,11 @@ class CursesInterface(BaseUI):
             self.stdscr.refresh()
 
             key = self.stdscr.getch()
+            new_choice = int(current_choice)
             if key in ncurses_config.menu_down_buttons:
-                current_choice += 1
+                new_choice += 1
             elif key in ncurses_config.menu_up_buttons:
-                current_choice += len(choices) - 1
+                new_choice += len(choices) - 1
             elif key in ncurses_config.menu_select_buttons:
                 if current_choice is choices.JOIN:
                     waiting = False
@@ -205,8 +208,8 @@ class CursesInterface(BaseUI):
                     curses.curs_set(1)  # Display cursor
                     textboxes[current_choice].edit()
                     curses.curs_set(0)  # Do not display cursor
-                    current_choice += 1
-            current_choice = choices(current_choice % len(choices))
+                    new_choice += 1
+            current_choice = choices(new_choice % len(choices))
 
         port = int(textboxes[choices.PORT].gather())
         # TODO Map chooser menu

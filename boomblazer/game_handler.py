@@ -165,24 +165,24 @@ class GameHandler:
         Return value: List[Fire]
             New fire blasts generated from bombs that exploded
         """
-        new_bombs = []
-        exploded_boxes_coord = []
+        active_bombs = []
+        exploded_boxes = []
         fires_from_bombs = []
         for bomb in self._map_environment.bombs:
             bomb.decrement_tick()
             if bomb.tick == 0:
-                tmp_bombs, tmp_fire = self._explode_bomb(bomb)
-                exploded_boxes_coord += tmp_bombs
-                fires_from_bombs += tmp_fire
+                boxes, fires = self._explode_bomb(bomb)
+                exploded_boxes.extend(boxes)
+                fires_from_bombs.extend(fires)
                 if bomb.player is not None:
                     bomb.player.decrement_current_bomb_count()
-                del bomb
             else:
-                new_bombs.append(bomb)
-        self._map_environment.bombs = new_bombs + dropped_bombs
-        # treat all exploded boxes after because multiple explosions break only
+                active_bombs.append(bomb)
+        active_bombs.extend(dropped_bombs)
+        self._map_environment.bombs = active_bombs
+        # Treat all exploded boxes after because multiple explosions break only
         # one box
-        self._treat_exploded_boxes(exploded_boxes_coord)
+        self._treat_exploded_boxes(exploded_boxes)
 
         return fires_from_bombs
 
@@ -194,25 +194,22 @@ class GameHandler:
                 New fire blasts generated from bombs that exploded during this
                 tick
         """
-        new_fires = []
+        raging_fires = []
         for fire in self._map_environment.fires:
             fire.decrement_tick()
             if fire.tick > 0:
-                new_fires.append(fire)
-            else:
-                del fire
-        self._map_environment.fires = new_fires + fires_from_bombs
+                raging_fires.append(fire)
+        raging_fires.extend(fires_from_bombs)
+        self._map_environment.fires = raging_fires
 
     def _kill_players(self) -> None:
         """Kills players that are engulfed in a fire blast
         """
-        new_players = []
+        living_players = []
         for player in self._map_environment.players:
-            if self._map_environment.fire_here(player.position):
-                del player
-            else:
-                new_players.append(player)
-        self._map_environment.players = new_players
+            if not self._map_environment.fire_here(player.position):
+                living_players.append(player)
+        self._map_environment.players = living_players
 
     # ---------------------------------------- #
     # HELPERS
@@ -255,7 +252,7 @@ class GameHandler:
         return exploded_boxes_coord, fires
 
     def _treat_exploded_boxes(
-        self, boxes_coord: Iterable[Tuple[int, int]]
+        self, boxes_coord: Iterable[Position]
     ) -> None:
         """Removes boxes destroyed by a bomb explosion from the map
 

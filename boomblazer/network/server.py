@@ -12,16 +12,15 @@ Exception classes:
 
 import argparse
 import json
-import logging
 import selectors
 import sys
 import threading
 import time
 from pathlib import Path
 from types import TracebackType
+from typing import Iterable
 from typing import Optional
 from typing import Sequence
-from typing import Tuple
 from typing import Type
 
 from boomblazer.argument_parser import base_parser
@@ -30,7 +29,6 @@ from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
 from boomblazer.network.network import AddressType
-from boomblazer.network.network import MessageType
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
 from boomblazer.utils import create_logger
@@ -41,8 +39,7 @@ class ServerError(Exception):
     """
 
 
-# XXX Should this use a Network or inherit from it?
-class Server:
+class Server(Network):
     """Implements server side of the network protocol
 
     Class Constants:
@@ -57,8 +54,6 @@ class Server:
     Members:
         game_handler: GameHandler
             Contains the game state and logic
-        network: Network
-            Contains the server socket and I/O functions
         clients: dict[AddressType, Player]
             Links connected players to their address
         host: AddressType
@@ -68,8 +63,6 @@ class Server:
             Path to map that will be used for the game
         _logger: logging.Logger
             The server logger
-        is_self_hosted: bool
-            Defines the host client is running on the same process
         is_game_running: bool
             Defines if the game is running or over
         _player_actions: Dict[Player, Tuple[bool, MoveActionEnum]]:
@@ -119,18 +112,14 @@ class Server:
     """
 
     __slots__ = (
-        "game_handler", "network", "clients", "host", "_map_filename",
-        "_logger", "is_self_hosted", "is_game_running", "_player_actions",
-        "_tick_thread",
+        "game_handler", "clients", "host", "_map_filename",
+        "is_game_running", "_player_actions", "_tick_thread",
     )
 
     _CLIENT_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, addr: AddressType, map_filename: Path, *,
-            verbosity: int = 0, log_file: Optional[Path] = None,
-            logger: Optional[logging.Logger] = None,
-            is_self_hosted: bool = False
+            self, addr: AddressType, map_filename: Path, *args, **kwargs
     ) -> None:
         """Initialize the Server object
 
@@ -139,29 +128,13 @@ class Server:
                 The IP and the port on which the server will run
             map_filename: Path
                 File containing the map environment initial data
-
-        Keyword only parameters:
-            verbosity: int
-                The verbosity level of the logger
-            log_file: Path
-                The file in which log messages will be written
-            logger: Optional[logging.Logger]
-                Defines the logger to be used by the Client instance.
-                If this argument is given, `verbosity` and `log_files` will be
-                ignored
-            is_self_hosted: bool
-                Defines the host client is running on the same process
         """
-        if logger is None:
-            self._logger = create_logger(__name__, verbosity, log_file)
-        else:
-            self._logger = logger
-        self.network = Network(bind_addr=addr, logger=self._logger)
+        super().__init__(*args, **kwargs)
+        self.bind(addr)
         self.clients = {}
         self.host = None
         self.game_handler = None
         self._map_filename = map_filename
-        self.is_self_hosted = is_self_hosted
         self.is_game_running = False
         self._player_actions = {}
         self._tick_thread = None
@@ -233,7 +206,9 @@ class Server:
         self._logger.info("Game start")
         self.is_game_running = True
         self.send_map()
-        self._tick_thread = threading.Thread(target=self.tick)
+        self._tick_thread = threading.Thread(
+            target=self.tick, name="server-tick"
+        )
         self._tick_thread.start()
 
         self.handle_players_inputs()
@@ -273,7 +248,7 @@ class Server:
         """Handle each player's action for current tick
         """
         sel = selectors.DefaultSelector()
-        sel.register(self.network.sock, selectors.EVENT_READ)
+        sel.register(self.sock, selectors.EVENT_READ)
 
         while self.is_game_running:
             # Do not wait indefinitely in case game ended abruptly
@@ -346,21 +321,14 @@ class Server:
         self.send_players_list()
 
     # ---------------------------------------- #
-    # NETWORK WRAPPER
+    # NETWORK COMMUNICATIONS
     # ---------------------------------------- #
 
-    def recv_message(self) -> Tuple[Optional[MessageType], AddressType]:
-        """Recieves a message from network
-
-        Return value: tuple[Optional[MessageType], AddressType]
-            A message sent by the server and the IP address and port number
-            from which the message was recieved.
-            The message contains a command and an argument, or is `None` if the
-            message was invalid
-        """
-        return self.network.recv_message()
-
-    def send_message(self, command: bytes, arg: bytes) -> None:
+    # @override
+    def send_message(
+            self, command: bytes, arg: bytes,
+            peers: Optional[Iterable[AddressType]] = None
+    ) -> None:
         """Sends a message to all clients
 
         Parameters:
@@ -368,8 +336,13 @@ class Server:
                 The command to send to the server
             arg: bytes
                 The argument associated to `command`
+            peers: Optional[Iterable[AddressType]] (default = None)
+                The peers at whom the message will be sent
+                If None, the message will be sent to all clients
         """
-        self.network.send_message(command, arg, self.clients)
+        if peers is None:
+            peers = self.clients.keys()
+        super().send_message(command, arg, peers)
 
     # ---------------------------------------- #
     # SEND SERVER COMMANDS
@@ -405,6 +378,7 @@ class Server:
     # CONTEXT MANAGER
     # ---------------------------------------- #
 
+    # @override
     def close(self) -> None:
         """Closes the server
         """
@@ -413,8 +387,7 @@ class Server:
             self._tick_thread.join()
 
         self.send_stop_game(b"Server closing")
-        self.network.close()
-        # XXX free game_handler, clients?
+        super().close()
 
     def __enter__(self) -> "Server":
         """Enters a context manager (with statement)
@@ -464,7 +437,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     addr = (args.address, args.port)
     verbosity = -1 if args.quiet else args.verbose
-    with Server(addr, args.map_filename, verbosity=verbosity, log_file=args.log_file) as server:
+    logger = create_logger(__name__, verbosity, args.log_file)
+    with Server(addr, args.map_filename, logger=logger) as server:
         server.start()
 
     return 0

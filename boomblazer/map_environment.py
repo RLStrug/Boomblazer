@@ -22,11 +22,11 @@ Exception classes:
 import json
 import string
 from enum import Enum
+from typing import Collection
 from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Mapping
-from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
@@ -35,6 +35,8 @@ from boomblazer.entity.bomb import Bomb
 from boomblazer.entity.bomb import BombDict
 from boomblazer.entity.bomb import BombMapping
 from boomblazer.entity.fire import Fire
+from boomblazer.entity.fire import FireMapping
+from boomblazer.entity.fire import FireDict
 from boomblazer.entity.player import Player
 from boomblazer.entity.player import PlayerDict
 from boomblazer.entity.player import PlayerMapping
@@ -61,11 +63,11 @@ class MapCellEnum(Enum):
 
 MapEnvironmentMapping = Mapping[str, Union[
     int, Sequence[Sequence[str]], Sequence[PlayerMapping],
-    Sequence[BombMapping]
+    Sequence[BombMapping], Sequence[FireMapping]
 ]]
 MapEnvironmentDict = Dict[str, Union[
-    int, List[List[str]], List[PlayerDict],
-    List[BombDict]
+    int, List[str], List[PlayerDict],
+    List[BombDict], List[FireDict]
 ]]
 
 
@@ -159,10 +161,10 @@ class MapEnvironment:
 
     def __init__(
             self, version: int,
-            state: Optional[Sequence[Sequence[MapCellEnum]]] = None,
-            players: Optional[Iterable[Player]] = None,
-            bombs: Optional[Iterable[Bomb]] = None,
-            fires: Optional[Iterable[Fire]] = None
+            state: Sequence[Sequence[MapCellEnum]] = ((),),
+            players: Iterable[Player] = (),
+            bombs: Iterable[Bomb] = (),
+            fires: Iterable[Fire] = ()
     ) -> None:
         """Initializes a game MapEnvironment
 
@@ -170,19 +172,22 @@ class MapEnvironment:
             version: int
                 The map version number. This ensures compatibility between
                 server, clients, and map file
-            state: Sequence[Sequence[MapCellEnum]]
+            state: Sequence[Sequence[MapCellEnum]] (default = ((),) )
                 The current map environment state
-            bombs: Iterable[Bomb]
-                The bombs currently planted on the map
-            players: Iterable[Player]
+            players: Iterable[Player] (default = () )
                 The currently living players
+            bombs: Iterable[Bomb] (default = () )
+                The bombs currently planted on the map
+            fires: Iterable[Fire] (default = () )
+                The fire blasts currently raging on the map
         """
         self._version = version
-        self._state = None
-        self._players = None
-        self._bombs = None
-        self._fires = None
+        self._state = [list(row) for row in state]
+        self._players = list(players)
+        self._bombs = list(bombs)
+        self._fires = list(fires)
 
+        # TODO Remove _init_vX? Check empty state?
         # check version
         if self._version == 0:
             # Only contains the players list
@@ -201,29 +206,25 @@ class MapEnvironment:
             players: Iterable[Player]
                 The currently living players
         """
-        if players is None:
-            players = []
         self._players = list(players)
 
     def _init_v1(
             self, state: Sequence[Sequence[MapCellEnum]],
-            players: Iterable[Player], bombs: Optional[Iterable[Bomb]] = None,
-            fires: Optional[Iterable[Fire]] = None
+            players: Iterable[Player], bombs: Iterable[Bomb],
+            fires: Iterable[Fire]
     ) -> None:
         """Initializes a MapEnvironment version 1
 
         Parameters:
             state: Sequence[Sequence[MapCellEnum]]
                 The current map environment state
-            bombs: Iterable[Bomb]
-                The bombs currently planted on the map
             players: Iterable[Player]
                 The currently living players
+            bombs: Iterable[Bomb]
+                The bombs currently planted on the map
+            fires: Iterable[Fire]
+                The fire blasts currently raging on the map
         """
-        if state is None or players is None:
-            raise MapEnvironmentError(
-                "Version 1 needs a state and a player list"
-            )
         self._state = [list(row) for row in state]
         self._players = list(players)
         if bombs is None:
@@ -245,7 +246,9 @@ class MapEnvironment:
     # ---------------------------------------- #
 
     @classmethod
-    def from_file(cls, map_filename: str, players: Iterable[Player]) -> "MapEnvironment":
+    def from_file(
+            cls, map_filename: str, players: Collection[Player]
+    ) -> "MapEnvironment":
         """Instanciates a MapEnvironment from a file
 
         Used by the server when starting a new game
@@ -271,7 +274,9 @@ class MapEnvironment:
         try:
             version_number = int(version_tag[2:])
         except ValueError as exc:
-            raise MapEnvironmentError("Version number should be a number... >:(") from exc
+            raise MapEnvironmentError(
+                "Version number should be a number... >:("
+            ) from exc
 
         # check content
         if any(
@@ -293,7 +298,6 @@ class MapEnvironment:
         # create players
         if len(players) > len(cls.__SPAWN_CHARS):
             raise MapEnvironmentError("Too many players")
-        players: List[Player] = players
 
         map_environment = cls(version_number, state, players)
         map_environment._init_players_position(data)
@@ -544,7 +548,7 @@ class MapEnvironment:
             for pos_x, cell in enumerate(row):
                 if cell in to_spawn:
                     num = to_spawn.index(cell)
-                    self._players[num].position = (pos_x, pos_y)
+                    self._players[num].position = Position(pos_x, pos_y)
 
     def __str__(self) -> str:
         """Returns a printable representation of the map environment state

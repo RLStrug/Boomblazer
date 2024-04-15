@@ -126,7 +126,9 @@ class BaseUI(ABC):
         # Unlike Client.start, which returns after connection, Server.start
         # returns after game is over. So we need to execute it in a different
         # thread
-        self._server_thread = threading.Thread(target=self.server.start)
+        self._server_thread = threading.Thread(
+            target=self.server.start, name="server"
+        )
         self._server_thread.start()
 
     def create_game_and_join(

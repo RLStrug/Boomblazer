@@ -61,6 +61,8 @@ args = parser.parse_args(sys.argv[1:2])  # Only parse the first argument
 program = ui_mapping[args.ui]
 if program is NotImplemented:
     raise NotImplementedError(f"{args.ui} interface has yet to be implemented")
+if not hasattr(program, "main"):
+    raise NotImplementedError(f"{args.ui} interface has no entry point")
 
 ret_code = program.main(sys.argv[2:])
 

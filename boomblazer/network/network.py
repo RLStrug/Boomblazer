@@ -40,6 +40,8 @@ class Network:
             Initialize the Network object
 
     Methods:
+        bind:
+            Binds the network socket to a local address
         recv_message:
             Recieves a message from the network and parses it
         send_message:
@@ -50,15 +52,12 @@ class Network:
 
     __slots__ = ("sock", "_logger",)
 
-    def __init__(
-            self, logger: logging.Logger, *,
-            bind_addr: Optional[AddressType] = None
-    ) -> None:
+    def __init__(self, logger: logging.Logger) -> None:
         """Initialize the Network object
 
         Parameters:
             logger: logging.Logger
-                the network message logger
+                The network message logger
 
         Keyword only parameters:
             bind_addr: Optional[AddressType]
@@ -68,8 +67,14 @@ class Network:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._logger = logger
 
-        if bind_addr is not None:
-            self.sock.bind(bind_addr)
+    def bind(self, addr: AddressType) -> None:
+        """Binds the network socket to a local address
+
+        Parameters:
+            addr: AddressType
+                The local address to bind the socket to
+        """
+        self.sock.bind(addr)
 
     def recv_message(self) -> Tuple[Optional[MessageType], AddressType]:
         """Recieves a message from the network and parses it
@@ -87,8 +92,9 @@ class Network:
         command, arg = msg.split(_SEPARATOR, 1)
         return (command, arg), addr
 
-    def send_message(self, command: bytes, arg: bytes,
-            peers: Iterable[AddressType]) -> None:
+    def send_message(
+            self, command: bytes, arg: bytes, peers: Iterable[AddressType]
+    ) -> None:
         """Constructs a message and sends it to the network
 
         Parameters:

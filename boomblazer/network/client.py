@@ -1,22 +1,16 @@
 """Implements a game client
 
-Exceptions:
-    GameOverError:
-        Exception raised when server tells the game is over
-
 Classes:
     Client:
         Implements client side of the network protocol
 """
 
-import logging
 import json
 import selectors
 import threading
-from pathlib import Path
 from types import TracebackType
+from typing import Iterable
 from typing import Optional
-from typing import Tuple
 from typing import Type
 
 from boomblazer.config.client import client_config
@@ -24,17 +18,10 @@ from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
 from boomblazer.network.network import AddressType
-from boomblazer.network.network import MessageType
 from boomblazer.network.network import Network
-from boomblazer.utils import create_logger
 
 
-class GameOverError(Exception):
-    """Exception raised when server tells the game is over
-    """
-
-
-class Client:
+class Client(Network):
     """Implements client side of the network protocol
 
     This class handles all the communication from the player to the server
@@ -52,14 +39,10 @@ class Client:
             often
 
     Members:
-        _logger: logging.Logger
-            The logger used to record the Client activity
         server_addr: AddressType
             The address of the remote game server
         is_host: bool
             Defines if this client is the host of the game
-        network: Network
-            Sends and recieves formatted messages to and from a server
         username: str
             Defines the name of the player
         game_handler: GameHandler
@@ -108,16 +91,16 @@ class Client:
     """
 
     __slots__ = (
-        "_logger", "server_addr", "is_host", "network", "username",
-        "game_handler", "is_game_running", "_tick_thread", "update_semaphore"
+        "server_addr", "is_host", "username", "game_handler",
+        "is_game_running", "_tick_thread", "update_semaphore",
     )
 
     _SERVER_MESSAGE_WAIT_TIME = 0.5
 
-    def __init__(self, server_addr: AddressType, username: bytes,
-            is_host: bool = False, *,
-            verbosity: int = 0, log_file: Optional[Path] = None,
-            logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+            self, server_addr: AddressType, username: bytes,
+            is_host: bool, *args, **kwargs
+    ) -> None:
         """Initializes a new Client
 
         Parameters:
@@ -127,25 +110,9 @@ class Client:
                 The name of the player
             is_host: bool
                 Defines if this Client the game host
-
-        Named only parameters:
-            verbosity: int
-                Defines how verbose the logger should be
-            log_file: Optional[Path]
-                Defines which file the logger should record its messages to.
-                Defaults to stderr if not specified
-            logger: Optional[logging.Logger]
-                Defines the logger to be used by the Client instance.
-                If this argument is given, `verbosity` and `log_files` will be
-                ignored
         """
-
+        super().__init__(*args, **kwargs)
         self.server_addr = server_addr
-        if logger is None:
-            self._logger = create_logger(__name__, verbosity, log_file)
-        else:
-            self._logger = logger
-        self.network = Network(self._logger)
         self.username = username
         self.is_host = is_host
         self.game_handler = GameHandler()
@@ -161,7 +128,7 @@ class Client:
         """Joins the server and sets up the reception af server packets
         """
         sel = selectors.DefaultSelector()
-        sel.register(self.network.sock, selectors.EVENT_READ)
+        sel.register(self.sock, selectors.EVENT_READ)
 
         for _ in range(client_config.max_connect_tries):
             self.send_join()
@@ -174,7 +141,9 @@ class Client:
             self._logger.info(
                 "Connected to %s:%d", self.server_addr[0], self.server_addr[1]
             )
-            self._tick_thread = threading.Thread(target=self.tick)
+            self._tick_thread = threading.Thread(
+                target=self.tick, name="client-tick"
+            )
             self._tick_thread.start()
             return
 
@@ -188,7 +157,7 @@ class Client:
         """Updates the game environment every time the server sends a message
         """
         sel = selectors.DefaultSelector()
-        sel.register(self.network.sock, selectors.EVENT_READ)
+        sel.register(self.sock, selectors.EVENT_READ)
 
         while self.is_game_running:
             # Do not wait indefinitely in case game ended abruptly
@@ -219,21 +188,14 @@ class Client:
             self.update_semaphore.release()
 
     # ---------------------------------------- #
-    # NETWORK WRAPPER
+    # NETWORK COMMUNICATIONS
     # ---------------------------------------- #
 
-    def recv_message(self) -> Tuple[Optional[MessageType], AddressType]:
-        """Recieves a message from the server hosting the game
-
-        Return value: tuple[Optional[MessageType], AddressType]
-            A message sent by the server and the IP address and port number
-            from which the message was recieved.
-            The message contains a command and an argument, or is `None` if the
-            message was invalid
-        """
-        return self.network.recv_message()
-
-    def send_message(self, command: bytes, arg: bytes) -> None:
+    # @override
+    def send_message(
+            self, command: bytes, arg: bytes,
+            peers: Optional[Iterable[AddressType]] = None
+    ) -> None:
         """Sends a message to the server hosting the game
 
         Parameters:
@@ -242,7 +204,9 @@ class Client:
             arg: bytes
                 The argument associated to `command`
         """
-        self.network.send_message(command, arg, (self.server_addr,))
+        if peers is None:
+            peers = (self.server_addr,)
+        super().send_message(command, arg, peers)
 
     # ---------------------------------------- #
     # SEND CLIENT COMMANDS
@@ -304,6 +268,7 @@ class Client:
     # CONTEXT MANAGER
     # ---------------------------------------- #
 
+    # @override
     def close(self) -> None:
         """Closes the network connections
         """
@@ -311,8 +276,7 @@ class Client:
         if self._tick_thread is not None:
             self._tick_thread.join()
         self.send_quit()
-        self.network.close()
-        # XXX free game_handler?
+        super().close()
 
     def __enter__(self) -> "Client":
         """Enters a context manager (with statement)
