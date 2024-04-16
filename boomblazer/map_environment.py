@@ -22,13 +22,14 @@ Exception classes:
 import json
 import string
 from enum import Enum
+from pathlib import Path
 from typing import Collection
-from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Mapping
 from typing import Sequence
 from typing import Tuple
+from typing import TypedDict
 from typing import Union
 
 from boomblazer.entity.bomb import Bomb
@@ -61,13 +62,16 @@ class MapCellEnum(Enum):
     # fire = "*"  # fire created by an explosion
 
 
+MapEnvironmentDict = TypedDict(
+    "MapEnvironmentDict",
+    {
+        "version": int, "state": List[str], "players": List[PlayerDict],
+        "bombs": List[BombDict], "fires": List[FireDict]
+    }
+)
 MapEnvironmentMapping = Mapping[str, Union[
     int, Sequence[Sequence[str]], Sequence[PlayerMapping],
     Sequence[BombMapping], Sequence[FireMapping]
-]]
-MapEnvironmentDict = Dict[str, Union[
-    int, List[str], List[PlayerDict],
-    List[BombDict], List[FireDict]
 ]]
 
 
@@ -247,14 +251,14 @@ class MapEnvironment:
 
     @classmethod
     def from_file(
-            cls, map_filename: str, players: Collection[Player]
+            cls, map_filename: Path, players: Collection[Player]
     ) -> "MapEnvironment":
         """Instanciates a MapEnvironment from a file
 
         Used by the server when starting a new game
 
         Parameters:
-            map_filename: str
+            map_filename: Path
                 Path to the file containing the initial map data
             players: Iterable[Player]
                 Players that joined the game
@@ -377,7 +381,7 @@ class MapEnvironment:
             A dictionary containing the map version number, the environment
             state, the living players, and the planted bombs
         """
-        return {
+        return MapEnvironmentDict({
             "version": self._version,
             "state": [
                 "".join(cell.value for cell in row) for row in self._state
@@ -385,7 +389,7 @@ class MapEnvironment:
             "players": [player.to_dict() for player in self._players],
             "bombs": [bomb.to_dict() for bomb in self._bombs],
             "fires": [fire.to_dict() for fire in self._fires],
-        }
+        })
 
     def to_json(self, *args, **kwargs) -> str:
         """Returns the current instance data in the form of json data

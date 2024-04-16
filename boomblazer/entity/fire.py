@@ -17,9 +17,9 @@ Exception classes:
         occurs
 """
 
-from typing import Dict
 from typing import Mapping
 from typing import Sequence
+from typing import TypedDict
 from typing import Union
 
 from boomblazer.config.server import server_config
@@ -31,7 +31,7 @@ class FireError(Exception):
     """
 
 
-FireDict = Dict[str, Union[Position, int]]
+FireDict = TypedDict("FireDict", {"position": Position, "tick": int})
 FireMapping = Mapping[str, Union[Sequence[int], int]]
 
 
@@ -153,7 +153,7 @@ class Fire:
             A dictionary containing the position, and the number of ticks
             remaining before the fire is extinguished
         """
-        return {
+        return FireDict({
             "position": self.position,
             "tick": self._tick,
-        }
+        })

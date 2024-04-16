@@ -16,11 +16,11 @@ Exception classes:
         occurs
 """
 
-from typing import Dict
 from typing import Iterable
 from typing import Mapping
 from typing import Sequence
 from typing import TYPE_CHECKING
+from typing import TypedDict
 from typing import Union
 
 from boomblazer.config.server import server_config
@@ -35,7 +35,10 @@ class BombError(Exception):
     """
 
 
-BombDict = Dict[str, Union[str, Position, int]]
+BombDict = TypedDict(
+    "BombDict",
+    {"player": str, "position": Position, "bomb_range": int, "tick": int}
+)
 BombMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
@@ -214,9 +217,9 @@ class Bomb:
             the explosion blast of the bomb, and the number of ticks remaining
             before the explosion
         """
-        return {
+        return BombDict({
             "position": self.position,
             "player": self.player.name,
             "bomb_range": self._bomb_range,
             "tick": self._tick,
-        }
+        })

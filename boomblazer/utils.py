@@ -58,8 +58,9 @@ def create_logger(name: str, verbosity: int,
 
     logger = logging.getLogger(name)
     logger.setLevel(verbose_to_log_level(verbosity))
-    formatter = logging.Formatter("[{asctime}] [{levelname}]: {message}",
-                                  style="{")
+    formatter = logging.Formatter(
+        "[{asctime}] [{levelname}]: {message}", style="{"
+    )
     if log_file is not None:
         handler = logging.FileHandler(log_file, mode="w")
     else:

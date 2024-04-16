@@ -15,10 +15,10 @@ Exception classes:
         Error raised when a Player tries to plant a bomb unsuccessfully
 """
 
-from typing import Dict
 from typing import Mapping
 from typing import Sequence
 from typing import Union
+from typing import TypedDict
 
 from boomblazer.config.server import server_config
 from boomblazer.entity.bomb import Bomb
@@ -30,7 +30,13 @@ class CannotDropBombError(Exception):
     """
 
 
-PlayerDict = Dict[str, Union[str, Position, int]]
+PlayerDict = TypedDict(
+    "PlayerDict",
+    {
+        "name": str, "position": Position, "max_bomb_count": int,
+        "current_bomb_count": int, "bomb_range": int
+    }
+)
 PlayerMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
@@ -251,10 +257,10 @@ class Player:
             maximum number of bombs that can be planted at the same time, the
             current number of active bombs planted, the player's bomb range
         """
-        return {
+        return PlayerDict({
             "name": self._name,
             "position": self.position,
             "max_bomb_count": self._max_bomb_count,
             "current_bomb_count": self._current_bomb_count,
             "bomb_range": self._bomb_range,
-        }
+        })
