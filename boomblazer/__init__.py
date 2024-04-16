@@ -11,6 +11,8 @@ Submodules:
         Implements the explosion fire in the game
     game_handler:
         Handles the game state
+    logger:
+        Defines logger related functions
     map_environment:
         Implements a game map environment
     network:
@@ -21,8 +23,6 @@ Submodules:
         Implements a game client
     ui:
         A selection of user interfaces that can be used to play the game
-    utils:
-        Defines some utility functions
     version:
         Stores the software version of the game
 """
@@ -30,19 +30,19 @@ Submodules:
 from . import config
 from . import entity
 from . import game_handler
+from . import logger
 from . import map_environment
 from . import network
 from . import ui
-from . import utils
 from . import version
 
 __all__ = [
     "config",
     "entity",
     "game_handler",
+    "logger",
     "map_environment",
     "network",
     "ui",
-    "utils",
     "version",
 ]

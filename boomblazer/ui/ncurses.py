@@ -23,6 +23,7 @@ from typing import Optional
 from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
+from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.ncurses import ncurses_config
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.ui.base_ui import BaseUI
@@ -309,10 +310,8 @@ def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
             Parsed arguments
     """
     curses.curs_set(0)  # Do not display cursor
-    verbosity = -1 if args.quiet else args.verbose
-    with CursesInterface(
-            stdscr, verbosity=verbosity, log_file=args.log_file
-    ) as tui:
+    base_args = handle_base_arguments(args)
+    with CursesInterface(stdscr, logger=base_args.logger) as tui:
         tui.main_menu()
 
     return 0

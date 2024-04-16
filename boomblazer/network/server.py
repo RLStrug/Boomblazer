@@ -25,6 +25,7 @@ from typing import Set
 from typing import Type
 
 from boomblazer.argument_parser import base_parser
+from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
@@ -32,7 +33,6 @@ from boomblazer.map_environment import MapEnvironment
 from boomblazer.network.network import AddressType
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
-from boomblazer.utils import create_logger
 
 
 class ServerError(Exception):
@@ -168,7 +168,7 @@ class Server(Network):
                 # Skip bad message
                 continue
             command, arg = msg
-            if (command == b"JOIN"):
+            if command == b"JOIN":
                 self.add_player(addr, arg)
             elif command == b"QUIT":
                 if addr in ready_players:
@@ -419,9 +419,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     addr = (args.address, args.port)
-    verbosity = -1 if args.quiet else args.verbose
-    logger = create_logger(__name__, verbosity, args.log_file)
-    with Server(addr, args.map_filename, logger=logger) as server:
+    base_args = handle_base_arguments(args)
+    with Server(addr, args.map_filename, logger=base_args.logger) as server:
         server.start()
 
     return 0

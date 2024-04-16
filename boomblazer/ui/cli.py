@@ -23,6 +23,7 @@ from typing import Optional
 from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
+from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.cli import cli_config
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
@@ -163,8 +164,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.cmd is None:
         parser.error("Missing cmd argument")
 
-    verbosity = -1 if args.quiet else args.verbose
-    with CommandLineInterface(verbosity=verbosity, log_file=args.log_file) as cli:
+    base_args = handle_base_arguments(args)
+    with CommandLineInterface(logger=base_args.logger) as cli:
         cli.main_menu(args)
 
     return 0

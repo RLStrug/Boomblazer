@@ -1,18 +1,18 @@
-"""Defines some utility functions
+"""Defines logger related functions
 
 Functions:
-    verbose_to_log_level:
+    _verbose_to_log_level:
         Converts a verbosity level to a logger level usable by logging module
     create_logger:
         Creates a new logger from a verbosity level
 """
 
 import logging
-from pathlib import Path
+from typing import Iterable
 from typing import Optional
 
 
-def verbose_to_log_level(verbosity: int) -> int:
+def _verbose_to_log_level(verbosity: int) -> int:
     """Converts a verbosity level to a logger level usable by logging module
 
     Parameters:
@@ -36,8 +36,10 @@ def verbose_to_log_level(verbosity: int) -> int:
     return log_level
 
 
-def create_logger(name: str, verbosity: int,
-        log_file: Optional[Path] = None) -> logging.Logger:
+def create_logger(
+        name: str, verbosity: int,
+        log_files: Optional[Iterable[str]] = None
+) -> logging.Logger:
     """Creates a new logger from a verbosity level
 
     The logger will be applied a `logging.Formatter` to specify that records
@@ -51,22 +53,26 @@ def create_logger(name: str, verbosity: int,
             already exists.
         verbosity: int
             Defines how verbose the logger should be
-        log_file: Path
-            Defines which file the logger should record its messages to.
-            Defaults to stderr if not specified
+        log_file: Iterable[str]
+            Defines which files the logger should record its messages to.
+            If the file name is '-', then it will log to stderr.
     """
 
     logger = logging.getLogger(name)
-    logger.setLevel(verbose_to_log_level(verbosity))
+    logger.setLevel(_verbose_to_log_level(verbosity))
     formatter = logging.Formatter(
         "[{asctime}] [{levelname}]: {message}", style="{"
     )
-    if log_file is not None:
-        handler = logging.FileHandler(log_file, mode="w")
-    else:
-        handler = logging.StreamHandler()
+    if log_files is None:
+        logger.addHandler(logging.NullHandler())
+        log_files = ()
 
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    for log_file in log_files:
+        if log_file == "-":
+            handler = logging.StreamHandler()
+        else:
+            handler = logging.FileHandler(log_file, mode="w")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     return logger

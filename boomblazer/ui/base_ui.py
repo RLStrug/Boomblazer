@@ -14,6 +14,7 @@ Constants:
 """
 
 import enum
+import logging
 import threading
 from abc import ABC
 from pathlib import Path
@@ -24,7 +25,6 @@ from typing import Type
 from boomblazer.network.client import Client
 from boomblazer.network.network import AddressType
 from boomblazer.network.server import Server
-from boomblazer.utils import create_logger
 
 
 _ALL_INTERFACES = "0.0.0.0"
@@ -79,18 +79,15 @@ class BaseUI(ABC):
 
     def __init__(
             self, *,
-            verbosity: int = 0, log_file: Optional[Path] = None
+            logger: logging.Logger
     ) -> None:
         """Initializes a new BaseUI
 
         Named only parameters:
-            verbosity: int
-                Defines how verbose the logger should be
-            log_file: Optional[Path]
-                Defines which file the logger should record its messages to.
-                Defaults to stderr if not specified
+            logger: logging.Logger
+                The game message logger
         """
-        self._logger = create_logger(__name__, verbosity, log_file)
+        self._logger = logger
         self.client = None
         self.server = None
         self._server_thread = None
