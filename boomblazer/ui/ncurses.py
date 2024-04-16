@@ -72,12 +72,12 @@ class CursesInterface(BaseUI):
         waiting = True
         choices = enum.IntEnum(
             "MainMenuChoiceEnum",
-            "HOST JOIN CREATE EXIT",
+            "JOIN CREATE EXIT",
             start=0
         )
         current_choice = choices(0)
         labels = (
-            "Host a game", "Join a game", "Create a game", "Exit"
+            "Join a game", "Create a game", "Exit"
         )
         while waiting:
             self.stdscr.clear()
@@ -96,19 +96,13 @@ class CursesInterface(BaseUI):
                 waiting = False
             current_choice = choices(new_choice % len(choices))
 
-        if current_choice is choices.HOST:
-            self.join_menu(is_host=True)
-        elif current_choice is choices.JOIN:
-            self.join_menu(is_host=False)
+        if current_choice is choices.JOIN:
+            self.join_menu()
         elif current_choice is choices.CREATE:
             self.create_menu()
 
-    def join_menu(self, *, is_host: bool) -> None:
+    def join_menu(self) -> None:
         """Gather server url and port then join
-
-        Keyword only parameters:
-            is_host: bool
-                Indicates if we are the host of the game
         """
         waiting = True
         choices = enum.IntEnum(
@@ -161,7 +155,7 @@ class CursesInterface(BaseUI):
         self.stdscr.insstr(0, 0, f"Connecting to {address}:{port}")
         self.stdscr.refresh()
 
-        self.join_game((address, port), name, is_host=is_host)
+        self.join_game((address, port), name)
         if self.client.is_game_running:
             self.lobby_menu()
 
@@ -225,23 +219,15 @@ class CursesInterface(BaseUI):
             self.lobby_menu()
 
     def lobby_menu(self) -> None:
-        """Wait in lobby for host to start game
+        """Wait in lobby for everyone to be ready to start game
         """
         need_redraw = True
-        if self.client.is_host:
-            choices = enum.IntEnum(
-                "LobbyMenuChoiceEnum",
-                "START EXIT",
-                start=0
-            )
-            labels = ("Start game", "Exit",)
-        else:
-            choices = enum.IntEnum(
-                "LobbyMenuChoiceEnum",
-                "EXIT",
-                start=0
-            )
-            labels = ("Exit",)
+        choices = enum.IntEnum(
+            "LobbyMenuChoiceEnum",
+            "READY EXIT",
+            start=0
+        )
+        labels = ("Ready", "Exit",)
         current_choice = choices(0)
 
         self.stdscr.nodelay(True)  # User input is non blocking
@@ -273,7 +259,7 @@ class CursesInterface(BaseUI):
             elif key in ncurses_config.menu_select_buttons:
                 if current_choice is choices.EXIT:
                     return
-                self.client.send_start()
+                self.client.send_ready()
             current_choice = choices(new_choice % len(choices))
 
             if self.client.update_semaphore.acquire(blocking=False):

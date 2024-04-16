@@ -61,8 +61,8 @@ class CommandLineInterface(BaseUI):
                 The arguments given through the command line.
                 It must contain the following:
                     cmd: str
-                        Whether to host, join, or create the game
-                    address (host and join only): str
+                        Whether to join, or create the game
+                    address (join only): str
                         The address of the server
                     port: int
                         The port of the server
@@ -71,10 +71,8 @@ class CommandLineInterface(BaseUI):
                     map_filename (create only): Path
                         The file containing the map data
         """
-        if args.cmd == "host":
-            self.join_game((args.address, args.port), args.name, is_host=True)
-        elif args.cmd == "join":
-            self.join_game((args.address, args.port), args.name, is_host=False)
+        if args.cmd == "join":
+            self.join_game((args.address, args.port), args.name)
         elif args.cmd == "create":
             self.create_game_and_join(args.port, args.name, args.map_filename)
         else:  # exit
@@ -84,8 +82,11 @@ class CommandLineInterface(BaseUI):
     def play_game(self) -> None:
         """Sends player actions and displays game state
         """
-        if self.client.is_host:
-            print(f'Send "{cli_config.start_cmds[0]}" to start the game')
+        print(
+            f'Send "{cli_config.ready_cmds[0]}" when you are ready to start '
+            'the game.'
+        )
+        print("The game will start when all players are ready")
         print(
             f"up: {cli_config.up_cmds[0]} ; "
             f"down: {cli_config.down_cmds[0]} ; "
@@ -109,8 +110,8 @@ class CommandLineInterface(BaseUI):
     def handle_user_input(self, cmd: str) -> None:
         """Sends user input to server as player actions
         """
-        if cmd in cli_config.start_cmds:
-            self.client.send_start()
+        if cmd in cli_config.ready_cmds:
+            self.client.send_ready()
         elif cmd in cli_config.up_cmds:
             self.client.send_move(MoveActionEnum.MOVE_UP)
         elif cmd in cli_config.down_cmds:
@@ -146,11 +147,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     """
     parser = argparse.ArgumentParser(parents=[base_parser])
     subparsers = parser.add_subparsers(dest="cmd")
-
-    parser_host = subparsers.add_parser("host")
-    parser_host.add_argument("address")
-    parser_host.add_argument("port", type=int)
-    parser_host.add_argument("name")
 
     parser_join = subparsers.add_parser("join")
     parser_join.add_argument("address")

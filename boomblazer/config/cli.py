@@ -29,7 +29,7 @@ class _CLI_Config:
             The default list of commands that drop a bomb
         _DEFAULT_QUIT_COMMANDS: Iterable[str]
             The default list of commands that quit the game
-        _DEFAULT_START_COMMANDS: Iterable[str]
+        _DEFAULT_READY_COMMANDS: Iterable[str]
             The default list of commands that start the game
 
     Members:
@@ -45,7 +45,7 @@ class _CLI_Config:
             The list of commands that drop a bomb
         quit_commands: list[str]
             The list of commands that quit the game
-        start_commands: list[str]
+        ready_commands: list[str]
             The list of commands that start the game
 
     Special methods:
@@ -54,7 +54,7 @@ class _CLI_Config:
 
     __slots__ = (
         "up_cmds", "down_cmds", "left_cmds", "right_cmds", "bomb_cmds",
-        "quit_cmds", "start_cmds",
+        "quit_cmds", "ready_cmds",
     )
 
     _DEFAULT_UP_COMMANDS = ("z", "up",)
@@ -63,7 +63,7 @@ class _CLI_Config:
     _DEFAULT_RIGHT_COMMANDS = ("d", "right")
     _DEFAULT_BOMB_COMMANDS = ("b", "bomb",)
     _DEFAULT_QUIT_COMMANDS = ("Q", "quit", "exit", "stop",)
-    _DEFAULT_START_COMMANDS = ("start",)
+    _DEFAULT_READY_COMMANDS = ("ready", "start",)
 
     def __init__(
             self, up_cmds: Iterable[str] = _DEFAULT_UP_COMMANDS,
@@ -72,7 +72,7 @@ class _CLI_Config:
             right_cmds: Iterable[str] = _DEFAULT_RIGHT_COMMANDS,
             bomb_cmds: Iterable[str] = _DEFAULT_BOMB_COMMANDS,
             quit_cmds: Iterable[str] = _DEFAULT_QUIT_COMMANDS,
-            start_cmds: Iterable[str] = _DEFAULT_START_COMMANDS,
+            ready_cmds: Iterable[str] = _DEFAULT_READY_COMMANDS,
     ) -> None:
         self.up_cmds = list(up_cmds)
         self.down_cmds = list(down_cmds)
@@ -80,6 +80,6 @@ class _CLI_Config:
         self.right_cmds = list(right_cmds)
         self.bomb_cmds = list(bomb_cmds)
         self.quit_cmds = list(quit_cmds)
-        self.start_cmds = list(start_cmds)
+        self.ready_cmds = list(ready_cmds)
 
 cli_config=_CLI_Config()

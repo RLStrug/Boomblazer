@@ -96,7 +96,7 @@ class BaseUI(ABC):
         self._server_thread = None
 
     def join_game(
-            self, addr: AddressType, username: str, is_host: bool = False
+            self, addr: AddressType, username: str
     ) -> None:
         """Joins a game
 
@@ -105,11 +105,9 @@ class BaseUI(ABC):
                 The address of the server
             username: str
                 The player's name
-            is_host: bool
-                Specifies if this is the host client
         """
         self.client = Client(
-            addr, username.encode("utf8"), is_host, logger=self._logger
+            addr, username.encode("utf8"), logger=self._logger
         )
         self.client.start()
 
@@ -148,7 +146,7 @@ class BaseUI(ABC):
         self.create_game(addr_for_server, map_filename)
 
         addr_for_client = (_LOCAL_ADDRESS, port)
-        self.join_game(addr_for_client, username, True)
+        self.join_game(addr_for_client, username)
 
     # ---------------------------------------- #
     # CONTEXT MANAGER

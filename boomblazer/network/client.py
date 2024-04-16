@@ -41,8 +41,6 @@ class Client(Network):
     Members:
         server_addr: AddressType
             The address of the remote game server
-        is_host: bool
-            Defines if this client is the host of the game
         username: str
             Defines the name of the player
         game_handler: GameHandler
@@ -76,8 +74,8 @@ class Client(Network):
             Recieves a message from the server hosting the game
         send_message:
             Sends a message to the server hosting the game
-        send_start:
-            Tells the server to start the game (host only)
+        send_ready:
+            Tells the server we are ready to start the game
         send_join:
             Tells the server to let the player join the game
         send_move:
@@ -91,15 +89,14 @@ class Client(Network):
     """
 
     __slots__ = (
-        "server_addr", "is_host", "username", "game_handler",
-        "is_game_running", "_tick_thread", "update_semaphore",
+        "server_addr", "username", "game_handler", "is_game_running",
+        "_tick_thread", "update_semaphore",
     )
 
     _SERVER_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, server_addr: AddressType, username: bytes,
-            is_host: bool, *args, **kwargs
+            self, server_addr: AddressType, username: bytes, *args, **kwargs
     ) -> None:
         """Initializes a new Client
 
@@ -108,13 +105,10 @@ class Client(Network):
                 The IP address and port number of the server hosting the game
             username: str
                 The name of the player
-            is_host: bool
-                Defines if this Client the game host
         """
         super().__init__(*args, **kwargs)
         self.server_addr = server_addr
         self.username = username
-        self.is_host = is_host
         self.game_handler = GameHandler()
         self.is_game_running = False
         self._tick_thread = None
@@ -193,7 +187,7 @@ class Client(Network):
 
     # @override
     def send_message(
-            self, command: bytes, arg: bytes,
+            self, command: bytes, arg: bytes = b"",
             peers: Optional[Iterable[AddressType]] = None
     ) -> None:
         """Sends a message to the server hosting the game
@@ -212,28 +206,23 @@ class Client(Network):
     # SEND CLIENT COMMANDS
     # ---------------------------------------- #
 
-    def send_start(self) -> None:
-        """Tells the server to start the game
+    def send_ready(self) -> None:
+        """Tells the server we are ready to start the game
 
-        This command should have an effect on the server only if this instance
-        is the host client.
+        If the command is sent multiple times, it will alternate the client
+        status from ready to not ready.
         This command should have an effect on the server only if the game has
         not yet been started.
         """
-        self.send_message(b"START", self.username)
+        self.send_message(b"READY")
 
     def send_join(self) -> None:
         """Tells the server to let the player join the game
 
-        The command sent to the server will be different whether this instance
-        is the host client or not.
         This command should have an effect on the server only if the game has
         not yet been started.
         """
-        if self.is_host:
-            command = b"HOST"
-        else:
-            command = b"JOIN"
+        command = b"JOIN"
         self.send_message(command, self.username)
 
     def send_move(self, action: MoveActionEnum) -> None:
@@ -257,12 +246,12 @@ class Client(Network):
         This command should have an effect on the server only if the game has
         already been started.
         """
-        self.send_message(b"BOMB", b"")
+        self.send_message(b"BOMB")
 
     def send_quit(self) -> None:
         """Tells the server that the player wants to quit the game
         """
-        self.send_message(b"QUIT", self.username)
+        self.send_message(b"QUIT")
 
     # ---------------------------------------- #
     # CONTEXT MANAGER

@@ -21,6 +21,7 @@ from types import TracebackType
 from typing import Iterable
 from typing import Optional
 from typing import Sequence
+from typing import Set
 from typing import Type
 
 from boomblazer.argument_parser import base_parser
@@ -56,9 +57,6 @@ class Server(Network):
             Contains the game state and logic
         clients: dict[AddressType, Player]
             Links connected players to their address
-        host: AddressType
-            Remembers which client is the game host to allow special actions,
-            such as starting the game and closing the server
         _map_filename: Path
             Path to map that will be used for the game
         _logger: logging.Logger
@@ -81,10 +79,8 @@ class Server(Network):
     Methods:
         start:
             Start the game
-        wait_host:
-            Waits for the host to connect before accepting other clients
         wait_players:
-            Waits for players to connect until host launches game
+            Waits for players to connect until everyone is ready
         launch_game:
             Runs the game logic from clients inputs
         tick:
@@ -112,7 +108,7 @@ class Server(Network):
     """
 
     __slots__ = (
-        "game_handler", "clients", "host", "_map_filename",
+        "game_handler", "clients", "_map_filename",
         "is_game_running", "_player_actions", "_tick_thread",
     )
 
@@ -132,7 +128,6 @@ class Server(Network):
         super().__init__(*args, **kwargs)
         self.bind(addr)
         self.clients = {}
-        self.host = None
         self.game_handler = None
         self._map_filename = map_filename
         self.is_game_running = False
@@ -149,10 +144,8 @@ class Server(Network):
     def start(self) -> None:
         """Start the game
 
-        Waits for the host and the players and initializes the game map
-        environment
+        Waits for the players and initializes the game map environment
         """
-        self.wait_host()
         self.wait_players()
         map_environment = MapEnvironment.from_file(
             self._map_filename, list(self.clients.values())
@@ -160,42 +153,35 @@ class Server(Network):
         self.game_handler = GameHandler(map_environment)
         self.launch_game()
 
-    def wait_host(self) -> None:
-        """Waits for the host to connect before accepting other clients
-        """
-        self._logger.info("Waiting for host")
-        while self.host is None:
-            # TODO Do not wait indefinitely
-            msg, addr = self.recv_message()
-            if msg is None:
-                # Skip bad message
-                continue
-            command, arg = msg
-            if command == b"HOST":
-                self.host = addr
-                self.add_player(addr, arg)
-
     def wait_players(self) -> None:
-        """Waits for players to connect until host launches game
+        """Waits for players to connect until everyone is ready
         """
         self._logger.info("Waiting for players")
-        ready_to_play = False
-        while not ready_to_play:
+        ready_players: Set[AddressType] = set()
+        while (
+                len(self.clients) < 1 or
+                len(ready_players) != len(self.clients)
+        ):
             # TODO Do not wait indefinitely
             msg, addr = self.recv_message()
             if msg is None:
                 # Skip bad message
                 continue
             command, arg = msg
-            if (command == b"JOIN") or (command == b"HOST" and addr == self.host):
-                # Must still accept HOST commands in case the host had network issues
+            if (command == b"JOIN"):
                 self.add_player(addr, arg)
             elif command == b"QUIT":
-                # XXX Should there be an argument to this command?
+                if addr in ready_players:
+                    ready_players.remove(addr)
                 self.remove_player(addr)
-            elif command == b"START" and addr == self.host:
-                # XXX Should there be a check for minimun nb of players?
-                ready_to_play = True
+            elif command == b"READY":
+                if addr in ready_players:
+                    ready_players.remove(addr)
+                else:
+                    ready_players.add(addr)
+            else:  # Skip unknown command
+                continue
+            self.send_players_list(ready_players)
 
     def launch_game(self) -> None:
         """Runs the game logic from clients inputs
@@ -282,7 +268,7 @@ class Server(Network):
     # ---------------------------------------- #
 
     def add_player(self, addr: AddressType, name: bytes) -> None:
-        """Adds a player to the clients list, and send the list to players
+        """Adds a player to the clients list
 
         Parameters:
             addr: AddressType
@@ -291,13 +277,9 @@ class Server(Network):
                 The new player's name
         """
         self.clients[addr] = Player(name.decode("utf8"))
-        self.send_players_list()
 
     def remove_player(self, addr: AddressType) -> None:
         """Removes a player from the clients list
-
-        If the client was the host, close the server???
-        Else, send all players the updated players list
 
         Parameters:
             addr:
@@ -311,14 +293,8 @@ class Server(Network):
                 if player in self.game_handler.map_environment.players:
                     self.game_handler.map_environment.players.remove(player)
             del self.clients[addr]
-        if addr == self.host:
-            pass
-            # TODO select new host or close server?
-            # self.send_stop_game(b"Host disconnected")
         if len(self.clients) == 0 and self.is_game_running:
             self.close()
-
-        self.send_players_list()
 
     # ---------------------------------------- #
     # NETWORK COMMUNICATIONS
@@ -348,12 +324,19 @@ class Server(Network):
     # SEND SERVER COMMANDS
     # ---------------------------------------- #
 
-    def send_players_list(self) -> None:
+    def send_players_list(
+            self, ready_players: Set[AddressType] = frozenset
+    ) -> None:
         """Sends the list of connected players' name
+
+        Parameters:
+            ready_players: set[AddressType]
+                Players that are ready to start the game
         """
-        players_list = json.dumps(
-            [player.name for player in self.clients.values()]
-        ).encode("utf8")
+        players_list = json.dumps({
+            player.name: (addr in ready_players)
+            for addr, player in self.clients.items()
+        }).encode("utf8")
         self.send_message(b"PLAYERS_LIST", players_list)
 
     def send_stop_game(self, reason: bytes) -> None:
