@@ -84,17 +84,17 @@ class CommandLineInterface(BaseUI):
         """Sends player actions and displays game state
         """
         print(
-            f'Send "{cli_config.ready_cmds[0]}" when you are ready to start '
-            'the game.'
+            f'Send "{cli_config.ready_commands[0]}" when you are ready '
+            'to start the game.'
         )
         print("The game will start when all players are ready")
         print(
-            f"up: {cli_config.up_cmds[0]} ; "
-            f"down: {cli_config.down_cmds[0]} ; "
-            f"left: {cli_config.left_cmds[0]} ; "
-            f"right: {cli_config.right_cmds[0]} ; "
-            f"bomb: {cli_config.bomb_cmds[0]} ; "
-            f"quit: {cli_config.quit_cmds[0]}"
+            f"up: {cli_config.up_commands[0]} ; "
+            f"down: {cli_config.down_commands[0]} ; "
+            f"left: {cli_config.left_commands[0]} ; "
+            f"right: {cli_config.right_commands[0]} ; "
+            f"bomb: {cli_config.bomb_commands[0]} ; "
+            f"quit: {cli_config.quit_commands[0]}"
         )
 
         sel = selectors.DefaultSelector()
@@ -111,19 +111,19 @@ class CommandLineInterface(BaseUI):
     def handle_user_input(self, cmd: str) -> None:
         """Sends user input to server as player actions
         """
-        if cmd in cli_config.ready_cmds:
+        if cmd in cli_config.ready_commands:
             self.client.send_ready()
-        elif cmd in cli_config.up_cmds:
+        elif cmd in cli_config.up_commands:
             self.client.send_move(MoveActionEnum.MOVE_UP)
-        elif cmd in cli_config.down_cmds:
+        elif cmd in cli_config.down_commands:
             self.client.send_move(MoveActionEnum.MOVE_DOWN)
-        elif cmd in cli_config.left_cmds:
+        elif cmd in cli_config.left_commands:
             self.client.send_move(MoveActionEnum.MOVE_LEFT)
-        elif cmd in cli_config.right_cmds:
+        elif cmd in cli_config.right_commands:
             self.client.send_move(MoveActionEnum.MOVE_RIGHT)
-        elif cmd in cli_config.bomb_cmds:
+        elif cmd in cli_config.bomb_commands:
             self.client.send_plant_bomb()
-        elif cmd in cli_config.quit_cmds:
+        elif cmd in cli_config.quit_commands:
             self.client.send_quit()
             self.client.is_game_running = False
 

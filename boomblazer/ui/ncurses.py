@@ -283,17 +283,17 @@ class CursesInterface(BaseUI):
                 self.stdscr.insstr(0, 0, str(self.client.game_handler.map_environment))
 
             key = self.stdscr.getch()
-            if key == curses.KEY_UP or key == ord("z"):
+            if key in ncurses_config.move_up_buttons:
                 self.client.send_move(MoveActionEnum.MOVE_UP)
-            elif key == curses.KEY_DOWN or key == ord("s"):
+            elif key in ncurses_config.move_down_buttons:
                 self.client.send_move(MoveActionEnum.MOVE_DOWN)
-            elif key == curses.KEY_LEFT or key == ord("q"):
+            elif key in ncurses_config.move_left_buttons:
                 self.client.send_move(MoveActionEnum.MOVE_LEFT)
-            elif key == curses.KEY_RIGHT or key == ord("d"):
+            elif key in ncurses_config.move_right_buttons:
                 self.client.send_move(MoveActionEnum.MOVE_RIGHT)
-            elif key == ord("\n") or key == ord("b"):
+            elif key in ncurses_config.drop_bomb_buttons:
                 self.client.send_plant_bomb()
-            elif key == ord("Q"):
+            elif key in ncurses_config.quit_buttons:
                 self.client.is_game_running = False
 
             if self.client.update_semaphore.acquire(blocking=False):

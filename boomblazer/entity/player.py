@@ -16,6 +16,7 @@ Exception classes:
 """
 
 from typing import Mapping
+from typing import Optional
 from typing import Sequence
 from typing import Union
 from typing import TypedDict
@@ -94,9 +95,9 @@ class Player:
     )
 
     def __init__(self, name: str, position: Sequence[int] = (0, 0), *,
-            max_bomb_count: int = server_config.player_bomb_count,
+            max_bomb_count: Optional[int] = None,
             current_bomb_count: int = 0,
-            bomb_range: int = server_config.player_bomb_range
+            bomb_range: Optional[int] = None
     ) -> None:
         """Initialize the player data
 
@@ -115,6 +116,10 @@ class Player:
             bomb_range: int
                 The range in blocks of a bomb explosion blast
         """
+        if max_bomb_count is None:
+            max_bomb_count = server_config.player_bomb_count
+        if bomb_range is None:
+            bomb_range = server_config.player_bomb_range
         self._name = name
         self._position = Position(*position)
         self._max_bomb_count = max_bomb_count

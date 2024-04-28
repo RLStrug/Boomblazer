@@ -10,7 +10,15 @@ Classes:
 """
 
 
-class _ClientConfig:
+import dataclasses
+from typing import ClassVar
+
+from boomblazer.config.base_config import BaseConfig
+from boomblazer.config.config_loader import config_instances
+
+
+@dataclasses.dataclass(slots=True)
+class _ClientConfig(BaseConfig):
     """Dataclass containing the client configuration values
 
     Class constants:
@@ -27,23 +35,14 @@ class _ClientConfig:
         max_connect_wait: float
             The number of seconds a client should wait for server answer before
             trying again to connect or giving up
-
-    Special methods:
-        __init__:
-            Initializes the dataclass
     """
 
-    __slots__ = ("max_connect_tries", "max_connect_wait",)
+    _DEFAULT_MAX_CONNECT_TRIES: ClassVar[int] = 3
+    _DEFAULT_MAX_CONNECT_WAIT: ClassVar[float] = 1.0
 
-    _DEFAULT_MAX_CONNECT_TRIES = 3
-    _DEFAULT_MAX_CONNECT_WAIT = 1.0
-
-    def __init__(
-            self, max_connect_tries: int = _DEFAULT_MAX_CONNECT_TRIES,
-            max_connect_wait: float = _DEFAULT_MAX_CONNECT_WAIT
-    ) -> None:
-        self.max_connect_tries = max_connect_tries
-        self.max_connect_wait = max_connect_wait
+    max_connect_tries: int = _DEFAULT_MAX_CONNECT_TRIES
+    max_connect_wait: float = _DEFAULT_MAX_CONNECT_WAIT
 
 
 client_config=_ClientConfig()
+config_instances["client"] = client_config

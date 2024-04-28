@@ -17,6 +17,7 @@ Exception classes:
 """
 
 from typing import Iterable
+from typing import Optional
 from typing import Mapping
 from typing import Sequence
 from typing import TYPE_CHECKING
@@ -91,7 +92,7 @@ class Bomb:
 
     def __init__(
             self, position: Sequence[int], player: "Player",
-            bomb_range: int, tick: int = server_config.bomb_timer_ticks
+            bomb_range: int, tick: Optional[int] = None
     ) -> None:
         """Initializes a newly planted bomb
 
@@ -103,6 +104,8 @@ class Bomb:
             bomb_range:
                 The range of the explosion blast
         """
+        if tick is None:
+            tick = server_config.bomb_timer_ticks
         self._position = Position(*position)
         self._player = player
         self._bomb_range = bomb_range

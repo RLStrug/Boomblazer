@@ -17,8 +17,10 @@ Functions:
 
 import argparse
 import logging
+import pathlib
 from typing import NamedTuple
 
+from boomblazer.config import config_loader
 from boomblazer.logger import create_logger
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION_STR
@@ -28,9 +30,9 @@ base_parser = argparse.ArgumentParser(add_help=False)
 base_parser.add_argument("-v", "--verbose", action="count", default=0)
 base_parser.add_argument("-q", "--quiet", action="store_true")
 base_parser.add_argument("--log-files", action="extend", nargs="+")
-base_parser.add_argument("--config-file")
-base_parser.add_argument("--cache-file")
-base_parser.add_argument("--data-folder")
+base_parser.add_argument("--config-file", type=pathlib.Path)
+base_parser.add_argument("--cache-file", type=pathlib.Path)
+base_parser.add_argument("--data-folder", type=pathlib.Path)
 base_parser.add_argument(
     "-V", "--version", action="version",
     version=f"{GAME_NAME} {VERSION_STR}"
@@ -55,5 +57,7 @@ def handle_base_arguments(args: argparse.ArgumentParser) -> BaseArguments:
     """
     verbosity = -1 if args.quiet else args.verbose
     logger = create_logger(GAME_NAME, verbosity, args.log_files)
+    config_loader.config_file = args.config_file
+    config_loader.load_config()
 
     return BaseArguments(logger=logger)
