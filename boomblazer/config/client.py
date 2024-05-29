@@ -2,7 +2,7 @@
 
 Global variables:
     client_config: _ClientConfig
-        Singleton of _Config dataclass
+        Singleton of _ClientConfig dataclass
 
 Classes:
     _ClientConfig:

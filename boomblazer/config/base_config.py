@@ -38,6 +38,8 @@ class BaseConfig(abc.ABC):
         for field in fields:
             new_value = new_field_values.get(field.name)
             if new_value is not None:
+                # TODO check type
+                # assert isinstance(new_value, field.type)
                 setattr(self, field.name, new_value)
 
     def dump(self) -> dict:

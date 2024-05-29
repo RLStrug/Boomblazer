@@ -1,26 +1,18 @@
 """Boomblazer is a bomberman-like online multiplayer game
 
 Submodules:
-    bomb:
-        Implements the bombs in the game
-    client:
-        Implements a game client
     config:
-        Game configuration variables
-    fire:
-        Implements the explosion fire in the game
+        Configuration related modules
+    entity:
+        Game entity modules
     game_handler:
         Handles the game state
-    logger:
-        Defines logger related functions
+    logging:
+        Logging related modules
     map_environment:
         Implements a game map environment
     network:
-        Implements a network communication protocol for the game
-    player:
-        Implements a game player
-    server:
-        Implements a game client
+        Network related modules
     ui:
         A selection of user interfaces that can be used to play the game
     version:
@@ -30,7 +22,7 @@ Submodules:
 from . import config
 from . import entity
 from . import game_handler
-from . import logger
+from . import logging
 from . import map_environment
 from . import network
 from . import ui
@@ -40,7 +32,7 @@ __all__ = [
     "config",
     "entity",
     "game_handler",
-    "logger",
+    "logging",
     "map_environment",
     "network",
     "ui",

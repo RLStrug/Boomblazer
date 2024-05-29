@@ -68,7 +68,8 @@ def load_config() -> None:
         save_config()
         return
 
-    config_values = json.load(config_filename)
+    with open(config_filename, "r", encoding="utf8") as config_file:
+        config_values = json.load(config_file)
 
     for module_name, module_values in config_values.items():
         module = config_instances.get(module_name)

@@ -9,6 +9,8 @@ Submodules:
         Client configuration variables
     config_loader:
         Fuctions to load config variables from a file
+    logging:
+        Logging configuration variables
     ncurses:
         Ncurses user interface configuration variables
     server:
@@ -19,6 +21,7 @@ from . import base_config
 from . import cli
 from . import client
 from . import config_loader
+from . import logging
 from . import ncurses
 from . import server
 
@@ -27,6 +30,7 @@ __all__ = [
     "cli",
     "client",
     "config_loader",
+    "logging",
     "ncurses",
     "server",
 ]

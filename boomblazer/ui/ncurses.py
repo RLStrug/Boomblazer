@@ -17,8 +17,9 @@ import curses
 import curses.ascii
 import curses.textpad
 import enum
+import logging
+import pathlib
 import sys
-from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
@@ -27,6 +28,7 @@ from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.ncurses import ncurses_config
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.ui.base_ui import BaseUI
+from boomblazer.version import GAME_NAME
 
 
 class CursesInterface(BaseUI):
@@ -208,7 +210,7 @@ class CursesInterface(BaseUI):
 
         port = int(textboxes[choices.PORT].gather())
         # TODO Map chooser menu
-        map_filename = Path(textboxes[choices.MAP].gather().strip())
+        map_filename = pathlib.Path(textboxes[choices.MAP].gather().strip())
         name = textboxes[choices.NAME].gather().strip()
 
         self.stdscr.clear()
@@ -310,8 +312,9 @@ def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
             Parsed arguments
     """
     curses.curs_set(0)  # Do not display cursor
-    base_args = handle_base_arguments(args)
-    with CursesInterface(stdscr, logger=base_args.logger) as tui:
+    handle_base_arguments(args)
+    logger = logging.getLogger(f"{GAME_NAME}.ncurses")
+    with CursesInterface(stdscr, logger=logger) as tui:
         tui.main_menu()
 
     return 0

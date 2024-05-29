@@ -11,8 +11,7 @@ Classes:
 
 
 import curses
-from dataclasses import dataclass
-from dataclasses import field
+import dataclasses
 from typing import ClassVar
 from typing import List
 from typing import MutableSequence
@@ -21,7 +20,7 @@ from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
 
 
-@dataclass(slots=True)
+@dataclasses.dataclass(slots=True)
 class _NcursesConfig(BaseConfig):
     """Dataclass containing the ncurses UI configuration values
 
@@ -82,31 +81,31 @@ class _NcursesConfig(BaseConfig):
     _DEFAULT_DROP_BOMB_BUTTONS: ClassVar[List[int]] = [ord("b"), ord('\n'),]
     _DEFAULT_QUIT_BUTTONS: ClassVar[List[int]] = [ord("Q"),]
 
-    menu_up_buttons: MutableSequence[int] = field(
+    menu_up_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MENU_UP_BUTTONS.copy
     )
-    menu_down_buttons: MutableSequence[int] = field(
+    menu_down_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MENU_DOWN_BUTTONS.copy
     )
-    menu_select_buttons: MutableSequence[int] = field(
+    menu_select_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MENU_SELECT_BUTTONS.copy
     )
-    move_up_buttons: MutableSequence[int] = field(
+    move_up_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MOVE_UP_BUTTONS.copy
     )
-    move_down_buttons: MutableSequence[int] = field(
+    move_down_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MOVE_DOWN_BUTTONS.copy
     )
-    move_left_buttons: MutableSequence[int] = field(
+    move_left_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MOVE_LEFT_BUTTONS.copy
     )
-    move_right_buttons: MutableSequence[int] = field(
+    move_right_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MOVE_RIGHT_BUTTONS.copy
     )
-    drop_bomb_buttons: MutableSequence[int] = field(
+    drop_bomb_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_DROP_BOMB_BUTTONS.copy
     )
-    quit_buttons: MutableSequence[int] = field(
+    quit_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_QUIT_BUTTONS.copy
     )
 

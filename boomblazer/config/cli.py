@@ -10,8 +10,7 @@ Classes:
 """
 
 
-from dataclasses import dataclass
-from dataclasses import field
+import dataclasses
 from typing import ClassVar
 from typing import List
 from typing import MutableSequence
@@ -20,7 +19,7 @@ from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
 
 
-@dataclass(slots=True)
+@dataclasses.dataclass(slots=True)
 class _CLI_Config(BaseConfig):
     """Dataclass containing the CLI configuration values
 
@@ -65,25 +64,25 @@ class _CLI_Config(BaseConfig):
     _DEFAULT_QUIT_COMMANDS: ClassVar[List[str]] = ["Q", "quit", "exit", "stop",]
     _DEFAULT_READY_COMMANDS: ClassVar[List[str]] = ["ready", "start",]
 
-    up_commands: MutableSequence[str] = field(
+    up_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_UP_COMMANDS.copy
     )
-    down_commands: MutableSequence[str] = field(
+    down_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_DOWN_COMMANDS.copy
     )
-    left_commands: MutableSequence[str] = field(
+    left_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_LEFT_COMMANDS.copy
     )
-    right_commands: MutableSequence[str] = field(
+    right_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_RIGHT_COMMANDS.copy
     )
-    bomb_commands: MutableSequence[str] = field(
+    bomb_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_BOMB_COMMANDS.copy
     )
-    quit_commands: MutableSequence[str] = field(
+    quit_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_QUIT_COMMANDS.copy
     )
-    ready_commands: MutableSequence[str] = field(
+    ready_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_READY_COMMANDS.copy
     )
 

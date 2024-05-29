@@ -15,10 +15,11 @@ Functions:
 """
 
 import argparse
+import logging
+import pathlib
 import selectors
 import shutil
 import sys
-from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
@@ -27,6 +28,7 @@ from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.cli import cli_config
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
+from boomblazer.version import GAME_NAME
 
 
 class CommandLineInterface(BaseUI):
@@ -69,7 +71,7 @@ class CommandLineInterface(BaseUI):
                         The port of the server
                     name: str
                         The player name
-                    map_filename (create only): Path
+                    map_filename (create only): pathlib.Path
                         The file containing the map data
         """
         if args.cmd == "join":
@@ -157,15 +159,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser_create = subparsers.add_parser("create")
     parser_create.add_argument("port", type=int)
     parser_create.add_argument("name")
-    parser_create.add_argument("map_filename", type=Path)
+    parser_create.add_argument("map_filename", type=pathlib.Path)
 
     args = parser.parse_args(argv)
 
     if args.cmd is None:
         parser.error("Missing cmd argument")
 
-    base_args = handle_base_arguments(args)
-    with CommandLineInterface(logger=base_args.logger) as cli:
+    handle_base_arguments(args)
+    logger = logging.getLogger(f"{GAME_NAME}.cli")
+    with CommandLineInterface(logger=logger) as cli:
         cli.main_menu(args)
 
     return 0

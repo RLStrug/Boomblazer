@@ -12,11 +12,12 @@ Exception classes:
 
 import argparse
 import json
+import pathlib
+import logging
 import selectors
 import sys
 import threading
 import time
-from pathlib import Path
 from types import TracebackType
 from typing import Iterable
 from typing import Optional
@@ -33,6 +34,7 @@ from boomblazer.map_environment import MapEnvironment
 from boomblazer.network.network import AddressType
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
+from boomblazer.version import GAME_NAME
 
 
 class ServerError(Exception):
@@ -57,7 +59,7 @@ class Server(Network):
             Contains the game state and logic
         clients: dict[AddressType, Player]
             Links connected players to their address
-        _map_filename: Path
+        _map_filename: pathlib.Path
             Path to map that will be used for the game
         _logger: logging.Logger
             The server logger
@@ -115,14 +117,15 @@ class Server(Network):
     _CLIENT_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, addr: AddressType, map_filename: Path, *args, **kwargs
+            self, addr: AddressType, map_filename: pathlib.Path,
+            *args, **kwargs
     ) -> None:
         """Initialize the Server object
 
         Parameters:
             addr: AddressType
                 The IP and the port on which the server will run
-            map_filename: Path
+            map_filename: pathlib.Path
                 File containing the map environment initial data
         """
         super().__init__(*args, **kwargs)
@@ -415,12 +418,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(parents=[base_parser])
     parser.add_argument("address", nargs="?", default="0.0.0.0")
     parser.add_argument("port", type=int)
-    parser.add_argument("map_filename", type=Path)
+    parser.add_argument("map_filename", type=pathlib.Path)
     args = parser.parse_args(argv)
 
     addr = (args.address, args.port)
-    base_args = handle_base_arguments(args)
-    with Server(addr, args.map_filename, logger=base_args.logger) as server:
+    handle_base_arguments(args)
+    logger = logging.getLogger(f"{GAME_NAME}.server")
+    with Server(addr, args.map_filename, logger=logger) as server:
         server.start()
 
     return 0

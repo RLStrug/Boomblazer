@@ -9,14 +9,14 @@ Classes:
         Dataclass containing the server configuration values
 """
 
-from dataclasses import dataclass
+import dataclasses
 from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
 
 
-@dataclass(slots=True)
+@dataclasses.dataclass(slots=True)
 class _ServerConfig(BaseConfig):
     """Dataclass containing the server configuration values
 
