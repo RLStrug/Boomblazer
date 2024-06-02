@@ -2,7 +2,7 @@
 
 Functions:
     _get_handlers_real_path:
-        Gets handlers from config with cache folder prepended to filenames
+        Gets handlers from config with log folder prepended to filenames
     setup:
         Sets up the game logger
 """
@@ -18,17 +18,17 @@ from boomblazer.config.logging import logging_config
 
 
 def _get_handlers_real_path() -> Dict[str, Dict[str, Any]]:
-    """Gets handlers from config with cache folder prepended to filenames
+    """Gets handlers from config with log folder prepended to filenames
 
     Return value: dict[str, dict[str, Any]]
-        The config handlers, with the cache folder prepended to the destination
+        The config handlers, with the log folder prepended to the destination
         files of file handlers and dervatives
     """
     real_handlers = copy.deepcopy(logging_config.handlers)
     for handler in real_handlers.values():
         if "filename" in handler:
             handler["filename"] = (
-                game_folders_config.cache_folder / handler["filename"]
+                game_folders_config.log_folder / handler["filename"]
             )
     return real_handlers
 

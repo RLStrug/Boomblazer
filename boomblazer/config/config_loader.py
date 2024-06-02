@@ -81,7 +81,7 @@ def load_config() -> None:
     # Create folders needed for storing extra game data
     game_folders_config = config_instances.get("game_folders", None)
     if game_folders_config is not None:
-        game_folders_config.cache_folder.mkdir(parents=True, exist_ok=True)
+        game_folders_config.log_folder.mkdir(parents=True, exist_ok=True)
         for map_folder in game_folders_config.map_folders:
             map_folder.mkdir(parents=True, exist_ok=True)
 
