@@ -21,7 +21,7 @@ from typing import Sequence
 from typing import Union
 from typing import TypedDict
 
-from boomblazer.config.server import server_config
+from boomblazer.config.game import game_config
 from boomblazer.entity.bomb import Bomb
 from boomblazer.entity.position import Position
 
@@ -117,9 +117,9 @@ class Player:
                 The range in blocks of a bomb explosion blast
         """
         if max_bomb_count is None:
-            max_bomb_count = server_config.player_bomb_count
+            max_bomb_count = game_config.player_bomb_count
         if bomb_range is None:
-            bomb_range = server_config.player_bomb_range
+            bomb_range = game_config.player_bomb_range
         self._name = name
         self._position = Position(*position)
         self._max_bomb_count = max_bomb_count

@@ -22,7 +22,7 @@ from typing import Sequence
 from typing import TypedDict
 from typing import Union
 
-from boomblazer.config.server import server_config
+from boomblazer.config.game import game_config
 from boomblazer.entity.position import Position
 
 
@@ -61,7 +61,7 @@ class Fire:
             dissipates
         to_dict:
             Returns the current instance data in the form of a dict
-    
+
     Properties:
         position: (Read only)
             The X and Y coordinates of the fire blast
@@ -73,7 +73,7 @@ class Fire:
 
     def __init__(
             self, position: Sequence[int],
-            tick: int = server_config.fire_timer_ticks
+            tick: int = game_config.fire_timer_ticks
     ) -> None:
         """Initializes a new fire blast
 

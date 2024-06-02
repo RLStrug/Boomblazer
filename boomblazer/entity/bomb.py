@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import Union
 
-from boomblazer.config.server import server_config
+from boomblazer.config.game import game_config
 from boomblazer.entity.position import Position
 
 if TYPE_CHECKING:
@@ -76,7 +76,7 @@ class Bomb:
             Decrements the number of ticks left before the explosion
         to_dict:
             Returns the current instance data in the form of a dict
-    
+
     Properties:
         position: (Read only)
             The X and Y coordinates of the bomb
@@ -105,7 +105,7 @@ class Bomb:
                 The range of the explosion blast
         """
         if tick is None:
-            tick = server_config.bomb_timer_ticks
+            tick = game_config.bomb_timer_ticks
         self._position = Position(*position)
         self._player = player
         self._bomb_range = bomb_range

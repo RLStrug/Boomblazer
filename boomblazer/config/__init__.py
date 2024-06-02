@@ -9,6 +9,8 @@ Submodules:
         Client configuration variables
     config_loader:
         Fuctions to load config variables from a file
+    game:
+        Game environment configuration variables
     game_folders:
         Configuration variables determining where game folders are located
     logging:
@@ -16,7 +18,7 @@ Submodules:
     ncurses:
         Ncurses user interface configuration variables
     server:
-        Server and game environment configuration variables
+        Server configuration variables
 """
 
 from . import base_config

@@ -467,7 +467,7 @@ class MapEnvironment:
 
     def bomb_here(self, position: Tuple[int, int]) -> bool:
         """Tells if there is a bomb at given position
-        
+
         Parameters:
             position: tuple[int, int]
                 The position to check
@@ -523,7 +523,7 @@ class MapEnvironment:
 
     def fire_here(self, position: Tuple[int, int]) -> bool:
         """Tells if there is a fire blast at given position
-        
+
         Parameters:
             position: tuple[int, int]
                 The position to check
