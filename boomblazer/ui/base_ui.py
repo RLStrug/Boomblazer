@@ -15,13 +15,14 @@ Constants:
 
 import enum
 import logging
+import pathlib
 import threading
 from abc import ABC
-from pathlib import Path
 from types import TracebackType
 from typing import Optional
 from typing import Type
 
+from boomblazer.config.game_folders import game_folders_config
 from boomblazer.network.client import Client
 from boomblazer.network.network import AddressType
 from boomblazer.network.server import Server
@@ -69,6 +70,8 @@ class BaseUI(ABC):
             Creates a game
         create_game_and_join:
             Creates a game and joins it
+        find_map_file:
+            Searches for map file in all folders defined in config
         close:
             Closes the client and the local server
     """
@@ -108,7 +111,9 @@ class BaseUI(ABC):
         )
         self.client.start()
 
-    def create_game(self, addr: AddressType, map_filename: Path) -> None:
+    def create_game(
+            self, addr: AddressType, map_filename: str
+    ) -> None:
         """Creates a game
 
         Parameters:
@@ -117,7 +122,8 @@ class BaseUI(ABC):
             map_filename: str
                 The file containing the initial map environment data
         """
-        self.server = Server(addr, map_filename, logger=self._logger)
+        map_filepath = self.find_map_file(map_filename)
+        self.server = Server(addr, map_filepath, logger=self._logger)
         # Unlike Client.start, which returns after connection, Server.start
         # returns after game is over. So we need to execute it in a different
         # thread
@@ -127,7 +133,7 @@ class BaseUI(ABC):
         self._server_thread.start()
 
     def create_game_and_join(
-            self, port: int, username: str, map_filename: Path
+            self, port: int, username: str, map_filename: str
     ) -> None:
         """Creates a game and joins it
 
@@ -144,6 +150,28 @@ class BaseUI(ABC):
 
         addr_for_client = (_LOCAL_ADDRESS, port)
         self.join_game(addr_for_client, username)
+
+    def find_map_file(self, map_filename: str) -> pathlib.Path:
+        """Searches for map file in all folders defined in config
+
+        The map folders are tried in the order they are declared in the config
+        file. If the filename is not found in any folders, the filename is
+        returned as if it was in current working directory
+
+        Parameters:
+            map_filename: str
+                The name of the map file
+
+        Return value: pathlib.Path
+            The path to the map file
+        """
+        for map_folder in game_folders_config.map_folders:
+            map_filepath = map_folder / map_filename
+            if map_filepath.is_file():
+                return map_filepath
+            self._logger.debug("%r not in %r", map_filename, str(map_folder))
+        # If file not in defined folders, try current working directory
+        return pathlib.Path(".", map_filename)
 
     # ---------------------------------------- #
     # CONTEXT MANAGER

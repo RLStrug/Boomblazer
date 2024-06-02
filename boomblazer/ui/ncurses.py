@@ -210,7 +210,7 @@ class CursesInterface(BaseUI):
 
         port = int(textboxes[choices.PORT].gather())
         # TODO Map chooser menu
-        map_filename = pathlib.Path(textboxes[choices.MAP].gather().strip())
+        map_filename = textboxes[choices.MAP].gather().strip()
         name = textboxes[choices.NAME].gather().strip()
 
         self.stdscr.clear()

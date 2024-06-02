@@ -138,6 +138,7 @@ class Server(Network):
         self._tick_thread = None
 
         if not self._map_filename.is_file():
+            self._logger.error("%r is not a file", str(map_filename))
             raise ServerError("Given map file is not a file")
 
     # ---------------------------------------- #
