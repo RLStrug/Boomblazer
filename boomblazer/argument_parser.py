@@ -36,4 +36,5 @@ def handle_base_arguments(args: argparse.ArgumentParser) -> None:
     """
     config_loader.config_file = args.config_file
     config_loader.load_config()
+
     logger.setup()

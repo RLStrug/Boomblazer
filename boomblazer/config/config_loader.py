@@ -49,7 +49,9 @@ def _find_config_file() -> Iterator[pathlib.Path]:
     if os == "Windows":
         ...
     # else ("Java", ""): pass
-    yield pathlib.Path(".", f"{GAME_NAME}_config.json")
+    yield pathlib.Path(
+        ".", f"{GAME_NAME}_data", "config", f"{GAME_NAME}_config.json"
+    )
 
 
 def load_config() -> None:
@@ -66,16 +68,23 @@ def load_config() -> None:
     if config_filename is None:
         _logger.warning("Cannot find config file")
         save_config()
-        return
+    else:
+        with open(config_filename, "r", encoding="utf8") as config_file:
+            config_values = json.load(config_file)
 
-    with open(config_filename, "r", encoding="utf8") as config_file:
-        config_values = json.load(config_file)
+        for module_name, module_values in config_values.items():
+            module = config_instances.get(module_name)
+            if module is None:
+                continue
+            module.load(module_values)
 
-    for module_name, module_values in config_values.items():
-        module = config_instances.get(module_name)
-        if module is None:
-            continue
-        module.load(module_values)
+    # Create folders needed for storing extra game data
+    game_folders_config = config_instances.get("game_folders", None)
+    if game_folders_config is not None:
+        game_folders_config.cache_folder.mkdir(parents=True, exist_ok=True)
+        for map_folder in game_folders_config.map_folders:
+            map_folder.mkdir(parents=True, exist_ok=True)
+
 
 
 def save_config() -> None:

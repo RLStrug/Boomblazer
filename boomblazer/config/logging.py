@@ -98,7 +98,7 @@ class _LoggingConfig(BaseConfig):
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "jsonl",
-            "filename": str(_get_default_log_file_location()),
+            "filename": f"{GAME_NAME}_log.jsonl",
             "maxBytes": 100000,  # TODO bigger default
             "backupCount": 1,
         },

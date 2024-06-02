@@ -8,6 +8,8 @@ Classes:
 
 import abc
 import dataclasses
+from typing import Any
+from typing import Dict
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
@@ -26,11 +28,11 @@ class BaseConfig(abc.ABC):
             Resets all, or some field values to default
     """
 
-    def load(self, new_field_values: Mapping) -> None:
+    def load(self, new_field_values: Mapping[str, Any]) -> None:
         """Loads field values from a dict
 
         Parameters:
-            new_field_values: dict
+            new_field_values: Mapping[str, Any]
                 The names and new values of fields to be updated
                 Unknown fields will be ignored
         """
@@ -42,10 +44,10 @@ class BaseConfig(abc.ABC):
                 # assert isinstance(new_value, field.type)
                 setattr(self, field.name, new_value)
 
-    def dump(self) -> dict:
+    def dump(self) -> Dict[str, Any]:
         """Dumps field values to a dict
 
-        Return value: dict
+        Return value: dict[str, Any]
             The dataclass as a dict
         """
         return dataclasses.asdict(self)

@@ -4,7 +4,4 @@ __pycache__
 .venv
 *.egg-info
 build
-*.json
-*.jsonl
-*.jsonl.*
-*.log
+Boomblazer_data
