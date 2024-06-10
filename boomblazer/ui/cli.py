@@ -26,8 +26,9 @@ from typing import Sequence
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.cli import cli_config
-from boomblazer.ui.base_ui import BaseUI
 from boomblazer.game_handler import MoveActionEnum
+from boomblazer.network.address import Address
+from boomblazer.ui.base_ui import BaseUI
 from boomblazer.version import GAME_NAME
 
 
@@ -75,9 +76,11 @@ class CommandLineInterface(BaseUI):
                         The file containing the map data
         """
         if args.cmd == "join":
-            self.join_game((args.address, args.port), args.name)
+            self.join_game(args.address, args.name)
         elif args.cmd == "create":
-            self.create_game_and_join(args.port, args.name, args.map_filename)
+            self.create_game_and_join(
+                args.address, args.name, args.map_filename
+            )
         else:  # exit
             return
         self.play_game()
@@ -152,14 +155,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     subparsers = parser.add_subparsers(dest="cmd")
 
     parser_join = subparsers.add_parser("join")
-    parser_join.add_argument("address")
-    parser_join.add_argument("port", type=int)
+    parser_join.add_argument(
+        "address", metavar="HOST[:PORT]", type=Address.from_string
+    )
     parser_join.add_argument("name")
 
     parser_create = subparsers.add_parser("create")
-    parser_create.add_argument("port", type=int)
+    parser_create.add_argument(
+        "--address", metavar="[[HOST]:[PORT]]", type=Address.from_string,
+        default=""
+    )
     parser_create.add_argument("name")
-    parser_create.add_argument("map_filename", type=pathlib.Path)
+    parser_create.add_argument("map_filename")
 
     args = parser.parse_args(argv)
 

@@ -28,11 +28,12 @@ from typing import Type
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.game import game_config
+from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
-from boomblazer.network.network import AddressType
+from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
 from boomblazer.version import GAME_NAME
@@ -58,9 +59,9 @@ class Server(Network):
     Members:
         game_handler: GameHandler
             Contains the game state and logic
-        clients: dict[AddressType, Player]
+        clients: dict[Address, Player]
             Links connected players to their address
-        _map_filename: pathlib.Path
+        _map_filepath: pathlib.Path
             Path to map that will be used for the game
         _logger: logging.Logger
             The server logger
@@ -80,6 +81,8 @@ class Server(Network):
             Allows using the context manager (with statement)
 
     Methods:
+        _find_map_file:
+            Searches for map file in all folders defined in config
         start:
             Start the game
         wait_players:
@@ -111,21 +114,21 @@ class Server(Network):
     """
 
     __slots__ = (
-        "game_handler", "clients", "_map_filename",
+        "game_handler", "clients", "_map_filepath",
         "is_game_running", "_player_actions", "_tick_thread",
     )
 
     _CLIENT_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, addr: AddressType, map_filename: pathlib.Path,
+            self, addr: Address, map_filename: str,
             *args, **kwargs
     ) -> None:
         """Initialize the Server object
 
         Parameters:
-            addr: AddressType
-                The IP and the port on which the server will run
+            addr: Address
+                The interface and the port on which the server will listen
             map_filename: pathlib.Path
                 File containing the map environment initial data
         """
@@ -133,14 +136,36 @@ class Server(Network):
         self.bind(addr)
         self.clients = {}
         self.game_handler = None
-        self._map_filename = map_filename
+        self._map_filepath = self._find_map_file(map_filename)
         self.is_game_running = False
         self._player_actions = {}
         self._tick_thread = None
 
-        if not self._map_filename.is_file():
-            self._logger.error("%r is not a file", str(map_filename))
-            raise ServerError("Given map file is not a file")
+        if not self._map_filepath.is_file():
+            self._logger.error("Could not find a map named %r", map_filename)
+            raise ServerError("Could not find map with given name")
+
+    def _find_map_file(self, map_filename: str) -> pathlib.Path:
+        """Searches for map file in all folders defined in config
+
+        The map folders are tried in the order they are declared in the config
+        file. If the filename is not found in any folders, the filename is
+        returned as if it was in current working directory
+
+        Parameters:
+            map_filename: str
+                The name of the map file
+
+        Return value: pathlib.Path
+            The path to the map file
+        """
+        for map_folder in game_folders_config.map_folders:
+            map_filepath = map_folder / map_filename
+            if map_filepath.is_file():
+                return map_filepath
+            self._logger.debug("%r not in %r", map_filename, str(map_folder))
+        # If file not in defined folders, try current working directory
+        return pathlib.Path(".", map_filename)
 
     # ---------------------------------------- #
     # GAME STATE
@@ -153,7 +178,7 @@ class Server(Network):
         """
         self.wait_players()
         map_environment = MapEnvironment.from_file(
-            self._map_filename, list(self.clients.values())
+            self._map_filepath, list(self.clients.values())
         )
         self.game_handler = GameHandler(map_environment)
         self.launch_game()
@@ -162,7 +187,7 @@ class Server(Network):
         """Waits for players to connect until everyone is ready
         """
         self._logger.info("Waiting for players")
-        ready_players: Set[AddressType] = set()
+        ready_players: Set[Address] = set()
         while (
                 len(self.clients) < 1 or
                 len(ready_players) != len(self.clients)
@@ -272,18 +297,18 @@ class Server(Network):
     # PLAYERS / CLIENTS HANDLING
     # ---------------------------------------- #
 
-    def add_player(self, addr: AddressType, name: bytes) -> None:
+    def add_player(self, addr: Address, name: bytes) -> None:
         """Adds a player to the clients list
 
         Parameters:
-            addr: AddressType
+            addr: Address
                 The new clients IP and port
             name: bytes
                 The new player's name
         """
         self.clients[addr] = Player(name.decode("utf8"))
 
-    def remove_player(self, addr: AddressType) -> None:
+    def remove_player(self, addr: Address) -> None:
         """Removes a player from the clients list
 
         Parameters:
@@ -308,7 +333,7 @@ class Server(Network):
     # @override
     def send_message(
             self, command: bytes, arg: bytes,
-            peers: Optional[Iterable[AddressType]] = None
+            peers: Optional[Iterable[Address]] = None
     ) -> None:
         """Sends a message to all clients
 
@@ -317,7 +342,7 @@ class Server(Network):
                 The command to send to the server
             arg: bytes
                 The argument associated to `command`
-            peers: Optional[Iterable[AddressType]] (default = None)
+            peers: Optional[Iterable[Address]] (default = None)
                 The peers at whom the message will be sent
                 If None, the message will be sent to all clients
         """
@@ -330,12 +355,12 @@ class Server(Network):
     # ---------------------------------------- #
 
     def send_players_list(
-            self, ready_players: Set[AddressType] = frozenset
+            self, ready_players: Set[Address] = frozenset
     ) -> None:
         """Sends the list of connected players' name
 
         Parameters:
-            ready_players: set[AddressType]
+            ready_players: set[Address]
                 Players that are ready to start the game
         """
         players_list = json.dumps({
@@ -418,15 +443,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             If None, uses command line arguments
     """
     parser = argparse.ArgumentParser(parents=[base_parser])
-    parser.add_argument("address", nargs="?", default="0.0.0.0")
-    parser.add_argument("port", type=int)
+    parser.add_argument(
+        "--address", metavar="[[HOST]:[PORT]]", type=Address.from_string,
+        default=""
+    )
     parser.add_argument("map_filename", type=pathlib.Path)
     args = parser.parse_args(argv)
 
-    addr = (args.address, args.port)
     handle_base_arguments(args)
     logger = logging.getLogger(f"{GAME_NAME}.server")
-    with Server(addr, args.map_filename, logger=logger) as server:
+    with Server(args.address, args.map_filename, logger=logger) as server:
         server.start()
 
     return 0

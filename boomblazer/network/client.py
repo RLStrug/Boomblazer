@@ -17,7 +17,7 @@ from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
 from boomblazer.map_environment import MapEnvironment
-from boomblazer.network.network import AddressType
+from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 
 
@@ -39,7 +39,7 @@ class Client(Network):
             often
 
     Members:
-        server_addr: AddressType
+        server_addr: Address
             The address of the remote game server
         username: str
             Defines the name of the player
@@ -96,12 +96,12 @@ class Client(Network):
     _SERVER_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, server_addr: AddressType, username: bytes, *args, **kwargs
+            self, server_addr: Address, username: bytes, *args, **kwargs
     ) -> None:
         """Initializes a new Client
 
         Parameters:
-            server_addr: AddressType
+            server_addr: Address
                 The IP address and port number of the server hosting the game
             username: str
                 The name of the player
@@ -188,7 +188,7 @@ class Client(Network):
     # @override
     def send_message(
             self, command: bytes, arg: bytes = b"",
-            peers: Optional[Iterable[AddressType]] = None
+            peers: Optional[Iterable[Address]] = None
     ) -> None:
         """Sends a message to the server hosting the game
 

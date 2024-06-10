@@ -11,8 +11,6 @@ Constants:
 Type aliases:
     MessageType:
         A message containing a command and an argument
-    AddressType:
-        An address coposed of an IP and a port number
 """
 
 import logging
@@ -21,8 +19,9 @@ from typing import Iterable
 from typing import Optional
 from typing import Tuple
 
+from boomblazer.network.address import Address
+
 MessageType = Tuple[bytes, bytes]  # (command, argument)
-AddressType = Tuple[str, int]  # (address, port)
 
 _SEPARATOR = b":"
 
@@ -58,28 +57,23 @@ class Network:
         Parameters:
             logger: logging.Logger
                 The network message logger
-
-        Keyword only parameters:
-            bind_addr: Optional[AddressType]
-                If this is the server, specifies at which address it should be
-                binded
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._logger = logger
 
-    def bind(self, addr: AddressType) -> None:
+    def bind(self, addr: Address) -> None:
         """Binds the network socket to a local address
 
         Parameters:
-            addr: AddressType
+            addr: Address
                 The local address to bind the socket to
         """
         self.sock.bind(addr)
 
-    def recv_message(self) -> Tuple[Optional[MessageType], AddressType]:
+    def recv_message(self) -> Tuple[Optional[MessageType], Address]:
         """Recieves a message from the network and parses it
 
-        Return value: tuple[Optional[MessageType], AddressType]
+        Return value: tuple[Optional[MessageType], Address]
             A message sent by the server and the IP address and port number
             from which the message was recieved.
             The message contains a command and an argument, or is `None` if the
@@ -93,7 +87,7 @@ class Network:
         return (command, arg), addr
 
     def send_message(
-            self, command: bytes, arg: bytes, peers: Iterable[AddressType]
+            self, command: bytes, arg: bytes, peers: Iterable[Address]
     ) -> None:
         """Constructs a message and sends it to the network
 
@@ -102,7 +96,7 @@ class Network:
                 The command to send to the server
             arg: bytes
                 The argument associated to `command`
-            peers: Iterable[AddressType]
+            peers: Iterable[Address]
                 The peers at whom the message will be sent
         """
         msg = command + _SEPARATOR + arg

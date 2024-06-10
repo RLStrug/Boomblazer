@@ -27,6 +27,7 @@ from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.ncurses import ncurses_config
 from boomblazer.game_handler import MoveActionEnum
+from boomblazer.network.address import Address
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.version import GAME_NAME
 
@@ -105,22 +106,22 @@ class CursesInterface(BaseUI):
             self.create_menu()
 
     def join_menu(self) -> None:
-        """Gather server url and port then join
+        """Gather server address then join
         """
         waiting = True
         choices = enum.IntEnum(
             "JoinMenuChoiceEnum",
-            "ADDRESS PORT NAME JOIN EXIT",
+            "ADDRESS NAME JOIN EXIT",
             start=0
         )
         current_choice = choices(0)
         labels = (
-            "Server address:", "Server port:", "Player name:", "Join", "Exit",
+            "Server address:", "Player name:", "Join", "Exit",
         )
         textboxes = tuple(
             curses.textpad.Textbox(curses.newwin(
                 1, curses.COLS, idx, len(labels[idx]) + 1))
-            for idx in range(3)
+            for idx in range(2)
         )
         while waiting:
             self.stdscr.clear()
@@ -150,35 +151,36 @@ class CursesInterface(BaseUI):
                     new_choice += 1
             current_choice = choices(new_choice % len(choices))
 
-        address = textboxes[choices.ADDRESS].gather().strip()
-        port = int(textboxes[choices.PORT].gather())
+        address = Address.from_string(
+                textboxes[choices.ADDRESS].gather().strip()
+        )
         name = textboxes[choices.NAME].gather().strip()
 
         self.stdscr.clear()
-        self.stdscr.insstr(0, 0, f"Connecting to {address}:{port}")
+        self.stdscr.insstr(0, 0, f"Connecting to {address}")
         self.stdscr.refresh()
 
-        self.join_game((address, port), name)
+        self.join_game(address, name)
         if self.client.is_game_running:
             self.lobby_menu()
 
     def create_menu(self) -> None:
-        """Gather server port, game map, username, creates server, and joins it
+        """Gather game map, username, creates server, and joins it
         """
         waiting = True
         choices = enum.IntEnum(
             "JoinMenuChoiceEnum",
-            "PORT MAP NAME JOIN EXIT",
+            "MAP NAME JOIN EXIT",
             start=0
         )
         current_choice = choices(0)
         labels = (
-            "Server port:", "Game map:", "Player name:", "Create", "Exit",
+            "Game map:", "Player name:", "Create", "Exit",
         )
         textboxes = tuple(
             curses.textpad.Textbox(curses.newwin(
                 1, curses.COLS, idx, len(labels[idx]) + 1))
-            for idx in range(3)
+            for idx in range(2)
         )
         while waiting:
             self.stdscr.clear()
@@ -208,16 +210,16 @@ class CursesInterface(BaseUI):
                     new_choice += 1
             current_choice = choices(new_choice % len(choices))
 
-        port = int(textboxes[choices.PORT].gather())
         # TODO Map chooser menu
+        address = Address.from_string("")
         map_filename = textboxes[choices.MAP].gather().strip()
         name = textboxes[choices.NAME].gather().strip()
 
         self.stdscr.clear()
-        self.stdscr.insstr(0, 0, f"Creating server on port {port}")
+        self.stdscr.insstr(0, 0, f"Creating server on {address}")
         self.stdscr.refresh()
 
-        self.create_game_and_join(port, name, map_filename)
+        self.create_game_and_join(address, name, map_filename)
         if self.client.is_game_running:
             self.lobby_menu()
 

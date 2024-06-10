@@ -9,7 +9,9 @@ Classes:
         The base class for client UIs
 
 Constants:
-    _LOCAL_ADDRESS: str
+    _ALL_INTERFACES: str
+        The IP address representing all interfaces available
+    _LOCAL_HOST: str
         The IP address of the local machine
 """
 
@@ -24,12 +26,12 @@ from typing import Type
 
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.network.client import Client
-from boomblazer.network.network import AddressType
+from boomblazer.network.address import Address
 from boomblazer.network.server import Server
 
 
 _ALL_INTERFACES = "0.0.0.0"
-_LOCAL_ADDRESS = "127.0.0.1"
+_LOCAL_HOST = "127.0.0.1"
 
 class GameState(enum.Enum):
     """Defines in what states the game currently is
@@ -70,8 +72,6 @@ class BaseUI(ABC):
             Creates a game
         create_game_and_join:
             Creates a game and joins it
-        find_map_file:
-            Searches for map file in all folders defined in config
         close:
             Closes the client and the local server
     """
@@ -96,12 +96,12 @@ class BaseUI(ABC):
         self._server_thread = None
 
     def join_game(
-            self, addr: AddressType, username: str
+            self, addr: Address, username: str
     ) -> None:
         """Joins a game
 
         Parameters:
-            addr: AddressType
+            addr: Address
                 The address of the server
             username: str
                 The player's name
@@ -112,18 +112,17 @@ class BaseUI(ABC):
         self.client.start()
 
     def create_game(
-            self, addr: AddressType, map_filename: str
+            self, addr: Address, map_filename: str
     ) -> None:
         """Creates a game
 
         Parameters:
-            addr: AddressType
+            addr: Address
                 The interface and port of the server
             map_filename: str
                 The file containing the initial map environment data
         """
-        map_filepath = self.find_map_file(map_filename)
-        self.server = Server(addr, map_filepath, logger=self._logger)
+        self.server = Server(addr, map_filename, logger=self._logger)
         # Unlike Client.start, which returns after connection, Server.start
         # returns after game is over. So we need to execute it in a different
         # thread
@@ -133,45 +132,25 @@ class BaseUI(ABC):
         self._server_thread.start()
 
     def create_game_and_join(
-            self, port: int, username: str, map_filename: str
+            self, address: Address, username: str, map_filename: str
     ) -> None:
         """Creates a game and joins it
 
         Parameters:
-            port: int
-                The port number on which the server will listen
+            address: Address
+                The interface and port on which the server will listen
             username:
                 The player's name
             map_filename: str
                 The file containing the initial map environment data
         """
-        addr_for_server = (_ALL_INTERFACES, port)
-        self.create_game(addr_for_server, map_filename)
+        self.create_game(address, map_filename)
 
-        addr_for_client = (_LOCAL_ADDRESS, port)
-        self.join_game(addr_for_client, username)
-
-    def find_map_file(self, map_filename: str) -> pathlib.Path:
-        """Searches for map file in all folders defined in config
-
-        The map folders are tried in the order they are declared in the config
-        file. If the filename is not found in any folders, the filename is
-        returned as if it was in current working directory
-
-        Parameters:
-            map_filename: str
-                The name of the map file
-
-        Return value: pathlib.Path
-            The path to the map file
-        """
-        for map_folder in game_folders_config.map_folders:
-            map_filepath = map_folder / map_filename
-            if map_filepath.is_file():
-                return map_filepath
-            self._logger.debug("%r not in %r", map_filename, str(map_folder))
-        # If file not in defined folders, try current working directory
-        return pathlib.Path(".", map_filename)
+        if address.host in ("", _ALL_INTERFACES):
+            address_for_client = (_LOCAL_HOST, address.port)
+        else:
+            address_for_client = address
+        self.join_game(address_for_client, username)
 
     # ---------------------------------------- #
     # CONTEXT MANAGER

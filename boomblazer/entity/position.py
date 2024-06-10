@@ -5,9 +5,9 @@ Classes:
         Represents a position in the game
 """
 
-from typing import NamedTuple
+import typing
 
-class Position(NamedTuple):
+class Position(typing.NamedTuple):
     """Represents a position in the game
 
     Members:

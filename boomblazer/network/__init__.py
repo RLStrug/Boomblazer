@@ -1,6 +1,8 @@
 """Network related modules
 
 Submodules:
+    address:
+        Represents a network address
     client:
         Implements client side of the network protocol
     network:
@@ -9,11 +11,13 @@ Submodules:
         Implements a game server
 """
 
+from . import address
 from . import client
 from . import network
 from . import server
 
 __all__ = [
+    "address",
     "client",
     "network",
     "server",
