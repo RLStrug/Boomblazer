@@ -15,6 +15,7 @@ Exception classes:
         Error raised when a Player tries to plant a bomb unsuccessfully
 """
 
+from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Sequence
@@ -222,11 +223,11 @@ class Player:
     # IMPORT
     # ---------------------------------------- #
     @classmethod
-    def from_dict(cls, data: PlayerMapping) -> "Player":
+    def from_dict(cls, data: Mapping[str, Any]) -> "Player":
         """Instanciates a Player from a dict
 
         Parameters:
-            data: PlayerMapping
+            data: Mapping[str, Any]
                 A mapping that should contain the following keys and values:
                     name: str
                         The player's name
@@ -245,10 +246,11 @@ class Player:
             A player instance initialized from the data in data
         """
         return cls(
-            name=data["name"], position=data["position"],
-            max_bomb_count=data["max_bomb_count"],
-            current_bomb_count=data["current_bomb_count"],
-            bomb_range=data["bomb_range"]
+            name=str(data["name"]),
+            position=Position(*data["position"]),
+            max_bomb_count=int(data["max_bomb_count"]),
+            current_bomb_count=int(data["current_bomb_count"]),
+            bomb_range=int(data["bomb_range"])
         )
 
     # ---------------------------------------- #

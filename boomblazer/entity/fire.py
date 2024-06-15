@@ -17,6 +17,7 @@ Exception classes:
         occurs
 """
 
+from typing import Any
 from typing import Mapping
 from typing import Sequence
 from typing import TypedDict
@@ -127,11 +128,11 @@ class Fire:
     # IMPORT
     # ---------------------------------------- #
     @classmethod
-    def from_dict(cls, data: FireMapping) -> "Fire":
+    def from_dict(cls, data: Mapping[str, Any]) -> "Fire":
         """Instanciates a Fire from a dict
 
         Parameters:
-            data: FireMapping
+            data: Mapping[str, Any]
                 A mapping that should contain the following keys and values:
                     position: Sequence[int] (length = 2)
                         The X and Y coordinates of the bomb
@@ -141,7 +142,10 @@ class Fire:
         Return value: Fire
             A fire instance initialized from the data in data
         """
-        return cls(data["position"], data["tick"])
+        return cls(
+            position=Position(*data["position"]),
+            tick=int(data["tick"])
+        )
 
     # ---------------------------------------- #
     # EXPORT

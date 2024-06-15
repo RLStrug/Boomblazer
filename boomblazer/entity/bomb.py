@@ -16,6 +16,7 @@ Exception classes:
         occurs
 """
 
+from typing import Any
 from typing import Iterable
 from typing import Optional
 from typing import Mapping
@@ -173,13 +174,13 @@ class Bomb:
     # ---------------------------------------- #
     @classmethod
     def from_dict(
-            cls, data: BombMapping,
+            cls, data: Mapping[str, Any],
             players_list: Iterable["Player"]
     ) -> "Bomb":
         """Instanciates a Bomb from a dict
 
         Parameters:
-            data: BombMapping
+            data: Mapping[str, Any]
                 A mapping that should contain the following keys and values:
                     position: Sequence[int] (length = 2)
                         The X and Y coordinates of the bomb
@@ -207,7 +208,12 @@ class Bomb:
         else:  # If the for loop finished without finding a matching player
             raise BombError(f"Cannot find owner of bomb ({data['player']})")
 
-        return cls(data["position"], player, data["bomb_range"], data["tick"])
+        return cls(
+            position=Position(*data["position"]),
+            player=player,
+            bomb_range=int(data["bomb_range"]),
+            tick=int(data["tick"])
+        )
 
     # ---------------------------------------- #
     # EXPORT

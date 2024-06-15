@@ -46,10 +46,12 @@ class Address(typing.NamedTuple):
         """
         # We only want the last split in case the host part contains ":"
         address = address_repr.rsplit(":", 1)
+        host = address[0]
         if len(address) == 1:
-            address.append(server_config.default_port)
-        address[1] = int(address[1])
-        return cls(*address)
+            port = server_config.default_port
+        else:
+            port = int(address[1])
+        return cls(host, port)
 
     def __str__(self) -> str:
         """Returns the string representation of the address

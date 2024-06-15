@@ -93,7 +93,7 @@ class BaseUI(ABC):
         self._logger = logger
         self.client = None
         self.server = None
-        self._server_thread = None
+        self._server_thread = threading.Thread()
 
     def join_game(
             self, addr: Address, username: str
@@ -147,7 +147,7 @@ class BaseUI(ABC):
         self.create_game(address, map_filename)
 
         if address.host in ("", _ALL_INTERFACES):
-            address_for_client = (_LOCAL_HOST, address.port)
+            address_for_client = Address(_LOCAL_HOST, address.port)
         else:
             address_for_client = address
         self.join_game(address_for_client, username)
@@ -160,7 +160,7 @@ class BaseUI(ABC):
         """Closes the client and the local server
         """
         if self.server is not None:
-            if self._server_thread is not None:
+            if self._server_thread.ident is not None:
                 self.server.is_game_running = False
                 self._server_thread.join()
             self.server.close()
@@ -179,7 +179,7 @@ class BaseUI(ABC):
             self, exc_type: Optional[Type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
-    ) -> Optional[bool]:
+    ) -> None:
         """Exits a context manager (with statement)
 
         Parameters:
@@ -193,8 +193,8 @@ class BaseUI(ABC):
                 The traceback of the exception that occured during the context
                 management, or `None` if none occured
 
-        Return value: Optional[bool]
-            Always returns `False` or `None`. This means that if an exception
-            occurred, it should be propagated, not ignored
+        Return value: None
+            Does not return a value. This means that if an exception occurred,
+            it should be propagated, not ignored
         """
         self.close()

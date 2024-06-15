@@ -23,6 +23,7 @@ import json
 import string
 from enum import Enum
 from pathlib import Path
+from typing import Any
 from typing import Collection
 from typing import Iterable
 from typing import List
@@ -309,13 +310,13 @@ class MapEnvironment:
         return map_environment
 
     @classmethod
-    def from_dict(cls, data: MapEnvironmentMapping) -> "MapEnvironment":
+    def from_dict(cls, data: Mapping[str, Any]) -> "MapEnvironment":
         """Instanciates a MapEnvironment from a dict
 
         Used as intermediate constructor from JSON data
 
         Parameters:
-            data: MapEnvironmentMapping
+            data: Mapping[str, Any]
                 A mapping that should contain the following keys and values:
                     version: int
                         The map version number
@@ -348,7 +349,13 @@ class MapEnvironment:
         fires =  [
             Fire.from_dict(fire) for fire in data["fires"]
         ]
-        return cls(data["version"], state, players, bombs, fires)
+        return cls(
+            version=int(data["version"]),
+            state=state,
+            players=players,
+            bombs=bombs,
+            fires=fires
+        )
 
     @classmethod
     def from_json(cls, json_str: str, *args, **kwargs) -> "MapEnvironment":

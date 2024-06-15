@@ -28,13 +28,13 @@ base_parser.add_argument(
 )
 
 
-def handle_base_arguments(args: argparse.ArgumentParser) -> None:
+def handle_base_arguments(args: argparse.Namespace) -> None:
     """Handles the arguments of base_parser
 
     Return value: BaseArguments
         The result of the treatment of the arguments of base_parser
     """
-    config_loader.config_file = args.config_file
+    config_loader.config_filename = args.config_file
     config_loader.load_config()
 
     logger.setup()

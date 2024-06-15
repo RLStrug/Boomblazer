@@ -111,7 +111,7 @@ class Client(Network):
         self.username = username
         self.game_handler = GameHandler()
         self.is_game_running = False
-        self._tick_thread = None
+        self._tick_thread = threading.Thread()
         self.update_semaphore = None
 
     # ---------------------------------------- #
@@ -262,7 +262,7 @@ class Client(Network):
         """Closes the network connections
         """
         self.is_game_running = False
-        if self._tick_thread is not None:
+        if self._tick_thread.ident is not None:
             self._tick_thread.join()
         self.send_quit()
         super().close()
@@ -279,7 +279,7 @@ class Client(Network):
             self, exc_type: Optional[Type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
-    ) -> Optional[bool]:
+    ) -> None:
         """Exits a context manager (with statement)
 
         Parameters:
@@ -293,9 +293,8 @@ class Client(Network):
                 The traceback of the exception that occured during the context
                 management, or `None` if none occured
 
-        Return value: Optional[bool]
-            Always returns `False` or `None`. This means that if an exception
-            occurred, it should be propagated, not ignored
+        Return value: None
+            Does not return a value. This means that if an exception occurred,
+            it should be propagated, not ignored
         """
         self.close()
-        return False

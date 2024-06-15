@@ -19,6 +19,7 @@ import sys
 import threading
 import time
 from types import TracebackType
+from typing import Dict
 from typing import Iterable
 from typing import Optional
 from typing import Sequence
@@ -67,7 +68,7 @@ class Server(Network):
             The server logger
         is_game_running: bool
             Defines if the game is running or over
-        _player_actions: Dict[Player, Tuple[bool, MoveActionEnum]]:
+        _player_actions: dict[Player, Tuple[bool, MoveActionEnum]]:
             Actions to be performed by players during next game tick
         _tick_thread: threading.Thread
             Thread used to update the game environment at regular interval
@@ -134,12 +135,12 @@ class Server(Network):
         """
         super().__init__(*args, **kwargs)
         self.bind(addr)
-        self.clients = {}
+        self.clients: Dict[Address, Player] = {}
         self.game_handler = None
         self._map_filepath = self._find_map_file(map_filename)
         self.is_game_running = False
-        self._player_actions = {}
-        self._tick_thread = None
+        self._player_actions: Dict[Player, Tuple[bool, MoveActionEnum]] = {}
+        self._tick_thread = threading.Thread()
 
         if not self._map_filepath.is_file():
             self._logger.error("Could not find a map named %r", map_filename)
@@ -354,13 +355,11 @@ class Server(Network):
     # SEND SERVER COMMANDS
     # ---------------------------------------- #
 
-    def send_players_list(
-            self, ready_players: Set[Address] = frozenset
-    ) -> None:
+    def send_players_list(self, ready_players: Set[Address] = set()) -> None:
         """Sends the list of connected players' name
 
         Parameters:
-            ready_players: set[Address]
+            ready_players: Set[Address]
                 Players that are ready to start the game
         """
         players_list = json.dumps({
@@ -381,10 +380,11 @@ class Server(Network):
     def send_map(self) -> None:
         """Sends the current map state
         """
-        map_environment = self.game_handler.map_environment
         self.send_message(
             b"MAP",
-            map_environment.to_json(separators=(',',':')).encode("utf8")
+            self.game_handler.map_environment.to_json(
+                separators=(',',':')
+            ).encode("utf8")
         )
 
     # ---------------------------------------- #
@@ -396,7 +396,7 @@ class Server(Network):
         """Closes the server
         """
         self.is_game_running = False
-        if self._tick_thread is not None:
+        if self._tick_thread.ident is not None:
             self._tick_thread.join()
 
         self.send_stop_game(b"Server closing")
@@ -414,7 +414,7 @@ class Server(Network):
             self, exc_type: Optional[Type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
-    ) -> Optional[bool]:
+    ) -> None:
         """Exits a context manager (with statement)
 
         Parameters:
@@ -428,9 +428,9 @@ class Server(Network):
                 The traceback of the exception that occured during the context
                 management, or `None` if none occured
 
-        Return value: Optional[bool]
-            Always returns `False` or `None`. This means that if an exception
-            occurred, it should be propagated, not ignored
+        Return value: None
+            Does not return a value. This means that if an exception occurred,
+            it should be propagated, not ignored
         """
         self.close()
 

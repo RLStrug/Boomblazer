@@ -83,12 +83,12 @@ class JsonFormatter(logging.Formatter):
     )
 
     PREDEFINED_STYLES: ClassVar[Dict[str, JsonFormatterStyleTuple]] = {
-        "compact": (None, (",", ":"), False),
-        "space": (None, None, False),
-        "nl": ("\t", None, False),
+        "compact": JsonFormatterStyleTuple(None, (",", ":"), False),
+        "space": JsonFormatterStyleTuple(None, None, False),
+        "nl": JsonFormatterStyleTuple("\t", None, False),
     }
     PREDEFINED_STYLES.update({
-        f"{key}-extra": (indent, separators, True)
+        f"{key}-extra": JsonFormatterStyleTuple(indent, separators, True)
         for key, (indent, separators, _) in PREDEFINED_STYLES.items()
     })
 
@@ -106,7 +106,7 @@ class JsonFormatter(logging.Formatter):
             self, fmt: Optional[Iterable[str]] = None,
             datefmt: Optional[str] = None,
             style: Union[str, JsonFormatterStyleTuple] = "compact-extra",
-            *, defaults: Optional[Mapping[str, Any]] = None
+            *, defaults: Mapping[str, Any] = {}
     ) -> None:
         """Initializes the formatter
 
@@ -125,7 +125,7 @@ class JsonFormatter(logging.Formatter):
                 If "-extra" is appended after one of these style names, the
                 extra member of the tuple will be True
         Keyword-only parameters:
-            defaults: Optional[Mapping[str, Any]] = None
+            defaults: Mapping[str, Any] = {}
                 Sets default values for fields in case it is not present in the
                 record
         """
@@ -146,7 +146,7 @@ class JsonFormatter(logging.Formatter):
         self.indent = style.indent
         self.separators = style.separators
         self.extra = style.extra
-        self.defaults = defaults
+        self.defaults = dict(defaults)
 
     def usesTime(self):
         """Checks if the format uses the creation time of the record
@@ -171,10 +171,8 @@ class JsonFormatter(logging.Formatter):
         if self.usesTime():
             record.asctime = self.formatTime(record, self.datefmt)
 
-        record_values = {}
-        if self.defaults:
-            record_values.update(self.defaults)
-        record_values.update(record.__dict__)
+        record_values = self.defaults
+        record_values.update(vars(record))
 
         json_record = {
             key: record_values[key]

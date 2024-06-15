@@ -26,10 +26,9 @@ def _get_handlers_real_path() -> Dict[str, Dict[str, Any]]:
     """
     real_handlers = copy.deepcopy(logging_config.handlers)
     for handler in real_handlers.values():
-        if "filename" in handler:
-            handler["filename"] = (
-                game_folders_config.log_folder / handler["filename"]
-            )
+        filename = handler.get("filename")
+        if filename is not None:
+            handler["filename"] = game_folders_config.log_folder / filename
     return real_handlers
 
 
