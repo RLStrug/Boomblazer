@@ -20,8 +20,7 @@ import json
 import logging
 import pathlib
 import platform
-from typing import Dict
-from typing import Iterator
+from collections.abc import Iterator
 from typing import Optional
 
 from boomblazer.config.base_config import BaseConfig
@@ -30,7 +29,7 @@ from boomblazer.version import GAME_NAME
 
 config_filename : Optional[pathlib.Path] = None
 
-config_instances: Dict[str, BaseConfig] = {}
+config_instances: dict[str, BaseConfig] = {}
 
 _logger = logging.getLogger(GAME_NAME)
 

@@ -8,10 +8,9 @@ Classes:
 import json
 import selectors
 import threading
+from collections.abc import Iterable
 from types import TracebackType
-from typing import Iterable
 from typing import Optional
-from typing import Type
 
 from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
@@ -276,7 +275,7 @@ class Client(Network):
         return self
 
     def __exit__(
-            self, exc_type: Optional[Type[BaseException]],
+            self, exc_type: Optional[type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
     ) -> None:

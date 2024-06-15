@@ -8,8 +8,6 @@ Classes:
 Type aliases:
     FireDict:
         Result of the conversion from a Fire to a dict
-    FireMapping:
-        Mapping that can be used to create a Fire
 
 Exception classes:
     FireError: Exception
@@ -17,9 +15,9 @@ Exception classes:
         occurs
 """
 
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Mapping
-from typing import Sequence
 from typing import TypedDict
 from typing import Union
 
@@ -33,7 +31,6 @@ class FireError(Exception):
 
 
 FireDict = TypedDict("FireDict", {"position": Position, "tick": int})
-FireMapping = Mapping[str, Union[Sequence[int], int]]
 
 
 class Fire:

@@ -15,14 +15,13 @@ Constants:
         The IP address of the local machine
 """
 
+import abc
 import enum
 import logging
 import pathlib
 import threading
-from abc import ABC
 from types import TracebackType
 from typing import Optional
-from typing import Type
 
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.network.client import Client
@@ -44,7 +43,7 @@ class GameState(enum.Enum):
     GAME_OVER = enum.auto()
 
 
-class BaseUI(ABC):
+class BaseUI(abc.ABC):
     """The base class for client UIs
 
     Members:
@@ -176,7 +175,7 @@ class BaseUI(ABC):
         return self
 
     def __exit__(
-            self, exc_type: Optional[Type[BaseException]],
+            self, exc_type: Optional[type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
     ) -> None:

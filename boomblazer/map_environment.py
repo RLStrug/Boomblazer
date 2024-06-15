@@ -11,8 +11,6 @@ Classes:
 Type aliases:
     MapEnvironmentDict:
         Result of the conversion from a MapEnvironment to a dict
-    MapEnvironmentMapping:
-        Mapping that can be used to create a MapEnvironment
 
 Exception classes:
     MapEnvironmentError: Exception
@@ -23,26 +21,21 @@ import enum
 import json
 import pathlib
 import string
+from collections.abc import Collection
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Collection
-from typing import Iterable
-from typing import List
-from typing import Mapping
-from typing import Sequence
 from typing import TextIO
-from typing import Tuple
 from typing import TypedDict
 from typing import Union
 
 from boomblazer.entity.bomb import Bomb
 from boomblazer.entity.bomb import BombDict
-from boomblazer.entity.bomb import BombMapping
 from boomblazer.entity.fire import Fire
-from boomblazer.entity.fire import FireMapping
 from boomblazer.entity.fire import FireDict
 from boomblazer.entity.player import Player
 from boomblazer.entity.player import PlayerDict
-from boomblazer.entity.player import PlayerMapping
 from boomblazer.entity.position import Position
 
 
@@ -67,14 +60,10 @@ class MapCellEnum(enum.Enum):
 MapEnvironmentDict = TypedDict(
     "MapEnvironmentDict",
     {
-        "version": int, "state": List[str], "players": List[PlayerDict],
-        "bombs": List[BombDict], "fires": List[FireDict]
+        "version": int, "state": list[str], "players": list[PlayerDict],
+        "bombs": list[BombDict], "fires": list[FireDict]
     }
 )
-MapEnvironmentMapping = Mapping[str, Union[
-    int, Sequence[Sequence[str]], Sequence[PlayerMapping],
-    Sequence[BombMapping], Sequence[FireMapping]
-]]
 
 
 class MapEnvironment:
@@ -292,7 +281,7 @@ class MapEnvironment:
             raise MapEnvironmentError("Bad characters in map")
 
         # create state
-        state: List[List[MapCellEnum]] = [
+        state: list[list[MapCellEnum]] = [
             [
                 MapCellEnum.EMPTY if cell in cls.__SPAWN_CHARS
                 else MapCellEnum(cell)
@@ -343,11 +332,11 @@ class MapEnvironment:
                         The map version number
                     state: Sequence[Sequence[str]]
                         The map current environment state
-                    players: Iterable[PlayerMapping]
+                    players: Iterable[Mapping[str, Any]]
                         The currently living players
-                    bombs: Iterable[BombMapping]
+                    bombs: Iterable[Mapping[str, Any]]
                         The bombs currently planted
-                    fires: Iterable[FireMapping]
+                    fires: Iterable[Mapping[str, Any]]
                         The fire blasts currently raging
 
         Return value: MapEnvironment
@@ -379,13 +368,15 @@ class MapEnvironment:
         )
 
     @classmethod
-    def from_json(cls, json_str: str, *args, **kwargs) -> "MapEnvironment":
+    def from_json(
+            cls, json_str: Union[str, bytes, bytearray], *args, **kwargs
+    ) -> "MapEnvironment":
         """Instanciates a MapEnvironment from json data
 
         Used when a client recieves an update from the server
 
         Parameters:
-            json_str: str
+            json_str: str | bytes | bytearray
                 JSON data representing the map current environment state
             *args:
                 positional arguments to pass to json.loads
@@ -475,25 +466,25 @@ class MapEnvironment:
     # BOMBS
     # ---------------------------------------- #
     @property
-    def bombs(self) -> List[Bomb]:
+    def bombs(self) -> list[Bomb]:
         """Returns the bombs currently planted on the map
 
-        Return value: List[Bomb]
+        Return value: list[Bomb]
             The bombs currently planted on the map
         """
         return self._bombs
 
     @bombs.setter
-    def bombs(self, value: List[Bomb]) -> None:
+    def bombs(self, value: list[Bomb]) -> None:
         """Sets the bombs currently planted on the map
 
         Parameters:
-            value: List[Bomb]
+            value: list[Bomb]
                 The bombs currently planted on the map
         """
         self._bombs = value
 
-    def bomb_here(self, position: Tuple[int, int]) -> bool:
+    def bomb_here(self, position: tuple[int, int]) -> bool:
         """Tells if there is a bomb at given position
 
         Parameters:
@@ -509,20 +500,20 @@ class MapEnvironment:
     # PLAYERS
     # ---------------------------------------- #
     @property
-    def players(self) -> List[Player]:
+    def players(self) -> list[Player]:
         """Returns the currently living players
 
-        Return value: List[Player]
+        Return value: list[Player]
             The currently living players
         """
         return self._players
 
     @players.setter
-    def players(self, value: List[Player]):
+    def players(self, value: list[Player]):
         """Sets the currently living players
 
         Parameters:
-            value: List[Player]
+            value: list[Player]
                 The currently living players
         """
         self._players = value
@@ -531,25 +522,25 @@ class MapEnvironment:
     # FIRE
     # ---------------------------------------- #
     @property
-    def fires(self) -> List[Fire]:
+    def fires(self) -> list[Fire]:
         """Returns the currently active fire blasts
 
-        Return value: List[Fire]
+        Return value: list[Fire]
             The currently active fire blasts
         """
         return self._fires
 
     @fires.setter
-    def fires(self, value: List[Fire]) -> None:
+    def fires(self, value: list[Fire]) -> None:
         """Sets the currently active fire blasts
 
         Parameters:
-            value: List[Fire]
+            value: list[Fire]
                 The currently active fire blasts
         """
         self._fires = value
 
-    def fire_here(self, position: Tuple[int, int]) -> bool:
+    def fire_here(self, position: tuple[int, int]) -> bool:
         """Tells if there is a fire blast at given position
 
         Parameters:

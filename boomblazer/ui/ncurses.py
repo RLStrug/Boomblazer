@@ -20,8 +20,8 @@ import enum
 import logging
 import pathlib
 import sys
+from collections.abc import Sequence
 from typing import Optional
-from typing import Sequence
 
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments

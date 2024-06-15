@@ -7,18 +7,16 @@ Classes:
 Type aliases:
     PlayerDict:
         Result of the conversion from a Player to a dict
-    PlayerMapping:
-        Mapping that can be used to create a Player
 
 Exception classes:
     CannotDropBombError: Exception
         Error raised when a Player tries to plant a bomb unsuccessfully
 """
 
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Mapping
 from typing import Optional
-from typing import Sequence
 from typing import Union
 from typing import TypedDict
 
@@ -39,7 +37,6 @@ PlayerDict = TypedDict(
         "current_bomb_count": int, "bomb_range": int
     }
 )
-PlayerMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
 class Player:

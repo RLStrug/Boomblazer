@@ -1,7 +1,7 @@
 """Handles the game state
 
 Enumerations:
-    MoveActionEnum: Enum
+    MoveActionEnum: enum.Enum
         Represents the movements performed by players
 
 Classes:
@@ -9,12 +9,10 @@ Classes:
         Handles a game by updating its state tick by tick
 """
 
-from enum import Enum
-from typing import Iterable
-from typing import List
+import enum
+from collections.abc import Iterable
+from collections.abc import Sequence
 from typing import Optional
-from typing import Sequence
-from typing import Tuple
 
 from boomblazer.entity.bomb import Bomb
 from boomblazer.entity.fire import Fire
@@ -25,7 +23,7 @@ from boomblazer.entity.player import Player
 from boomblazer.entity.position import Position
 
 
-class MoveActionEnum(Enum):
+class MoveActionEnum(enum.Enum):
     """Represents the movements performed by players
     """
     DONT_MOVE = 0
@@ -87,7 +85,7 @@ class GameHandler:
     # RUN GAME
     # ---------------------------------------- #
     def tick(
-            self, actions: Iterable[Tuple[Player, bool, MoveActionEnum]]
+            self, actions: Iterable[tuple[Player, bool, MoveActionEnum]]
     ) -> None:
         """Updates the game state to the next tick
 
@@ -107,8 +105,8 @@ class GameHandler:
         self._kill_players()
 
     def _treat_players_actions(
-            self, actions: Iterable[Tuple[Player, bool, MoveActionEnum]]
-    ) -> List[Bomb]:
+            self, actions: Iterable[tuple[Player, bool, MoveActionEnum]]
+    ) -> list[Bomb]:
         """Treat players'actions for this tick (move or drop bomb)
 
         Parameters:
@@ -119,7 +117,7 @@ class GameHandler:
                 The second is True if the player is planting a bomb, else False
                 The third is the player's movement
 
-        Return value: List[bomb]
+        Return value: list[bomb]
             The bombs planted by players
         """
         dropped_bombs = []
@@ -153,7 +151,7 @@ class GameHandler:
 
         return dropped_bombs
 
-    def _update_bombs(self, dropped_bombs: Sequence[Bomb]) -> List[Fire]:
+    def _update_bombs(self, dropped_bombs: Sequence[Bomb]) -> list[Fire]:
         """Decrement the remaining ticks for all active bombs
 
         Bombs that reach 0 will explode and generate fire blasts
@@ -162,7 +160,7 @@ class GameHandler:
             dropped_bombs: Sequence[Bomb]
                 Bombs that have been planted by players during this tick
 
-        Return value: List[Fire]
+        Return value: list[Fire]
             New fire blasts generated from bombs that exploded
         """
         active_bombs = []
@@ -216,7 +214,7 @@ class GameHandler:
     # ---------------------------------------- #
     def _explode_bomb(
         self, bomb: Bomb
-    ) -> Tuple[List[Position], List[Fire]]:
+    ) -> tuple[list[Position], list[Fire]]:
         """Detonates a bomb, spawing Fire objects on the map
 
         Parameters:
@@ -257,7 +255,7 @@ class GameHandler:
         """Removes boxes destroyed by a bomb explosion from the map
 
         Parameters:
-            boxes_coord: Iterable[Tuple[int, int]]
+            boxes_coord: Iterable[tuple[int, int]]
                 The coordinates of all boxes destroyed by an explosion
         """
 

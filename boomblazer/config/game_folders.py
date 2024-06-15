@@ -22,10 +22,8 @@ Functions:
 import dataclasses
 import pathlib
 import platform
+from collections.abc import Mapping
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Mapping
 
 from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
@@ -71,7 +69,7 @@ def _get_default_data_folder() -> pathlib.Path:
     # else ("Java", ""): pass
     return pathlib.Path(".", f"{GAME_NAME}_data", "share")
 
-def _get_default_map_folders() -> List[pathlib.Path]:
+def _get_default_map_folders() -> list[pathlib.Path]:
     """Returns the default list of map folders location
 
     Return value: list[pathlib.Path]
@@ -98,7 +96,7 @@ class _GameFoldersConfig(BaseConfig):
     log_folder: pathlib.Path = dataclasses.field(
         default_factory=_get_default_log_folder
     )
-    map_folders: List[pathlib.Path] = dataclasses.field(
+    map_folders: list[pathlib.Path] = dataclasses.field(
         default_factory=_get_default_map_folders
     )
 
@@ -120,7 +118,7 @@ class _GameFoldersConfig(BaseConfig):
                 pathlib.Path(map_folder) for map_folder in map_folders
             ]
 
-    def dump(self) -> Dict[str, Any]:
+    def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict
 
         Return value: dict

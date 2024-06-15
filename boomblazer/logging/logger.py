@@ -11,13 +11,12 @@ import copy
 import logging
 import logging.config
 from typing import Any
-from typing import Dict
 
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.logging import logging_config
 
 
-def _get_handlers_real_path() -> Dict[str, Dict[str, Any]]:
+def _get_handlers_real_path() -> dict[str, dict[str, Any]]:
     """Gets handlers from config with log folder prepended to filenames
 
     Return value: dict[str, dict[str, Any]]

@@ -12,9 +12,8 @@ Classes:
 
 import curses
 import dataclasses
+from collections.abc import MutableSequence
 from typing import ClassVar
-from typing import List
-from typing import MutableSequence
 
 from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
@@ -65,21 +64,21 @@ class _NcursesConfig(BaseConfig):
             The list of buttons that quit the game
     """
 
-    _DEFAULT_MENU_UP_BUTTONS: ClassVar[List[int]] = [curses.KEY_UP,]
-    _DEFAULT_MENU_DOWN_BUTTONS: ClassVar[List[int]] = [curses.KEY_DOWN,]
-    _DEFAULT_MENU_SELECT_BUTTONS: ClassVar[List[int]] = [ord('\n'),]
-    _DEFAULT_MOVE_UP_BUTTONS: ClassVar[List[int]] = [ord("z"), curses.KEY_UP,]
-    _DEFAULT_MOVE_DOWN_BUTTONS: ClassVar[List[int]] = [
+    _DEFAULT_MENU_UP_BUTTONS: ClassVar[list[int]] = [curses.KEY_UP,]
+    _DEFAULT_MENU_DOWN_BUTTONS: ClassVar[list[int]] = [curses.KEY_DOWN,]
+    _DEFAULT_MENU_SELECT_BUTTONS: ClassVar[list[int]] = [ord('\n'),]
+    _DEFAULT_MOVE_UP_BUTTONS: ClassVar[list[int]] = [ord("z"), curses.KEY_UP,]
+    _DEFAULT_MOVE_DOWN_BUTTONS: ClassVar[list[int]] = [
         ord("s"), curses.KEY_DOWN,
     ]
-    _DEFAULT_MOVE_LEFT_BUTTONS: ClassVar[List[int]] = [
+    _DEFAULT_MOVE_LEFT_BUTTONS: ClassVar[list[int]] = [
         ord("q"), curses.KEY_LEFT,
     ]
-    _DEFAULT_MOVE_RIGHT_BUTTONS: ClassVar[List[int]] = [
+    _DEFAULT_MOVE_RIGHT_BUTTONS: ClassVar[list[int]] = [
         ord("d"), curses.KEY_RIGHT,
     ]
-    _DEFAULT_DROP_BOMB_BUTTONS: ClassVar[List[int]] = [ord("b"), ord('\n'),]
-    _DEFAULT_QUIT_BUTTONS: ClassVar[List[int]] = [ord("Q"),]
+    _DEFAULT_DROP_BOMB_BUTTONS: ClassVar[list[int]] = [ord("b"), ord('\n'),]
+    _DEFAULT_QUIT_BUTTONS: ClassVar[list[int]] = [ord("Q"),]
 
     menu_up_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MENU_UP_BUTTONS.copy

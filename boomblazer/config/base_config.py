@@ -8,11 +8,10 @@ Classes:
 
 import abc
 import dataclasses
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Dict
-from typing import Mapping
 from typing import Optional
-from typing import Sequence
 
 
 @dataclasses.dataclass(slots=True)
@@ -44,7 +43,7 @@ class BaseConfig(abc.ABC):
                 # assert isinstance(new_value, field.type)
                 setattr(self, field.name, new_value)
 
-    def dump(self) -> Dict[str, Any]:
+    def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict
 
         Return value: dict[str, Any]

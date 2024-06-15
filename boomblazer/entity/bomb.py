@@ -7,8 +7,6 @@ Classes:
 Type aliases:
     BombDict:
         Result of the conversion from a Bomb to a dict
-    BombMapping:
-        Mapping that can be used to create a Bomb
 
 Exception classes:
     BombError: Exception
@@ -16,11 +14,11 @@ Exception classes:
         occurs
 """
 
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sequence
 from typing import Any
-from typing import Iterable
 from typing import Optional
-from typing import Mapping
-from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import Union
@@ -41,7 +39,6 @@ BombDict = TypedDict(
     "BombDict",
     {"player": str, "position": Position, "bomb_range": int, "tick": int}
 )
-BombMapping = Mapping[str, Union[str, Sequence[int], int]]
 
 
 class Bomb:

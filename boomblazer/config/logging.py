@@ -15,10 +15,9 @@ import dataclasses
 import functools
 import pathlib
 import platform
+from collections.abc import Mapping
 from typing import Any
 from typing import ClassVar
-from typing import Dict
-from typing import Mapping
 
 from boomblazer.config.base_config import BaseConfig
 from boomblazer.config.config_loader import config_instances
@@ -67,10 +66,10 @@ class _LoggingConfig(BaseConfig):
         # else ("Java", ""): pass
         return pathlib.Path(".", f"{GAME_NAME}_log.jsonl")
 
-    _DEFAULT_FILTERS: ClassVar[Dict[str, Dict[str, Any]]] = {
+    _DEFAULT_FILTERS: ClassVar[dict[str, dict[str, Any]]] = {
     }
 
-    _DEFAULT_FORMATTERS: ClassVar[Dict[str, Dict[str, Any]]] = {
+    _DEFAULT_FORMATTERS: ClassVar[dict[str, dict[str, Any]]] = {
         "simple" : {
             "class": "logging.Formatter",
             "format": "[{asctime}] [{levelname}]: {message}",
@@ -87,7 +86,7 @@ class _LoggingConfig(BaseConfig):
         },
     }
 
-    _DEFAULT_HANDLERS: ClassVar[Dict[str, Dict[str, Any]]] = {
+    _DEFAULT_HANDLERS: ClassVar[dict[str, dict[str, Any]]] = {
         "handler_1": {
             "class": "logging.StreamHandler",
             "level": "ERROR",

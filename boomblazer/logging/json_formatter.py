@@ -10,14 +10,12 @@ Classes:
 import logging
 import logging.config
 import json
+from collections.abc import Iterable
+from collections.abc import Mapping
 from typing import Any
 from typing import ClassVar
-from typing import Dict
-from typing import Iterable
 from typing import Optional
-from typing import Mapping
 from typing import NamedTuple
-from typing import Tuple
 from typing import Union
 
 
@@ -27,7 +25,7 @@ class JsonFormatterStyleTuple(NamedTuple):
     Members:
         ident: Optional[str | int]
             See indent parameter of json.dump function
-        separators: Optional[Tuple[str, str]]
+        separators: Optional[tuple[str, str]]
             See separators parameter of json.dump function
         extra: bool
             Determines if all extra fields passed through the extra parameter
@@ -35,7 +33,7 @@ class JsonFormatterStyleTuple(NamedTuple):
             json object
     """
     indent: Optional[Union[str, int]]
-    separators: Optional[Tuple[str, str]]
+    separators: Optional[tuple[str, str]]
     extra: bool
 
 
@@ -82,7 +80,7 @@ class JsonFormatter(logging.Formatter):
         "fmt_keys", "datefmt", "indent", "separators", "extra", "defaults"
     )
 
-    PREDEFINED_STYLES: ClassVar[Dict[str, JsonFormatterStyleTuple]] = {
+    PREDEFINED_STYLES: ClassVar[dict[str, JsonFormatterStyleTuple]] = {
         "compact": JsonFormatterStyleTuple(None, (",", ":"), False),
         "space": JsonFormatterStyleTuple(None, None, False),
         "nl": JsonFormatterStyleTuple("\t", None, False),
@@ -92,9 +90,9 @@ class JsonFormatter(logging.Formatter):
         for key, (indent, separators, _) in PREDEFINED_STYLES.items()
     })
 
-    DEFAULT_FORMAT: ClassVar[Tuple[str]] = ("message",)
+    DEFAULT_FORMAT: ClassVar[tuple[str]] = ("message",)
 
-    BASIC_RECORD_FIELDS: ClassVar[Tuple[str, ...]] = (
+    BASIC_RECORD_FIELDS: ClassVar[tuple[str, ...]] = (
         "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
         "module", "exc_info", "exc_text", "stack_info", "lineno", "funcName",
         "created", "msecs", "relativeCreated", "thread", "threadName",

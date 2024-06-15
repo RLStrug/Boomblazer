@@ -15,13 +15,12 @@ Type aliases:
 
 import logging
 import socket
-from typing import Iterable
+from collections.abc import Iterable
 from typing import Optional
-from typing import Tuple
 
 from boomblazer.network.address import Address
 
-MessageType = Tuple[bytes, bytes]  # (command, argument)
+MessageType = tuple[bytes, bytes]  # (command, argument)
 
 _SEPARATOR = b":"
 
@@ -70,7 +69,7 @@ class Network:
         """
         self.sock.bind(addr)
 
-    def recv_message(self) -> Tuple[Optional[MessageType], Address]:
+    def recv_message(self) -> tuple[Optional[MessageType], Address]:
         """Recieves a message from the network and parses it
 
         Return value: tuple[Optional[MessageType], Address]

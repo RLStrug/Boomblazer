@@ -18,13 +18,11 @@ import selectors
 import sys
 import threading
 import time
+from collections.abc import Iterable
+from collections.abc import Sequence
+from collections.abc import Set
 from types import TracebackType
-from typing import Dict
-from typing import Iterable
 from typing import Optional
-from typing import Sequence
-from typing import Set
-from typing import Type
 
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
@@ -135,11 +133,11 @@ class Server(Network):
         """
         super().__init__(*args, **kwargs)
         self.bind(addr)
-        self.clients: Dict[Address, Player] = {}
+        self.clients: dict[Address, Player] = {}
         self.game_handler = None
         self._map_filepath = self._find_map_file(map_filename)
         self.is_game_running = False
-        self._player_actions: Dict[Player, Tuple[bool, MoveActionEnum]] = {}
+        self._player_actions: dict[Player, Tuple[bool, MoveActionEnum]] = {}
         self._tick_thread = threading.Thread()
 
         if not self._map_filepath.is_file():
@@ -188,7 +186,7 @@ class Server(Network):
         """Waits for players to connect until everyone is ready
         """
         self._logger.info("Waiting for players")
-        ready_players: Set[Address] = set()
+        ready_players: set[Address] = set()
         while (
                 len(self.clients) < 1 or
                 len(ready_players) != len(self.clients)
@@ -411,7 +409,7 @@ class Server(Network):
         return self
 
     def __exit__(
-            self, exc_type: Optional[Type[BaseException]],
+            self, exc_type: Optional[type[BaseException]],
             exc_val: Optional[BaseException],
             exc_tb: Optional[TracebackType]
     ) -> None:
