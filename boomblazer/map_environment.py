@@ -19,16 +19,17 @@ Exception classes:
         Error raised when a MapEnvironment intialization data is invalid
 """
 
+import enum
 import json
+import pathlib
 import string
-from enum import Enum
-from pathlib import Path
 from typing import Any
 from typing import Collection
 from typing import Iterable
 from typing import List
 from typing import Mapping
 from typing import Sequence
+from typing import TextIO
 from typing import Tuple
 from typing import TypedDict
 from typing import Union
@@ -54,7 +55,7 @@ class MapEnvironmentError(Exception):
     """
 
 
-class MapCellEnum(Enum):
+class MapCellEnum(enum.Enum):
     """Represents a cell content on the map
     """
     WALL = "X"  # not destructible wall
@@ -251,27 +252,24 @@ class MapEnvironment:
     # ---------------------------------------- #
 
     @classmethod
-    def from_file(
-            cls, map_filename: Path, players: Collection[Player]
+    def from_io_data(
+            cls, map_io: TextIO, players: Collection[Player]
     ) -> "MapEnvironment":
-        """Instanciates a MapEnvironment from a file
+        """Instanciates a MapEnvironment from IO data
 
         Used by the server when starting a new game
 
         Parameters:
-            map_filename: Path
-                Path to the file containing the initial map data
-            players: Iterable[Player]
+            map_io: TextIO
+                IO object containing the initial map data
+            players: Collection[Player]
                 Players that joined the game
 
         Return value: MapEnvironment
             A MapEnvironment instance initialized from the file
         """
-        with open(map_filename, "r", encoding="ascii") as map_file:
-            data = map_file.read().splitlines()
-
         # get version number
-        version_tag = data.pop(0)
+        version_tag = map_io.readline()
         if not version_tag.startswith("#V"):
             raise MapEnvironmentError(
                 "Map file must start with version number (e.g. '#V1')"
@@ -283,6 +281,9 @@ class MapEnvironment:
                 "Version number should be a number... >:("
             ) from exc
 
+        # XXX Find better way
+        data = map_io.read().splitlines()
+
         # check content
         if any(
                 cell not in cls.__ALLOWED_CHARS
@@ -293,8 +294,8 @@ class MapEnvironment:
         # create state
         state: List[List[MapCellEnum]] = [
             [
-                MapCellEnum.EMPTY
-                if cell in cls.__SPAWN_CHARS else MapCellEnum(cell)
+                MapCellEnum.EMPTY if cell in cls.__SPAWN_CHARS
+                else MapCellEnum(cell)
                 for cell in row
             ]
             for row in data
@@ -308,6 +309,26 @@ class MapEnvironment:
         map_environment._init_players_position(data)
 
         return map_environment
+
+    @classmethod
+    def from_file(
+            cls, map_filename: pathlib.Path, players: Collection[Player]
+    ) -> "MapEnvironment":
+        """Instanciates a MapEnvironment from a file
+
+        Used by the server when starting a new game
+
+        Parameters:
+            map_filename: pathlib.Path
+                Path to the file containing the initial map data
+            players: Iterable[Player]
+                Players that joined the game
+
+        Return value: MapEnvironment
+            A MapEnvironment instance initialized from the file
+        """
+        with open(map_filename, "r", encoding="utf8") as map_file:
+            return cls.from_io_data(map_file, players)
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "MapEnvironment":
