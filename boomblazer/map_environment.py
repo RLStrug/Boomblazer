@@ -599,21 +599,3 @@ class MapEnvironment:
             pos = fire.position
             map_str[pos[1]][pos[0]] = "*"
         return "\n".join(["".join(row) for row in map_str])
-
-
-def __test_module() -> None:
-    """Test the correct behaviour of GameHandler
-    """
-
-    player_1 = Player("p1")
-    player_2 = Player("p2")
-    map_1 = MapEnvironment.from_file("res/maps/map.txt", [player_1, player_2])
-    print(map_1)
-    json_map = map_1.to_json(indent=4)
-    print(json_map)
-    map_2 = MapEnvironment.from_json(json_map)
-    print(map_2)
-
-
-if __name__ == "__main__":
-    __test_module()
