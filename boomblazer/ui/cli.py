@@ -16,7 +16,6 @@ Functions:
 
 import argparse
 import logging
-import pathlib
 import selectors
 import shutil
 import sys
@@ -135,13 +134,14 @@ class CommandLineInterface(BaseUI):
     def handle_network_input(self) -> None:
         """Recieves game info from the server
         """
-        if self.client.game_handler.map_environment.version == 0:
+        if self.client.game_handler.environment.map.version == 0:
             print("Players:")
-            for player in self.client.game_handler.map_environment.players:
-                print(f"\t{player}")
+            for player, is_ready in self.client.connected_players.items():
+                print(f"\t{player}", end="")
+                print(" (ready)" if is_ready else "")
         else:
             print("\n" * shutil.get_terminal_size().lines)
-            print(self.client.game_handler.map_environment)
+            print(self.client.game_handler.environment)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

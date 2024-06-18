@@ -17,14 +17,14 @@ import pathlib
 from boomblazer.config import config_loader
 from boomblazer.logging import logger
 from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
+from boomblazer.version import VERSION
 
 
 base_parser = argparse.ArgumentParser(add_help=False)
 base_parser.add_argument("--config-file", type=pathlib.Path)
 base_parser.add_argument(
     "-V", "--version", action="version",
-    version=f"{GAME_NAME} {VERSION_STR}"
+    version=f"{GAME_NAME} {VERSION}"
 )
 
 

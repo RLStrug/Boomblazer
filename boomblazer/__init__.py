@@ -5,12 +5,14 @@ Submodules:
         Configuration related modules
     entity:
         Game entity modules
+    environment:
+        Implements a game environment
     game_handler:
         Handles the game state
     logging:
         Logging related modules
-    map_environment:
-        Implements a game map environment
+    map:
+        Implements a game map
     network:
         Network related modules
     ui:
@@ -21,9 +23,10 @@ Submodules:
 
 from . import config
 from . import entity
+from . import environment
 from . import game_handler
 from . import logging
-from . import map_environment
+from . import map
 from . import network
 from . import ui
 from . import version
@@ -31,9 +34,10 @@ from . import version
 __all__ = [
     "config",
     "entity",
+    "environment",
     "game_handler",
     "logging",
-    "map_environment",
+    "map",
     "network",
     "ui",
     "version",

@@ -27,7 +27,7 @@ import sys
 from boomblazer.network import server
 from boomblazer import ui
 from boomblazer.version import GAME_NAME
-from boomblazer.version import VERSION_STR
+from boomblazer.version import VERSION
 
 
 ##########################################
@@ -47,7 +47,7 @@ ui_mapping = {
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-V", "--version", action="version", version=f"{GAME_NAME} {VERSION_STR}"
+    "-V", "--version", action="version", version=f"{GAME_NAME} {VERSION}"
 )
 parser.add_argument(
     "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"

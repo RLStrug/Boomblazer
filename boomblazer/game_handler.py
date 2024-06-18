@@ -16,8 +16,8 @@ from typing import Optional
 
 from boomblazer.entity.bomb import Bomb
 from boomblazer.entity.fire import Fire
-from boomblazer.map_environment import MapEnvironment
-from boomblazer.map_environment import MapCellEnum
+from boomblazer.environment import Environment
+from boomblazer.map import MapCell
 from boomblazer.entity.player import CannotDropBombError
 from boomblazer.entity.player import Player
 from boomblazer.entity.position import Position
@@ -37,8 +37,8 @@ class GameHandler:
     """Handles a game by updating its state tick by tick
 
     Members:
-        _map_environment: MapEnvironment
-            The current game map state
+        environment: Environment
+            The current game environment state
 
     Special methods:
         __init__:
@@ -59,27 +59,22 @@ class GameHandler:
             Detonates a bomb, spawing Fire objects on the map
         _treat_exploded_boxes:
             Removes boxes destroyed by a bomb explosion from the map
-
-    Properties:
-        map_environment: (Read only)
-            The current game map environment state
     """
 
-    __slots__ = ("_map_environment",)
+    __slots__ = ("environment",)
 
     def __init__(
-            self, map_environment: Optional[MapEnvironment] = None
+            self, environment: Optional[Environment] = None
     ) -> None:
         """Initializes a new game state
 
         Parameters:
-            map_environment: MapEnvironment
-                The starting state of the game map
+            environment: Environment
+                The game environment state
         """
-        if map_environment is None:
-            self._map_environment = MapEnvironment(0)
-        else:
-            self._map_environment = map_environment
+        if environment is None:
+            environment = Environment()
+        self.environment = environment
 
     # ---------------------------------------- #
     # RUN GAME
@@ -122,14 +117,14 @@ class GameHandler:
         """
         dropped_bombs = []
         for player, drop_bomb, move in actions:
-            if player not in self._map_environment.players:
+            if player not in self.environment.players:
                 continue
 
             # if cell is fire, do not drop because player will be killed
             if (
                     drop_bomb and
-                    not self._map_environment.bomb_here(player.position) and
-                    self._map_environment[player.position] == MapCellEnum.EMPTY
+                    not self.environment.bomb_here(player.position) and
+                    self.environment.map[player.position] == MapCell.EMPTY
             ):
                 try:
                     dropped_bombs.append(player.create_bomb())
@@ -146,7 +141,7 @@ class GameHandler:
             elif move == MoveActionEnum.MOVE_LEFT:
                 new_player_position = player.position.left()
 
-            if self._map_environment[new_player_position] == MapCellEnum.EMPTY:
+            if self.environment.map[new_player_position] == MapCell.EMPTY:
                 player.position = new_player_position
 
         return dropped_bombs
@@ -166,7 +161,7 @@ class GameHandler:
         active_bombs = []
         exploded_boxes = []
         fires_from_bombs = []
-        for bomb in self._map_environment.bombs:
+        for bomb in self.environment.bombs:
             bomb.decrement_tick()
             if bomb.tick == 0:
                 boxes, fires = self._explode_bomb(bomb)
@@ -177,7 +172,7 @@ class GameHandler:
             else:
                 active_bombs.append(bomb)
         active_bombs.extend(dropped_bombs)
-        self._map_environment.bombs = active_bombs
+        self.environment.bombs = active_bombs
         # Treat all exploded boxes after because multiple explosions break only
         # one box
         self._treat_exploded_boxes(exploded_boxes)
@@ -193,21 +188,21 @@ class GameHandler:
                 tick
         """
         raging_fires = []
-        for fire in self._map_environment.fires:
+        for fire in self.environment.fires:
             fire.decrement_tick()
             if fire.tick > 0:
                 raging_fires.append(fire)
         raging_fires.extend(fires_from_bombs)
-        self._map_environment.fires = raging_fires
+        self.environment.fires = raging_fires
 
     def _kill_players(self) -> None:
         """Kills players that are engulfed in a fire blast
         """
         living_players = []
-        for player in self._map_environment.players:
-            if not self._map_environment.fire_here(player.position):
+        for player in self.environment.players:
+            if not self.environment.fire_here(player.position):
                 living_players.append(player)
-        self._map_environment.players = living_players
+        self.environment.players = living_players
 
     # ---------------------------------------- #
     # HELPERS
@@ -237,14 +232,14 @@ class GameHandler:
         for move in directions:
             for distance in range(1, bomb.bomb_range + 1):
                 blast_coords = move(distance)
-                blasted_cell = self._map_environment[blast_coords]
-                if blasted_cell is MapCellEnum.WALL:
+                blasted_cell = self.environment.map[blast_coords]
+                if blasted_cell is MapCell.WALL:
                     break
-                if blasted_cell is MapCellEnum.BOX:
+                if blasted_cell is MapCell.BOX:
                     exploded_boxes_coord.append(blast_coords)
                     fires.append(Fire(blast_coords))
                     break
-                if blasted_cell is MapCellEnum.EMPTY:
+                if blasted_cell is MapCell.EMPTY:
                     fires.append(Fire(blast_coords))
 
         return exploded_boxes_coord, fires
@@ -260,16 +255,4 @@ class GameHandler:
         """
 
         for box in boxes_coord:
-            self._map_environment[box] = MapCellEnum.EMPTY
-
-    # ---------------------------------------- #
-    # GETTERS / SETTERS
-    # ---------------------------------------- #
-    @property
-    def map_environment(self):
-        """Returns the current game map state
-
-        Return value: MapEnvironment
-            The current game map state
-        """
-        return self._map_environment
+            self.environment.map[box] = MapCell.EMPTY

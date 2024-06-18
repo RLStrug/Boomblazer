@@ -11,6 +11,7 @@ Exception classes:
 """
 
 import argparse
+import contextlib
 import json
 import pathlib
 import logging
@@ -31,7 +32,8 @@ from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map_environment import MapEnvironment
+from boomblazer.map import Map
+from boomblazer.map import MapError
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 from boomblazer.entity.player import Player
@@ -60,13 +62,11 @@ class Server(Network):
             Contains the game state and logic
         clients: dict[Address, Player]
             Links connected players to their address
-        _map_filepath: pathlib.Path
-            Path to map that will be used for the game
         _logger: logging.Logger
             The server logger
         is_game_running: bool
             Defines if the game is running or over
-        _player_actions: dict[Player, Tuple[bool, MoveActionEnum]]:
+        _player_actions: dict[Player, tuple[bool, MoveActionEnum]]:
             Actions to be performed by players during next game tick
         _tick_thread: threading.Thread
             Thread used to update the game environment at regular interval
@@ -106,15 +106,15 @@ class Server(Network):
             Sends the list of connected players' name
         send_stop_game:
             Tells all clients that the server is closed and why
-        send_map:
-            Sends the current map state
+        send_environment:
+            Sends the current game environment state
         close:
             Closes the server
     """
 
     __slots__ = (
-        "game_handler", "clients", "_map_filepath",
-        "is_game_running", "_player_actions", "_tick_thread",
+        "game_handler", "clients", "is_game_running", "_player_actions",
+        "_tick_thread",
     )
 
     _CLIENT_MESSAGE_WAIT_TIME = 0.5
@@ -134,15 +134,19 @@ class Server(Network):
         super().__init__(*args, **kwargs)
         self.bind(addr)
         self.clients: dict[Address, Player] = {}
-        self.game_handler = None
-        self._map_filepath = self._find_map_file(map_filename)
+
+        map_filepath = self._find_map_file(map_filename)
+        try:
+            map_ = Map.from_file(map_filepath)
+        except MapError as exc:
+            raise ServerError(exc) from exc
+        self.game_handler = GameHandler()
+        self.game_handler.environment.load_map(map_)
+
         self.is_game_running = False
-        self._player_actions: dict[Player, Tuple[bool, MoveActionEnum]] = {}
+        self._player_actions: dict[Player, tuple[bool, MoveActionEnum]] = {}
         self._tick_thread = threading.Thread()
 
-        if not self._map_filepath.is_file():
-            self._logger.error("Could not find a map named %r", map_filename)
-            raise ServerError("Could not find map with given name")
 
     def _find_map_file(self, map_filename: str) -> pathlib.Path:
         """Searches for map file in all folders defined in config
@@ -176,10 +180,6 @@ class Server(Network):
         Waits for the players and initializes the game map environment
         """
         self.wait_players()
-        map_environment = MapEnvironment.from_file(
-            self._map_filepath, list(self.clients.values())
-        )
-        self.game_handler = GameHandler(map_environment)
         self.launch_game()
 
     def wait_players(self) -> None:
@@ -220,7 +220,8 @@ class Server(Network):
         """
         self._logger.info("Game start")
         self.is_game_running = True
-        self.send_map()
+        self.game_handler.environment.spawn_players()
+        self.send_environment()
         self._tick_thread = threading.Thread(
             target=self.tick, name="server-tick"
         )
@@ -246,7 +247,7 @@ class Server(Network):
             ]
 
             self.game_handler.tick(actions)
-            self.send_map()
+            self.send_environment()
             self.reset_player_actions()
 
             end_time = time.monotonic()
@@ -305,22 +306,22 @@ class Server(Network):
             name: bytes
                 The new player's name
         """
-        self.clients[addr] = Player(name.decode("utf8"))
+        player = self.game_handler.environment.add_player(name.decode("utf8"))
+        if player is not None:
+            self.clients[addr] = player
 
     def remove_player(self, addr: Address) -> None:
         """Removes a player from the clients list
 
+        Will fail silently if the address is not associated to a player.
+
         Parameters:
             addr:
-                The player's IP and port
+                The client's address
         """
-        if addr in self.clients:
-            # If players are not in the game yet (lobby)
-            if self.game_handler is not None:
-                player = self.clients[addr]
-                # If player not dead yet
-                if player in self.game_handler.map_environment.players:
-                    self.game_handler.map_environment.players.remove(player)
+        with contextlib.suppress(ValueError, KeyError):
+            player = self.clients[addr]
+            self.game_handler.environment.remove_player(player)
             del self.clients[addr]
         if len(self.clients) == 0 and self.is_game_running:
             self.close()
@@ -375,12 +376,12 @@ class Server(Network):
         """
         self.send_message(b"STOP", reason)
 
-    def send_map(self) -> None:
-        """Sends the current map state
+    def send_environment(self) -> None:
+        """Sends the current game environment state
         """
         self.send_message(
-            b"MAP",
-            self.game_handler.map_environment.to_json(
+            b"ENVIRONMENT",
+            self.game_handler.environment.to_json(
                 separators=(',',':')
             ).encode("utf8")
         )

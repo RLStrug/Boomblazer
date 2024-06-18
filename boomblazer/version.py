@@ -1,14 +1,14 @@
 """Stores the software version of the game
 
 Constants:
-    VERSION: tuple[int, int, int]
+    VERSION_TUPLE: tuple[int, int, int]
         The major, minor, and patch version as a tuple
-    VERSION_STR: str
+    VERSION: str
         The major, minor, and patch version as a str
     GAME_NAME: str
         The name of the game
 """
 
-VERSION = (0, 4, 11)
-VERSION_STR = ".".join([str(n) for n in VERSION])
+VERSION_TUPLE = (0, 5, 0)
+VERSION = ".".join([str(n) for n in VERSION_TUPLE])
 GAME_NAME = "Boomblazer"

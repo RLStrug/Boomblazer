@@ -237,14 +237,16 @@ class CursesInterface(BaseUI):
 
         self.stdscr.nodelay(True)  # User input is non blocking
 
-        while self.client.game_handler.map_environment.version == 0:
+        while self.client.game_handler.environment.map.version == 0:
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
-                for idx, player_name in enumerate(
-                        self.client.game_handler.map_environment.players
+                for idx, (player, is_ready) in enumerate(
+                        self.client.connected_players.items()
                 ):
-                    self.stdscr.insstr(idx, 0, player_name)
+                    self.stdscr.insstr(idx, 0, f"{player}")
+                    if is_ready:
+                        self.stdscr.insstr(idx, len(player), " (ready)")
                 for idx, label in enumerate(labels):
                     self.stdscr.insstr(
                         curses.LINES - len(choices) + idx, 0, label,
@@ -284,7 +286,7 @@ class CursesInterface(BaseUI):
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
-                self.stdscr.insstr(0, 0, str(self.client.game_handler.map_environment))
+                self.stdscr.insstr(0, 0, str(self.client.game_handler.environment))
 
             key = self.stdscr.getch()
             if key in ncurses_config.move_up_buttons:

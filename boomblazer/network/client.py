@@ -15,7 +15,7 @@ from typing import Optional
 from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map_environment import MapEnvironment
+from boomblazer.environment import Environment
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 
@@ -55,6 +55,9 @@ class Client(Network):
             overloading the underlying UI with updates if it somehow manages to
             be slower than network. Therefore, the Client should always try to
             acquire a token non-blockingly before releasing one.
+        connected_players: dict[str, bool]
+            Only used during lobby phase.
+            Used to list which players are ready to start
 
     Special methods:
         __init__:
@@ -89,7 +92,7 @@ class Client(Network):
 
     __slots__ = (
         "server_addr", "username", "game_handler", "is_game_running",
-        "_tick_thread", "update_semaphore",
+        "_tick_thread", "update_semaphore", "connected_players",
     )
 
     _SERVER_MESSAGE_WAIT_TIME = 0.5
@@ -112,6 +115,7 @@ class Client(Network):
         self.is_game_running = False
         self._tick_thread = threading.Thread()
         self.update_semaphore = None
+        self.connected_players: dict[str, bool] = {}
 
     # ---------------------------------------- #
     # GAME
@@ -164,11 +168,9 @@ class Client(Network):
 
             cmd, arg = msg
             if cmd == b"PLAYERS_LIST":
-                self.game_handler.map_environment.players = json.loads(arg)
-            elif cmd == b"MAP":
-                self.game_handler = GameHandler(
-                    MapEnvironment.from_json(arg)
-                )
+                self.connected_players = json.loads(arg)
+            elif cmd == b"ENVIRONMENT":
+                self.game_handler = GameHandler(Environment.from_json(arg))
             elif cmd == b"STOP":
                 self.is_game_running = False
                 break
