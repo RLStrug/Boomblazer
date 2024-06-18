@@ -14,7 +14,7 @@ from typing import Optional
 
 from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
-from boomblazer.game_handler import MoveActionEnum
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.environment import Environment
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
@@ -226,19 +226,19 @@ class Client(Network):
         command = b"JOIN"
         self.send_message(command, self.username)
 
-    def send_move(self, action: MoveActionEnum) -> None:
+    def send_move(self, action: PlayerAction) -> None:
         """Tells the server that the player wants to move
 
         This command should have an effect on the server only if the game has
         already been started.
         """
-        if action == MoveActionEnum.MOVE_UP:
+        if action == PlayerAction.MOVE_UP:
             self.send_message(b"MOVE", b"UP")
-        elif action == MoveActionEnum.MOVE_DOWN:
+        elif action == PlayerAction.MOVE_DOWN:
             self.send_message(b"MOVE", b"DOWN")
-        elif action == MoveActionEnum.MOVE_LEFT:
+        elif action == PlayerAction.MOVE_LEFT:
             self.send_message(b"MOVE", b"LEFT")
-        elif action == MoveActionEnum.MOVE_RIGHT:
+        elif action == PlayerAction.MOVE_RIGHT:
             self.send_message(b"MOVE", b"RIGHT")
 
     def send_plant_bomb(self) -> None:

@@ -1,5 +1,9 @@
 """Implements a game player
 
+Enumerations:
+    PlayerAction:
+        Actions that can be performed by a player
+
 Classes:
     Player:
         Represents a game player
@@ -13,6 +17,7 @@ Exception classes:
         Error raised when a Player tries to plant a bomb unsuccessfully
 """
 
+import enum
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
@@ -23,6 +28,14 @@ from typing import TypedDict
 from boomblazer.config.game import game_config
 from boomblazer.environment.entity.bomb import Bomb
 from boomblazer.environment.position import Position
+
+
+class PlayerAction(enum.Flag):
+    MOVE_UP = enum.auto()
+    MOVE_DOWN = enum.auto()
+    MOVE_LEFT = enum.auto()
+    MOVE_RIGHT = enum.auto()
+    PLANT_BOMB = enum.auto()
 
 
 class CannotDropBombError(Exception):

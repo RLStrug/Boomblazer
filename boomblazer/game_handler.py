@@ -1,9 +1,5 @@
 """Handles the game state
 
-Enumerations:
-    MoveActionEnum: enum.Enum
-        Represents the movements performed by players
-
 Classes:
     GameHandler:
         Handles a game by updating its state tick by tick
@@ -20,17 +16,8 @@ from boomblazer.environment.environment import Environment
 from boomblazer.environment.map import MapCell
 from boomblazer.environment.entity.player import CannotDropBombError
 from boomblazer.environment.entity.player import Player
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.position import Position
-
-
-class MoveActionEnum(enum.Enum):
-    """Represents the movements performed by players
-    """
-    DONT_MOVE = 0
-    MOVE_UP = 1
-    MOVE_DOWN = 2
-    MOVE_LEFT = 3
-    MOVE_RIGHT = 4
 
 
 class GameHandler:
@@ -80,32 +67,32 @@ class GameHandler:
     # RUN GAME
     # ---------------------------------------- #
     def tick(
-            self, actions: Iterable[tuple[Player, bool, MoveActionEnum]]
+            self, players_actions: Iterable[tuple[Player, PlayerAction]]
     ) -> None:
         """Updates the game state to the next tick
 
         This will update the game map, players, bombs and fire blasts
 
         Parameters:
-            actions : Iterable[tuple[Player, bool, MoveActionEnum]]
+            actions : Iterable[tuple[Player, PlayerAction]]
                 Represent the action of players during this tick
                 The first member of the tuple is the player performing the
                 action
                 The second is True if the player is planting a bomb, else False
                 The third is the player's movement
         """
-        dropped_bombs = self._treat_players_actions(actions)
+        dropped_bombs = self._treat_players_actions(players_actions)
         fires_from_bombs = self._update_bombs(dropped_bombs)
         self._update_fire_blasts(fires_from_bombs)
         self._kill_players()
 
     def _treat_players_actions(
-            self, actions: Iterable[tuple[Player, bool, MoveActionEnum]]
+            self, players_actions: Iterable[tuple[Player, PlayerAction]]
     ) -> list[Bomb]:
         """Treat players'actions for this tick (move or drop bomb)
 
         Parameters:
-            actions : Iterable[tuple[Player, bool, MoveActionEnum]]
+            players_actions : Iterable[tuple[Player, PlayerAction]]
                 Represent the action of players during this tick
                 The first member of the tuple is the player performing the
                 action
@@ -116,13 +103,13 @@ class GameHandler:
             The bombs planted by players
         """
         dropped_bombs = []
-        for player, drop_bomb, move in actions:
+        for player, action in players_actions:
             if player not in self.environment.players:
                 continue
 
             # if cell is fire, do not drop because player will be killed
             if (
-                    drop_bomb and
+                    action & PlayerAction.PLANT_BOMB and
                     not self.environment.bomb_here(player.position) and
                     self.environment.map[player.position] == MapCell.EMPTY
             ):
@@ -132,13 +119,13 @@ class GameHandler:
                     pass
 
             new_player_position = player.position
-            if move == MoveActionEnum.MOVE_UP:
+            if action & PlayerAction.MOVE_UP:
                 new_player_position = player.position.up()
-            elif move == MoveActionEnum.MOVE_DOWN:
+            elif action & PlayerAction.MOVE_DOWN:
                 new_player_position = player.position.down()
-            elif move == MoveActionEnum.MOVE_RIGHT:
+            elif action & PlayerAction.MOVE_RIGHT:
                 new_player_position = player.position.right()
-            elif move == MoveActionEnum.MOVE_LEFT:
+            elif action & PlayerAction.MOVE_LEFT:
                 new_player_position = player.position.left()
 
             if self.environment.map[new_player_position] == MapCell.EMPTY:

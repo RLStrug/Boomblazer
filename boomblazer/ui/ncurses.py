@@ -26,7 +26,7 @@ from typing import Optional
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.ncurses import ncurses_config
-from boomblazer.game_handler import MoveActionEnum
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.network.address import Address
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.version import GAME_NAME
@@ -290,13 +290,13 @@ class CursesInterface(BaseUI):
 
             key = self.stdscr.getch()
             if key in ncurses_config.move_up_buttons:
-                self.client.send_move(MoveActionEnum.MOVE_UP)
+                self.client.send_move(PlayerAction.MOVE_UP)
             elif key in ncurses_config.move_down_buttons:
-                self.client.send_move(MoveActionEnum.MOVE_DOWN)
+                self.client.send_move(PlayerAction.MOVE_DOWN)
             elif key in ncurses_config.move_left_buttons:
-                self.client.send_move(MoveActionEnum.MOVE_LEFT)
+                self.client.send_move(PlayerAction.MOVE_LEFT)
             elif key in ncurses_config.move_right_buttons:
-                self.client.send_move(MoveActionEnum.MOVE_RIGHT)
+                self.client.send_move(PlayerAction.MOVE_RIGHT)
             elif key in ncurses_config.drop_bomb_buttons:
                 self.client.send_plant_bomb()
             elif key in ncurses_config.quit_buttons:

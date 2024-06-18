@@ -31,7 +31,7 @@ from boomblazer.config.game import game_config
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
-from boomblazer.game_handler import MoveActionEnum
+from boomblazer.game_handler import PlayerAction
 from boomblazer.environment.map import Map
 from boomblazer.environment.map import MapError
 from boomblazer.network.address import Address
@@ -66,7 +66,7 @@ class Server(Network):
             The server logger
         is_game_running: bool
             Defines if the game is running or over
-        _player_actions: dict[Player, tuple[bool, MoveActionEnum]]:
+        _player_actions: dict[Player, PlayerAction]:
             Actions to be performed by players during next game tick
         _tick_thread: threading.Thread
             Thread used to update the game environment at regular interval
@@ -144,7 +144,7 @@ class Server(Network):
         self.game_handler.environment.load_map(map_)
 
         self.is_game_running = False
-        self._player_actions: dict[Player, tuple[bool, MoveActionEnum]] = {}
+        self._player_actions: dict[Player, PlayerAction] = {}
         self._tick_thread = threading.Thread()
 
 
@@ -280,15 +280,15 @@ class Server(Network):
             cmd, arg = msg
             if cmd == b"MOVE":
                 if arg == b"UP":
-                    self._player_actions[player] = (False, MoveActionEnum.MOVE_UP)
+                    self._player_actions[player] = PlayerAction.MOVE_UP
                 elif arg == b"DOWN":
-                    self._player_actions[player] = (False, MoveActionEnum.MOVE_DOWN)
+                    self._player_actions[player] = PlayerAction.MOVE_DOWN
                 elif arg == b"LEFT":
-                    self._player_actions[player] = (False, MoveActionEnum.MOVE_LEFT)
+                    self._player_actions[player] = PlayerAction.MOVE_LEFT
                 elif arg == b"RIGHT":
-                    self._player_actions[player] = (False, MoveActionEnum.MOVE_RIGHT)
+                    self._player_actions[player] = PlayerAction.MOVE_RIGHT
             elif cmd == b"BOMB":
-                self._player_actions[player] = (True, MoveActionEnum.DONT_MOVE)
+                self._player_actions[player] = PlayerAction.PLANT_BOMB
             elif cmd == b"QUIT":
                 self.remove_player(addr)
 

@@ -25,7 +25,7 @@ from typing import Optional
 from boomblazer.argument_parser import base_parser
 from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.cli import cli_config
-from boomblazer.game_handler import MoveActionEnum
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.network.address import Address
 from boomblazer.ui.base_ui import BaseUI
 from boomblazer.version import GAME_NAME
@@ -118,13 +118,13 @@ class CommandLineInterface(BaseUI):
         if cmd in cli_config.ready_commands:
             self.client.send_ready()
         elif cmd in cli_config.up_commands:
-            self.client.send_move(MoveActionEnum.MOVE_UP)
+            self.client.send_move(PlayerAction.MOVE_UP)
         elif cmd in cli_config.down_commands:
-            self.client.send_move(MoveActionEnum.MOVE_DOWN)
+            self.client.send_move(PlayerAction.MOVE_DOWN)
         elif cmd in cli_config.left_commands:
-            self.client.send_move(MoveActionEnum.MOVE_LEFT)
+            self.client.send_move(PlayerAction.MOVE_LEFT)
         elif cmd in cli_config.right_commands:
-            self.client.send_move(MoveActionEnum.MOVE_RIGHT)
+            self.client.send_move(PlayerAction.MOVE_RIGHT)
         elif cmd in cli_config.bomb_commands:
             self.client.send_plant_bomb()
         elif cmd in cli_config.quit_commands:
