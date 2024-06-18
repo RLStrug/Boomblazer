@@ -32,11 +32,11 @@ from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.map import Map
-from boomblazer.map import MapError
+from boomblazer.environment.map import Map
+from boomblazer.environment.map import MapError
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
-from boomblazer.entity.player import Player
+from boomblazer.environment.entity.player import Player
 from boomblazer.version import GAME_NAME
 
 

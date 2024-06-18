@@ -15,7 +15,7 @@ from typing import Optional
 from boomblazer.config.client import client_config
 from boomblazer.game_handler import GameHandler
 from boomblazer.game_handler import MoveActionEnum
-from boomblazer.environment import Environment
+from boomblazer.environment.environment import Environment
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 

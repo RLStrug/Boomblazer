@@ -14,13 +14,13 @@ from collections.abc import Iterable
 from collections.abc import Sequence
 from typing import Optional
 
-from boomblazer.entity.bomb import Bomb
-from boomblazer.entity.fire import Fire
-from boomblazer.environment import Environment
-from boomblazer.map import MapCell
-from boomblazer.entity.player import CannotDropBombError
-from boomblazer.entity.player import Player
-from boomblazer.entity.position import Position
+from boomblazer.environment.entity.bomb import Bomb
+from boomblazer.environment.entity.fire import Fire
+from boomblazer.environment.environment import Environment
+from boomblazer.environment.map import MapCell
+from boomblazer.environment.entity.player import CannotDropBombError
+from boomblazer.environment.entity.player import Player
+from boomblazer.environment.position import Position
 
 
 class MoveActionEnum(enum.Enum):

@@ -26,7 +26,7 @@ from typing import Optional
 from typing import TextIO
 from typing import TypedDict
 
-from boomblazer.entity.position import Position
+from boomblazer.environment.position import Position
 
 
 class MapError(Exception):

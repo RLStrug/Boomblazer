@@ -24,10 +24,10 @@ from typing import TypedDict
 from typing import Union
 
 from boomblazer.config.game import game_config
-from boomblazer.entity.position import Position
+from boomblazer.environment.position import Position
 
 if TYPE_CHECKING:
-    from boomblazer.entity.player import Player
+    from boomblazer.environment.entity.player import Player
 
 
 class BombError(Exception):

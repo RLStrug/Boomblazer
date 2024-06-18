@@ -22,7 +22,7 @@ from typing import TypedDict
 from typing import Union
 
 from boomblazer.config.game import game_config
-from boomblazer.entity.position import Position
+from boomblazer.environment.position import Position
 
 
 class FireError(Exception):

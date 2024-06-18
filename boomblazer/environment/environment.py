@@ -21,16 +21,16 @@ from typing import Optional
 from typing import TypedDict
 from typing import Union
 
-from boomblazer.entity.bomb import Bomb
-from boomblazer.entity.bomb import BombDict
-from boomblazer.entity.fire import Fire
-from boomblazer.entity.fire import FireDict
-from boomblazer.entity.player import Player
-from boomblazer.entity.player import PlayerDict
-from boomblazer.entity.position import Position
-from boomblazer.map import Map
-from boomblazer.map import MapCell
-from boomblazer.map import MapDict
+from boomblazer.environment.entity.bomb import Bomb
+from boomblazer.environment.entity.bomb import BombDict
+from boomblazer.environment.entity.fire import Fire
+from boomblazer.environment.entity.fire import FireDict
+from boomblazer.environment.entity.player import Player
+from boomblazer.environment.entity.player import PlayerDict
+from boomblazer.environment.position import Position
+from boomblazer.environment.map import Map
+from boomblazer.environment.map import MapCell
+from boomblazer.environment.map import MapDict
 
 
 EnvironmentDict = TypedDict(

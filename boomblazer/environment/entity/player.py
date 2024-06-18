@@ -21,8 +21,8 @@ from typing import Union
 from typing import TypedDict
 
 from boomblazer.config.game import game_config
-from boomblazer.entity.bomb import Bomb
-from boomblazer.entity.position import Position
+from boomblazer.environment.entity.bomb import Bomb
+from boomblazer.environment.position import Position
 
 
 class CannotDropBombError(Exception):
