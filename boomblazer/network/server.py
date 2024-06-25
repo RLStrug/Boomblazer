@@ -2,7 +2,7 @@
 """Implements a game server
 
 Classes:
-    Server:
+    Server: Network
         Implements server side of the network protocol
 
 Exception classes:
@@ -348,7 +348,7 @@ class Server(Network):
     # SEND SERVER COMMANDS
     # ---------------------------------------- #
 
-    def send_players_list(self, ready_players: Set[Address] = set()) -> None:
+    def send_players_list(self, ready_players: Set[Address]) -> None:
         """Sends the list of connected players' name
 
         Parameters:

@@ -3,6 +3,10 @@
 Classes:
     Address:
         Represents a network address
+
+Global Constants:
+    UNDEFINED_ADDRESS: Address
+        Represents an undefined address
 """
 
 import typing
@@ -60,3 +64,5 @@ class Address(typing.NamedTuple):
             The string representation of the address
         """
         return f"{self.host}:{self.port}"
+
+UNDEFINED_ADDRESS = Address("", 0)

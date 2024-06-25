@@ -7,7 +7,6 @@ Functions:
         Sets up the game logger
 """
 
-import copy
 import logging
 import logging.config
 from typing import Any
@@ -23,7 +22,10 @@ def _get_handlers_real_path() -> dict[str, dict[str, Any]]:
         The config handlers, with the log folder prepended to the destination
         files of file handlers and dervatives
     """
-    real_handlers = copy.deepcopy(logging_config.handlers)
+    real_handlers: dict[str, dict[str, Any]] = {
+        name: dict(value)
+        for name, value in logging_config.handlers.items()
+    }
     for handler in real_handlers.values():
         filename = handler.get("filename")
         if filename is not None:
@@ -37,8 +39,14 @@ def setup() -> None:
     logging.config.dictConfig({
         "version": 1,
         "disable_existing_loggers": False,
-        "filters": logging_config.filters,
-        "formatters": logging_config.formatters,
+        "filters": {
+            name: dict(value)
+            for name, value in logging_config.filters.items()
+        },
+        "formatters": {
+            name: dict(value)
+            for name, value in logging_config.formatters.items()
+        },
         "handlers": _get_handlers_real_path(),
         "loggers": {
             "root": {

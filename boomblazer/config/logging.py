@@ -13,9 +13,8 @@ Classes:
 import copy
 import dataclasses
 import functools
-import pathlib
-import platform
-from collections.abc import Mapping
+from collections.abc import Callable
+from collections.abc import MutableMapping
 from typing import Any
 from typing import ClassVar
 
@@ -24,50 +23,35 @@ from boomblazer.config.config_loader import config_instances
 from boomblazer.version import GAME_NAME
 
 
+T = MutableMapping[str, MutableMapping[str, Any]]
+
+
 @dataclasses.dataclass(slots=True)
 class _LoggingConfig(BaseConfig):
     """Dataclass containing the logging configuration values
 
     Class constants:
-        _DEFAULT_FILTERS: dict[str, dict[str, str]]
+        _DEFAULT_FILTERS: dict[str, dict[str, Any]]
             The default filters of the logger
-        _DEFAULT_FORMATTERS: dict[str, dict[str, str]]
+        _DEFAULT_FORMATTERS: dict[str, dict[str, Any]]
             The default formatters of the logger
-        _DEFAULT_HANDLERS: dict[str, dict[str, str]]
+        _DEFAULT_HANDLERS: dict[str, dict[str, Any]]
             The default handlers of the logger
 
-    Static methods:
-        _get_default_log_file_location:
-            Returns the default location for log files
-
     Members:
-        filters: MutableSequence[Mapping]
+        filters: MutableMapping[str, MutableMapping[str, Any]]
             The filters of the logger
-        formatters: MutableSequence[Mapping]
+        formatters: MutableMapping[str, MutableMapping[str, Any]]
             The formatters of the logger
-        handlers: MutableSequence[Mapping]
+        handlers: MutableMapping[str, MutableMapping[str, Any]]
             The handlers of the logger
     """
 
-    @staticmethod
-    def _get_default_log_file_location() -> pathlib.Path:
-        """Returns the default location for log files
-
-        Return value: pathlib.Path
-            The path where the log files should be
-        """
-        os = platform.system()
-        if os == "Linux":
-            ...
-        if os == "Darwin":
-            ...
-        if os == "Windows":
-            ...
-        # else ("Java", ""): pass
-        return pathlib.Path(".", f"{GAME_NAME}_log.jsonl")
-
     _DEFAULT_FILTERS: ClassVar[dict[str, dict[str, Any]]] = {
     }
+    _DEFAULT_FILTERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
+        copy.deepcopy, _DEFAULT_FILTERS
+    )
 
     _DEFAULT_FORMATTERS: ClassVar[dict[str, dict[str, Any]]] = {
         "simple" : {
@@ -85,6 +69,9 @@ class _LoggingConfig(BaseConfig):
             "style": "compact-extra",
         },
     }
+    _DEFAULT_FORMATTERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
+        copy.deepcopy, _DEFAULT_FORMATTERS
+    )
 
     _DEFAULT_HANDLERS: ClassVar[dict[str, dict[str, Any]]] = {
         "handler_1": {
@@ -102,15 +89,18 @@ class _LoggingConfig(BaseConfig):
             "backupCount": 1,
         },
     }
+    _DEFAULT_HANDLERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
+        copy.deepcopy, _DEFAULT_HANDLERS
+    )
 
-    filters: Mapping[str, Mapping[str, str]] = dataclasses.field(
-        default_factory=functools.partial(copy.deepcopy, _DEFAULT_FILTERS)
+    filters: T = dataclasses.field(
+        default_factory=_DEFAULT_FILTERS_FACTORY
     )
-    formatters: Mapping[str, Mapping[str, str]] = dataclasses.field(
-        default_factory=functools.partial(copy.deepcopy, _DEFAULT_FORMATTERS)
+    formatters: T = dataclasses.field(
+        default_factory=_DEFAULT_FORMATTERS_FACTORY
     )
-    handlers: Mapping[str, Mapping[str, str]] = dataclasses.field(
-        default_factory=functools.partial(copy.deepcopy, _DEFAULT_HANDLERS)
+    handlers: T = dataclasses.field(
+        default_factory=_DEFAULT_HANDLERS_FACTORY
     )
 
 

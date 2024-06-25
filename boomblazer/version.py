@@ -9,6 +9,6 @@ Constants:
         The name of the game
 """
 
-VERSION_TUPLE = (0, 5, 3)
+VERSION_TUPLE = (0, 5, 4)
 VERSION = ".".join([str(n) for n in VERSION_TUPLE])
 GAME_NAME = "Boomblazer"

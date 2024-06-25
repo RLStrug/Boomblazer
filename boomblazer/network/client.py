@@ -1,8 +1,12 @@
 """Implements a game client
 
 Classes:
-    Client:
+    Client: Network
         Implements client side of the network protocol
+
+Exception classes:
+    ClientError: Exception
+        Exception thrown when an error occurs in the client
 """
 
 import json
@@ -13,11 +17,16 @@ from types import TracebackType
 from typing import Optional
 
 from boomblazer.config.client import client_config
-from boomblazer.environment.environment import Environment
 from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.environment import Environment
 from boomblazer.network.address import Address
+from boomblazer.network.address import UNDEFINED_ADDRESS
 from boomblazer.network.network import Network
+
+
+class ClientError(Exception):
+    """Exception thrown when an error occurs in the client
+    """
 
 
 class Client(Network):
@@ -98,7 +107,9 @@ class Client(Network):
     _SERVER_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, server_addr: Address, username: bytes, *args, **kwargs
+            self, server_addr: Address = UNDEFINED_ADDRESS,
+            username: bytes = b"",
+            *args, **kwargs
     ) -> None:
         """Initializes a new Client
 
@@ -114,7 +125,7 @@ class Client(Network):
         self.environment = Environment()
         self.is_game_running = False
         self._tick_thread = threading.Thread()
-        self.update_semaphore = None
+        self.update_semaphore = threading.Semaphore()
         self.connected_players: dict[str, bool] = {}
 
     # ---------------------------------------- #
@@ -124,6 +135,9 @@ class Client(Network):
     def start(self) -> None:
         """Joins the server and sets up the reception af server packets
         """
+        if self.server_addr is UNDEFINED_ADDRESS:
+            raise ClientError("Server address undefined")
+
         sel = selectors.DefaultSelector()
         sel.register(self.sock, selectors.EVENT_READ)
 
@@ -265,7 +279,8 @@ class Client(Network):
         self.is_game_running = False
         if self._tick_thread.ident is not None:
             self._tick_thread.join()
-        self.send_quit()
+        if self.server_addr is not UNDEFINED_ADDRESS:
+            self.send_quit()
         super().close()
 
     def __enter__(self) -> "Client":

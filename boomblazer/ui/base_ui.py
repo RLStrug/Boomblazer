@@ -90,8 +90,8 @@ class BaseUI(abc.ABC):
                 The game message logger
         """
         self._logger = logger
-        self.client = None
-        self.server = None
+        self.client = Client(logger=logger)
+        self.server: Optional[Server] = None
         self._server_thread = threading.Thread()
 
     def join_game(
@@ -105,9 +105,8 @@ class BaseUI(abc.ABC):
             username: str
                 The player's name
         """
-        self.client = Client(
-            addr, username.encode("utf8"), logger=self._logger
-        )
+        self.client.server_addr = addr
+        self.client.username = username.encode("utf8")
         self.client.start()
 
     def create_game(

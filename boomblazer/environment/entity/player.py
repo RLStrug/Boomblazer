@@ -22,7 +22,6 @@ from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
 from typing import Optional
-from typing import Union
 from typing import TYPE_CHECKING
 from typing import TypedDict
 
@@ -36,6 +35,8 @@ if TYPE_CHECKING:
 
 
 class PlayerAction(enum.Flag):
+    """Actions that can be performed by a player
+    """
     MOVE_UP = enum.auto()
     MOVE_DOWN = enum.auto()
     MOVE_LEFT = enum.auto()

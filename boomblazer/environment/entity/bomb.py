@@ -21,7 +21,6 @@ from typing import Any
 from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypedDict
-from typing import Union
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.entity.fire import Fire
