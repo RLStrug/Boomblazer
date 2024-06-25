@@ -5,8 +5,6 @@ Submodules:
         Configuration related modules
     environment:
         Game environment module
-    game_handler:
-        Handles the game state
     logging:
         Logging related modules
     network:
@@ -19,7 +17,6 @@ Submodules:
 
 from . import config
 from . import environment
-from . import game_handler
 from . import logging
 from . import network
 from . import ui
@@ -28,7 +25,6 @@ from . import version
 __all__ = [
     "config",
     "environment",
-    "game_handler",
     "logging",
     "network",
     "ui",

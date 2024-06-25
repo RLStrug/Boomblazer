@@ -13,6 +13,7 @@ Exception classes:
         Error raised when a Environment intialization data is invalid
 """
 
+import collections
 import contextlib
 import json
 from collections.abc import Mapping
@@ -26,6 +27,7 @@ from boomblazer.environment.entity.bomb import BombDict
 from boomblazer.environment.entity.fire import Fire
 from boomblazer.environment.entity.fire import FireDict
 from boomblazer.environment.entity.player import Player
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.entity.player import PlayerDict
 from boomblazer.environment.position import Position
 from boomblazer.environment.map import Map
@@ -54,13 +56,13 @@ class Environment:
             The map
         spawn_points: list[Position]
             The current map environment state
-        boxes: list[Position]
-            The boxes currently present on the map
-        bombs: list[Bomb]
-            The bombs currently planted on the map
         players: list[Player]
             The currently living players
-        fires: list[Fire]
+        boxes: set[Position]
+            The boxes currently present on the map
+        bombs: collections.deque[Bomb]
+            The bombs currently planted on the map
+        fires: collections.deque[Fire]
             The currently active fire blasts
 
     Class methods:
@@ -100,16 +102,16 @@ class Environment:
                 The map data. If not None, it will extract spawn points and
                 boxes from the map cells
         """
+        self.spawn_points: list[Position] = []
+        self.boxes: set[Position] = set()
+        self.players: list[Player] = []
+        self.bombs: collections.deque[Bomb] = collections.deque()
+        self.fires: collections.deque[Fire] = collections.deque()
+
         if map_ is not None:
             self.load_map(map_)
         else:
             self.map = Map()
-            self.spawn_points: list[Position] = []
-            self.boxes: list[Position] = []
-
-        self.players: list[Player] = []
-        self.bombs: list[Bomb] = []
-        self.fires: list[Fire] = []
 
     def load_map(self, map_: Map) -> None:
         """Loads the map cells, and extracts boxes and spawn points
@@ -123,7 +125,7 @@ class Environment:
             for x, cell in enumerate(row):
                 if cell is MapCell.BOX:
                     # self.map[Position(x, y)] = MapCell.EMPTY  # XXX Later
-                    self.boxes.append(Position(x, y))
+                    self.boxes.add(Position(x, y))
                 elif cell is MapCell.SPAWN:
                     self.map[Position(x, y)] = MapCell.EMPTY
                     self.spawn_points.append(Position(x, y))
@@ -160,15 +162,15 @@ class Environment:
         environment.players = [
                 Player.from_dict(player) for player in data["players"]
         ]
-        environment.boxes = [
+        environment.boxes = {
             Position(*box) for box in data["boxes"]
-        ]
-        environment.bombs = [
+        }
+        environment.bombs = collections.deque(
             Bomb.from_dict(bomb, environment.players) for bomb in data["bombs"]
-        ]
-        environment.fires =  [
+        )
+        environment.fires = collections.deque(
             Fire.from_dict(fire) for fire in data["fires"]
-        ]
+        )
         return environment
 
     @classmethod
@@ -206,7 +208,7 @@ class Environment:
         """
         return EnvironmentDict({
             "map": self.map.to_dict(),
-            "boxes": self.boxes,
+            "boxes": list(self.boxes),
             "players": [player.to_dict() for player in self.players],
             "bombs": [bomb.to_dict() for bomb in self.bombs],
             "fires": [fire.to_dict() for fire in self.fires],
@@ -295,6 +297,31 @@ class Environment:
             True if a fire blast is raging a position, False otherwise
         """
         return any(f.position == position for f in self.fires)
+
+    # ---------------------------------------- #
+    # GAME LOGIC
+    # ---------------------------------------- #
+
+    def tick(self, players_actions: Mapping[Player, PlayerAction]) -> None:
+        """Updates the game environment state
+
+        Parameters:
+            players_actions: Mapping[Player, PlayerAction]
+                Actions to be performed by players
+        """
+        for player in self.players:
+            player_action = players_actions.get(player, PlayerAction(0))
+            player.tick(player_action, self)
+
+        for bomb in self.bombs:
+            bomb.tick(self)
+        while len(self.bombs) > 0 and self.bombs[0].timer <= 0:
+            self.bombs.popleft()
+
+        for fire in self.fires:
+            fire.tick(self)
+        while len(self.fires) > 0 and self.fires[0].timer <= 0:
+            self.fires.popleft()
 
     # ---------------------------------------- #
     # OTHERS

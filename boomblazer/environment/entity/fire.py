@@ -18,11 +18,16 @@ Exception classes:
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
+from typing import Optional
 from typing import TypedDict
+from typing import TYPE_CHECKING
 from typing import Union
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.position import Position
+
+if TYPE_CHECKING:
+    from boomblazer.environment.environment import Environment
 
 
 class FireError(Exception):
@@ -30,7 +35,7 @@ class FireError(Exception):
     """
 
 
-FireDict = TypedDict("FireDict", {"position": Position, "tick": int})
+FireDict = TypedDict("FireDict", {"position": Position, "timer": int})
 
 
 class Fire:
@@ -42,7 +47,7 @@ class Fire:
     Members:
         _position: Position
             The position at which the fire blast is located
-        _tick: int
+        _timer: int
             The number of game ticks left before the fire blast dissipate
 
     Class methods:
@@ -54,7 +59,7 @@ class Fire:
             Initializes a new fire blast
 
     Methods:
-        decrement_tick:
+        decrement_timer:
             Decrements the number of ticks left before the fire blast
             dissipates
         to_dict:
@@ -63,15 +68,15 @@ class Fire:
     Properties:
         position: (Read only)
             The X and Y coordinates of the fire blast
-        tick: (Read only)
+        timer: (Read only)
             The number of game ticks left before the fire blast dissipates
     """
 
-    __slots__ = ("_position", "_tick",)
+    __slots__ = ("_position", "_timer",)
 
     def __init__(
             self, position: Sequence[int],
-            tick: int = game_config.fire_timer_ticks
+            timer: Optional[int] = None
     ) -> None:
         """Initializes a new fire blast
 
@@ -79,30 +84,35 @@ class Fire:
             position: Sequence[int] (length = 2)
                 The coordinates of the fire blast
         """
+        if timer is None:
+            timer = game_config.fire_timer_ticks
         self._position = Position(*position)
-        self._tick = tick
+        self._timer = timer
 
     # ---------------------------------------- #
-    # FIRE TICK
+    # GAME LOGIC
     # ---------------------------------------- #
-    def decrement_tick(self) -> None:
-        """Decrements the number of ticks left before the fire blast dissipates
 
-        Raises:
-            FireError:
-                When the number of game ticks before dissipation is already
-                lesser or equal to 0
+    def tick(self, environment: "Environment") -> None:
+        """Update fire blast timer and kill players engulfed in flames
+
+        Parameters:
+            environment: Environment
+                The game environment
         """
-        if self._tick > 0:
-            self._tick -= 1
-        else:
-            raise FireError(
-                "This fire should have been extinguished as his tick is null!"
-            )
+        self._timer -= 1
+        if self._timer <= 0:
+            return
+
+        environment.players = [
+            player for player in environment.players
+            if player.position != self.position
+        ]
 
     # ---------------------------------------- #
     # GETTERS / SETTERS
     # ---------------------------------------- #
+
     @property
     def position(self) -> Position:
         """Returns the coordinates of the fire blast
@@ -113,17 +123,18 @@ class Fire:
         return self._position
 
     @property
-    def tick(self) -> int:
+    def timer(self) -> int:
         """Returns the number of game ticks left before the fire dissipates
 
         Return value:
             The number of game ticks left before the fire blast dissipates
         """
-        return self._tick
+        return self._timer
 
     # ---------------------------------------- #
     # IMPORT
     # ---------------------------------------- #
+
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Fire":
         """Instanciates a Fire from a dict
@@ -133,7 +144,7 @@ class Fire:
                 A mapping that should contain the following keys and values:
                     position: Sequence[int] (length = 2)
                         The X and Y coordinates of the bomb
-                    tick: int
+                    timer: int
                         The number of remaining ticks befaure explosion
 
         Return value: Fire
@@ -141,12 +152,13 @@ class Fire:
         """
         return cls(
             position=Position(*data["position"]),
-            tick=int(data["tick"])
+            timer=int(data["timer"])
         )
 
     # ---------------------------------------- #
     # EXPORT
     # ---------------------------------------- #
+
     def to_dict(self) -> FireDict:
         """Returns the current instance data in the form of a dict
 
@@ -156,5 +168,5 @@ class Fire:
         """
         return FireDict({
             "position": self.position,
-            "tick": self._tick,
+            "timer": self._timer,
         })

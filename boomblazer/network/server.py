@@ -30,8 +30,8 @@ from boomblazer.argument_parser import handle_base_arguments
 from boomblazer.config.game import game_config
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
-from boomblazer.game_handler import GameHandler
-from boomblazer.game_handler import PlayerAction
+from boomblazer.environment.environment import Environment
+from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.map import Map
 from boomblazer.environment.map import MapError
 from boomblazer.network.address import Address
@@ -58,8 +58,8 @@ class Server(Network):
             happen often
 
     Members:
-        game_handler: GameHandler
-            Contains the game state and logic
+        environment: Environment
+            Defines the current game environment
         clients: dict[Address, Player]
             Links connected players to their address
         _logger: logging.Logger
@@ -113,7 +113,7 @@ class Server(Network):
     """
 
     __slots__ = (
-        "game_handler", "clients", "is_game_running", "_player_actions",
+        "environment", "clients", "is_game_running", "_player_actions",
         "_tick_thread",
     )
 
@@ -140,8 +140,7 @@ class Server(Network):
             map_ = Map.from_file(map_filepath)
         except MapError as exc:
             raise ServerError(exc) from exc
-        self.game_handler = GameHandler()
-        self.game_handler.environment.load_map(map_)
+        self.environment = Environment(map_)
 
         self.is_game_running = False
         self._player_actions: dict[Player, PlayerAction] = {}
@@ -220,7 +219,7 @@ class Server(Network):
         """
         self._logger.info("Game start")
         self.is_game_running = True
-        self.game_handler.environment.spawn_players()
+        self.environment.spawn_players()
         self.send_environment()
         self._tick_thread = threading.Thread(
             target=self.tick, name="server-tick"
@@ -241,12 +240,7 @@ class Server(Network):
         while self.is_game_running:
             start_time = time.monotonic()
 
-            actions = [
-                (player, *action)
-                for player, action in self._player_actions.items()
-            ]
-
-            self.game_handler.tick(actions)
+            self.environment.tick(self._player_actions)
             self.send_environment()
             self.reset_player_actions()
 
@@ -306,7 +300,7 @@ class Server(Network):
             name: bytes
                 The new player's name
         """
-        player = self.game_handler.environment.add_player(name.decode("utf8"))
+        player = self.environment.add_player(name.decode("utf8"))
         if player is not None:
             self.clients[addr] = player
 
@@ -321,7 +315,7 @@ class Server(Network):
         """
         with contextlib.suppress(ValueError, KeyError):
             player = self.clients[addr]
-            self.game_handler.environment.remove_player(player)
+            self.environment.remove_player(player)
             del self.clients[addr]
         if len(self.clients) == 0 and self.is_game_running:
             self.close()
@@ -381,7 +375,7 @@ class Server(Network):
         """
         self.send_message(
             b"ENVIRONMENT",
-            self.game_handler.environment.to_json(
+            self.environment.to_json(
                 separators=(',',':')
             ).encode("utf8")
         )

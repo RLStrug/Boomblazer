@@ -24,10 +24,13 @@ from typing import TypedDict
 from typing import Union
 
 from boomblazer.config.game import game_config
+from boomblazer.environment.entity.fire import Fire
+from boomblazer.environment.map import MapCell
 from boomblazer.environment.position import Position
 
 if TYPE_CHECKING:
     from boomblazer.environment.entity.player import Player
+    from boomblazer.environment.environment import Environment
 
 
 class BombError(Exception):
@@ -37,7 +40,7 @@ class BombError(Exception):
 
 BombDict = TypedDict(
     "BombDict",
-    {"player": str, "position": Position, "bomb_range": int, "tick": int}
+    {"player": str, "position": Position, "bomb_range": int, "timer": int}
 )
 
 
@@ -58,7 +61,7 @@ class Bomb:
             bomb can be planted.
         _bomb_range: int
             The range in blocks of the explosion blast
-        _tick: int
+        _timer: int
             The number of game ticks left before the bomb explodes
 
     Class methods:
@@ -70,7 +73,7 @@ class Bomb:
             Initializes a newly planted bomb
 
     Methods:
-        decrement_tick:
+        decrement_timer:
             Decrements the number of ticks left before the explosion
         to_dict:
             Returns the current instance data in the form of a dict
@@ -78,7 +81,7 @@ class Bomb:
     Properties:
         position: (Read only)
             The X and Y coordinates of the bomb
-        tick: (Read only)
+        timer: (Read only)
             The number of game ticks left before the bomb explodes
         player: (Read only)
             The player who planted the bomb
@@ -86,11 +89,11 @@ class Bomb:
             The range in blocks of the explosion blast
     """
 
-    __slots__ = ("_position", "_player", "_bomb_range", "_tick",)
+    __slots__ = ("_position", "_player", "_bomb_range", "_timer",)
 
     def __init__(
             self, position: Sequence[int], player: "Player",
-            bomb_range: int, tick: Optional[int] = None
+            bomb_range: int, timer: Optional[int] = None
     ) -> None:
         """Initializes a newly planted bomb
 
@@ -102,30 +105,52 @@ class Bomb:
             bomb_range:
                 The range of the explosion blast
         """
-        if tick is None:
-            tick = game_config.bomb_timer_ticks
+        if timer is None:
+            timer = game_config.bomb_timer_ticks
         self._position = Position(*position)
         self._player = player
         self._bomb_range = bomb_range
-        self._tick = tick
+        self._timer = timer
 
     # ---------------------------------------- #
-    # BOMB TICK
+    # GAME LOGIC
     # ---------------------------------------- #
-    def decrement_tick(self) -> None:
-        """Decrements the number of ticks left before the explosion
+    def tick(self, environment: "Environment") -> None:
+        """Update bomb timer and apply its explosion effects on the environment
 
-        Raises:
-            BombError:
-                When the number of game ticks before explosion is already
-                lesser or equal to 0
+        Parameters:
+            environment: Environment
+                The game environment
         """
-        if self._tick > 0:
-            self._tick -= 1
-        else:
-            raise BombError(
-                "This bomb should have been destroyed as his tick is null!"
-            )
+        self._timer -= 1
+        if self._timer > 0:
+            return
+
+        environment.fires.append(Fire(self.position))
+
+        directions = (
+            self.position.up, self.position.down, self.position.left,
+            self.position.right
+        )
+
+        for move in directions:
+            for distance in range(1, self.bomb_range + 1):
+                blast_position = move(distance)
+                blasted_cell = environment.map[blast_position]
+                if blasted_cell is MapCell.WALL:
+                    break
+
+                environment.fires.append(Fire(blast_position))
+
+                if blasted_cell is MapCell.BOX:
+                    environment.map[blast_position] = MapCell.EMPTY
+                    break
+
+        if self.player is not None:
+            self.player.decrement_current_bomb_count()
+        # # Treat all exploded boxes after because multiple explosions break
+        # # only one box
+        # self._treat_exploded_boxes(exploded_boxes)
 
     # ---------------------------------------- #
     # GETTERS / SETTERS
@@ -140,13 +165,13 @@ class Bomb:
         return self._position
 
     @property
-    def tick(self) -> int:
+    def timer(self) -> int:
         """Returns the number of game ticks left before the bomb explodes
 
         Return value: int
             The number of game ticks left before the bomb explodes
         """
-        return self._tick
+        return self._timer
 
     @property
     def player(self) -> "Player":
@@ -185,7 +210,7 @@ class Bomb:
                         The name of the player who planted the bomb
                     bomb_range: int
                         The range of the bomb blast
-                    tick: int
+                    timer: int
                         The number of remaining ticks befaure explosion
             players_list: Iterable[Player]
                 The players present in the game. This is used to find the owner
@@ -209,7 +234,7 @@ class Bomb:
             position=Position(*data["position"]),
             player=player,
             bomb_range=int(data["bomb_range"]),
-            tick=int(data["tick"])
+            timer=int(data["timer"])
         )
 
     # ---------------------------------------- #
@@ -227,5 +252,5 @@ class Bomb:
             "position": self.position,
             "player": self.player.name,
             "bomb_range": self._bomb_range,
-            "tick": self._tick,
+            "timer": self._timer,
         })

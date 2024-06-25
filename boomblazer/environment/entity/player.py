@@ -23,11 +23,16 @@ from collections.abc import Sequence
 from typing import Any
 from typing import Optional
 from typing import Union
+from typing import TYPE_CHECKING
 from typing import TypedDict
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.entity.bomb import Bomb
+from boomblazer.environment.map import MapCell
 from boomblazer.environment.position import Position
+
+if TYPE_CHECKING:
+    from boomblazer.environment.environment import Environment
 
 
 class PlayerAction(enum.Flag):
@@ -140,6 +145,7 @@ class Player:
     # ---------------------------------------- #
     # GETTERS / SETTERS
     # ---------------------------------------- #
+
     @property
     def position(self) -> Position:
         """Returns the player's coordinates
@@ -198,6 +204,7 @@ class Player:
     # ---------------------------------------- #
     # BOMBS
     # ---------------------------------------- #
+
     def create_bomb(self) -> Bomb:
         """Tries to plant a bomb at player's position
 
@@ -230,8 +237,48 @@ class Player:
         self._current_bomb_count -= 1
 
     # ---------------------------------------- #
+    # GAME LOGIC
+    # ---------------------------------------- #
+
+    def tick(self, action: PlayerAction, environment: "Environment") -> None:
+        """Apply effects of the player's actions on the game environment
+
+        Parameters:
+            action: PlayerAction
+                The actions performed by the player on this tick
+            environment: Environment
+                The game environment
+        """
+        if (
+                action & PlayerAction.PLANT_BOMB and
+                self._current_bomb_count < self._max_bomb_count
+                # # Is it truly useful to forbid planting a bomb on top of
+                # # another? To prevent planting multiple bombs by accident?
+                # not self.environment.bomb_here(player.position) and
+                # # Is it possible for the player to be standing on a cell that
+                # # is unsuitable for planting a bomb?
+                # self.environment.map[player.position] == MapCell.EMPTY
+        ):
+            new_bomb = self.create_bomb()
+            environment.bombs.append(new_bomb)
+
+        new_position = self.position
+        if action & PlayerAction.MOVE_UP:
+            new_position = new_position.up()
+        if action & PlayerAction.MOVE_DOWN:
+            new_position = new_position.down()
+        if action & PlayerAction.MOVE_RIGHT:
+            new_position = new_position.right()
+        if action & PlayerAction.MOVE_LEFT:
+            new_position = new_position.left()
+
+        if environment.map[new_position] == MapCell.EMPTY:
+            self.position = new_position
+
+    # ---------------------------------------- #
     # IMPORT
     # ---------------------------------------- #
+
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Player":
         """Instanciates a Player from a dict
@@ -266,6 +313,7 @@ class Player:
     # ---------------------------------------- #
     # EXPORT
     # ---------------------------------------- #
+
     def to_dict(self) -> PlayerDict:
         """Returns the current instance data in the form of a dict
 

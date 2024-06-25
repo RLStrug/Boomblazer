@@ -237,7 +237,7 @@ class CursesInterface(BaseUI):
 
         self.stdscr.nodelay(True)  # User input is non blocking
 
-        while self.client.game_handler.environment.map.version == 0:
+        while self.client.environment.map.version == 0:
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
@@ -286,7 +286,7 @@ class CursesInterface(BaseUI):
             if need_redraw:
                 need_redraw = False
                 self.stdscr.clear()
-                self.stdscr.insstr(0, 0, str(self.client.game_handler.environment))
+                self.stdscr.insstr(0, 0, str(self.client.environment))
 
             key = self.stdscr.getch()
             if key in ncurses_config.move_up_buttons:

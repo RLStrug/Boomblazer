@@ -13,7 +13,7 @@ from types import TracebackType
 from typing import Optional
 
 from boomblazer.config.client import client_config
-from boomblazer.game_handler import GameHandler
+from boomblazer.environment.environment import Environment
 from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.environment import Environment
 from boomblazer.network.address import Address
@@ -42,8 +42,8 @@ class Client(Network):
             The address of the remote game server
         username: str
             Defines the name of the player
-        game_handler: GameHandler
-            Defines the current game state
+        environment: Environment
+            Defines the current game environment
         is_game_running: bool
             Defines if the game is running or over
         _tick_thread: threading.Thread
@@ -91,7 +91,7 @@ class Client(Network):
     """
 
     __slots__ = (
-        "server_addr", "username", "game_handler", "is_game_running",
+        "server_addr", "username", "environment", "is_game_running",
         "_tick_thread", "update_semaphore", "connected_players",
     )
 
@@ -111,7 +111,7 @@ class Client(Network):
         super().__init__(*args, **kwargs)
         self.server_addr = server_addr
         self.username = username
-        self.game_handler = GameHandler()
+        self.environment = Environment()
         self.is_game_running = False
         self._tick_thread = threading.Thread()
         self.update_semaphore = None
@@ -170,7 +170,7 @@ class Client(Network):
             if cmd == b"PLAYERS_LIST":
                 self.connected_players = json.loads(arg)
             elif cmd == b"ENVIRONMENT":
-                self.game_handler = GameHandler(Environment.from_json(arg))
+                self.environment = Environment.from_json(arg)
             elif cmd == b"STOP":
                 self.is_game_running = False
                 break
