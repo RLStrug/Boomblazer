@@ -10,9 +10,7 @@ Classes:
 """
 
 
-import copy
 import dataclasses
-import functools
 from collections.abc import Callable
 from collections.abc import MutableMapping
 from typing import Any
@@ -23,84 +21,98 @@ from boomblazer.config.config_loader import config_instances
 from boomblazer.version import GAME_NAME
 
 
-T = MutableMapping[str, MutableMapping[str, Any]]
+_FiltersConfig = MutableMapping[str, MutableMapping[str, Any]]
+_FormattersConfig = MutableMapping[str, MutableMapping[str, Any]]
+_HandlersConfig = MutableMapping[str, MutableMapping[str, Any]]
 
 
 @dataclasses.dataclass(slots=True)
 class _LoggingConfig(BaseConfig):
     """Dataclass containing the logging configuration values
 
-    Class constants:
-        _DEFAULT_FILTERS: dict[str, dict[str, Any]]
-            The default filters of the logger
-        _DEFAULT_FORMATTERS: dict[str, dict[str, Any]]
-            The default formatters of the logger
-        _DEFAULT_HANDLERS: dict[str, dict[str, Any]]
-            The default handlers of the logger
+    Static methods:
+        _default_filters_factory:
+            Returns the default filters of the logger
+        _default_formatters_factory:
+            Returns the default formatters of the logger
+        _default_handlers_factory:
+            Returns the default handlers of the logger
 
     Members:
-        filters: MutableMapping[str, MutableMapping[str, Any]]
+        filters: _FiltersConfig
             The filters of the logger
-        formatters: MutableMapping[str, MutableMapping[str, Any]]
+        formatters: _FormattersConfig
             The formatters of the logger
-        handlers: MutableMapping[str, MutableMapping[str, Any]]
+        handlers: _HandlersConfig
             The handlers of the logger
     """
 
-    _DEFAULT_FILTERS: ClassVar[dict[str, dict[str, Any]]] = {
-    }
-    _DEFAULT_FILTERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
-        copy.deepcopy, _DEFAULT_FILTERS
-    )
+    @staticmethod
+    def _default_filters_factory() -> _FiltersConfig:
+        """Returns the default filters of the logger
 
-    _DEFAULT_FORMATTERS: ClassVar[dict[str, dict[str, Any]]] = {
-        "simple" : {
-            "class": "logging.Formatter",
-            "format": "[{asctime}] [{levelname}]: {message}",
-            "style": "{",
-        },
-        # JSON lines format
-        "jsonl" : {
-            "class": "boomblazer.logging.json_formatter.JsonFormatter",
-            "format": [
-                "message", "asctime", "levelname", "name", "module",
-                "funcName", "lineno", "threadName",
-            ],
-            "style": "compact-extra",
-        },
-    }
-    _DEFAULT_FORMATTERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
-        copy.deepcopy, _DEFAULT_FORMATTERS
-    )
+        Return value: MutableMapping[str, MutableMapping[str, Any]]
+            The default filters of the logger
+        """
+        return {
+        }
 
-    _DEFAULT_HANDLERS: ClassVar[dict[str, dict[str, Any]]] = {
-        "handler_1": {
-            "class": "logging.StreamHandler",
-            "level": "ERROR",
-            "formatter": "simple",
-            "stream": "ext://sys.stderr",
-        },
-        "handler_2": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "level": "DEBUG",
-            "formatter": "jsonl",
-            "filename": f"{GAME_NAME}_log.jsonl",
-            "maxBytes": 100000,  # TODO bigger default
-            "backupCount": 1,
-        },
-    }
-    _DEFAULT_HANDLERS_FACTORY: ClassVar[Callable[[], T]] = functools.partial(
-        copy.deepcopy, _DEFAULT_HANDLERS
-    )
+    @staticmethod
+    def _default_formatters_factory() -> _FormattersConfig:
+        """Returns the default formatters of the logger
 
-    filters: T = dataclasses.field(
-        default_factory=_DEFAULT_FILTERS_FACTORY
+        Return value: MutableMapping[str, MutableMapping[str, Any]]
+            The default formatters of the logger
+        """
+        return {
+            "simple" : {
+                "class": "logging.Formatter",
+                "format": "[{asctime}] [{levelname}]: {message}",
+                "style": "{",
+            },
+            # JSON lines format
+            "jsonl" : {
+                "class": "boomblazer.logging.json_formatter.JsonFormatter",
+                "format": [
+                    "message", "asctime", "levelname", "name", "module",
+                    "funcName", "lineno", "threadName",
+                ],
+                "style": "compact-extra",
+            },
+        }
+
+    @staticmethod
+    def _default_handlers_factory() -> _HandlersConfig:
+        """Returns the default handlers of the logger
+
+        Return value: MutableMapping[str, MutableMapping[str, Any]]
+            The default handlers of the logger
+        """
+        return {
+            "handler_1": {
+                "class": "logging.StreamHandler",
+                "level": "ERROR",
+                "formatter": "simple",
+                "stream": "ext://sys.stderr",
+            },
+            "handler_2": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "DEBUG",
+                "formatter": "jsonl",
+                "filename": f"{GAME_NAME}_log.jsonl",
+                "maxBytes": 1000000,  # 1Mb
+                "backupCount": 1,
+            },
+        }
+
+    filters: _FiltersConfig = dataclasses.field(
+        default_factory=_default_filters_factory
     )
-    formatters: T = dataclasses.field(
-        default_factory=_DEFAULT_FORMATTERS_FACTORY
+    formatters: _FormattersConfig = dataclasses.field(
+        default_factory=_default_formatters_factory
     )
-    handlers: T = dataclasses.field(
-        default_factory=_DEFAULT_HANDLERS_FACTORY
+    handlers: _HandlersConfig = dataclasses.field(
+        default_factory=_default_handlers_factory
     )
 
 
