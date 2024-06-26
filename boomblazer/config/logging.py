@@ -17,7 +17,6 @@ from typing import Any
 from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
-from boomblazer.config.config_loader import config_instances
 from boomblazer.version import GAME_NAME
 
 
@@ -117,4 +116,3 @@ class _LoggingConfig(BaseConfig):
 
 
 logging_config=_LoggingConfig()
-config_instances["logging"] = logging_config

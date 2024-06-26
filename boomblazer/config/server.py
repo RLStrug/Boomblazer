@@ -13,7 +13,6 @@ import dataclasses
 from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
-from boomblazer.config.config_loader import config_instances
 
 
 @dataclasses.dataclass(slots=True)
@@ -40,4 +39,3 @@ class _ServerConfig(BaseConfig):
     default_port: int = _DEFAULT_DEFAULT_PORT
 
 server_config=_ServerConfig()
-config_instances["server"] = server_config

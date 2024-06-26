@@ -25,9 +25,18 @@ import argparse
 import sys
 
 from boomblazer.network import server
-from boomblazer import ui
 from boomblazer.version import GAME_NAME
 from boomblazer.version import VERSION
+
+try:
+    from boomblazer.ui import cli
+except ImportError:
+    cli = NotImplemented
+
+try:
+    from boomblazer.ui import ncurses
+except ImportError:
+    ncurses = NotImplemented
 
 
 ##########################################
@@ -36,10 +45,11 @@ from boomblazer.version import VERSION
 
 ui_mapping = {
     "server": server,
-    "cli": ui.cli,
-    "ncurses": ui.ncurses,
+    "cli": cli,
+    "ncurses": ncurses,
     "pygame": NotImplemented
 }
+
 
 ####################
 # Argument parsing
@@ -53,6 +63,7 @@ parser.add_argument(
     "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"
 )
 args = parser.parse_args(sys.argv[1:2])  # Only parse the first argument
+
 
 ###############
 # Launch game

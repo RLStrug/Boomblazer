@@ -13,7 +13,6 @@ import dataclasses
 from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
-from boomblazer.config.config_loader import config_instances
 
 
 @dataclasses.dataclass(slots=True)
@@ -94,4 +93,3 @@ class _GameConfig(BaseConfig):
 
 
 game_config=_GameConfig()
-config_instances["game"] = game_config

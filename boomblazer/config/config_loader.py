@@ -24,12 +24,23 @@ from collections.abc import Iterator
 from typing import Optional
 
 from boomblazer.config.base_config import BaseConfig
+from boomblazer.config.client import client_config
+from boomblazer.config.game_folders import game_folders_config
+from boomblazer.config.game import game_config
+from boomblazer.config.logging import logging_config
+from boomblazer.config.server import server_config
 from boomblazer.version import GAME_NAME
 
 
 config_filename : Optional[pathlib.Path] = None
 
-config_instances: dict[str, BaseConfig] = {}
+config_instances: dict[str, BaseConfig] = {
+    "client": client_config,
+    "game_folders": game_folders_config,
+    "game": game_config,
+    "logging": logging_config,
+    "server": server_config,
+}
 
 _logger = logging.getLogger(GAME_NAME)
 
@@ -71,18 +82,21 @@ def load_config() -> None:
         with open(config_filename, "r", encoding="utf8") as config_file:
             config_values = json.load(config_file)
 
-        for module_name, module_values in config_values.items():
-            module = config_instances.get(module_name)
-            if module is None:
+        is_config_complete = True
+        for module_name, module in config_instances.items():
+            module_values = config_values.get(module_name)
+            if module_values is None:
+                is_config_complete = False
                 continue
-            module.load(module_values)
+            is_config_complete &= module.load(module_values)
+
+        if not is_config_complete:
+            save_config()
 
     # Create folders needed for storing extra game data
-    game_folders_config = config_instances.get("game_folders", None)
-    if game_folders_config is not None:
-        game_folders_config.log_folder.mkdir(parents=True, exist_ok=True)
-        for map_folder in game_folders_config.map_folders:
-            map_folder.mkdir(parents=True, exist_ok=True)
+    game_folders_config.log_folder.mkdir(parents=True, exist_ok=True)
+    for map_folder in game_folders_config.map_folders:
+        map_folder.mkdir(parents=True, exist_ok=True)
 
 
 

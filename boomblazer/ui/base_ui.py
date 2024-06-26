@@ -20,6 +20,7 @@ import enum
 import logging
 import pathlib
 import threading
+import typing
 from types import TracebackType
 from typing import Optional
 
@@ -29,8 +30,12 @@ from boomblazer.network.address import Address
 from boomblazer.network.server import Server
 
 
+# from typing import Self  # python 3.11+
+Self = typing.TypeVar("Self")
+
 _ALL_INTERFACES = "0.0.0.0"
 _LOCAL_HOST = "127.0.0.1"
+
 
 class GameState(enum.Enum):
     """Defines in what states the game currently is
@@ -165,7 +170,7 @@ class BaseUI(abc.ABC):
         if self.client is not None:
             self.client.close()
 
-    def __enter__(self) -> "BaseUI":
+    def __enter__(self: Self) -> Self:
         """Enters a context manager (with statement)
 
         Return value: BaseUI

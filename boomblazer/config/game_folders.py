@@ -26,7 +26,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from boomblazer.config.base_config import BaseConfig
-from boomblazer.config.config_loader import config_instances
 from boomblazer.version import GAME_NAME
 
 def _get_default_cache_folder() -> pathlib.Path:
@@ -100,24 +99,29 @@ class _GameFoldersConfig(BaseConfig):
         default_factory=_get_default_map_folders
     )
 
-    def load(self, new_field_values: Mapping[str, Any]) -> None:
+    # @override
+    def load(self, new_field_values: Mapping[str, Any]) -> bool:
         """Loads field values from a dict
 
         Parameters:
             new_field_values: dict
                 The names and new values of fields to be updated
                 Unknown fields will be ignored
+
+        Return value: bool
+            True if all fields could be loaded from new_field_values.
+            False if any field was missing
         """
-        log_folder = new_field_values.get("log_folder", None)
-        if log_folder is not None:
-            self.log_folder = pathlib.Path(log_folder)
+        # Cannot use super() because dataclass(slots=True) does not produce
+        # true subclass
+        ret_val = BaseConfig.load(self, new_field_values)
+        self.log_folder = pathlib.Path(self.log_folder)
+        self.map_folders = [
+            pathlib.Path(map_folder) for map_folder in self.map_folders
+        ]
+        return ret_val
 
-        map_folders = new_field_values.get("map_folders", None)
-        if map_folders is not None:
-            self.map_folders = [
-                pathlib.Path(map_folder) for map_folder in map_folders
-            ]
-
+    # @override
     def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict
 
@@ -133,4 +137,3 @@ class _GameFoldersConfig(BaseConfig):
 
 
 game_folders_config=_GameFoldersConfig()
-config_instances["game_folders"] = game_folders_config

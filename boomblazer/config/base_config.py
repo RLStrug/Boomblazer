@@ -27,14 +27,19 @@ class BaseConfig(abc.ABC):
             Resets all, or some field values to default
     """
 
-    def load(self, new_field_values: Mapping[str, Any]) -> None:
+    def load(self, new_field_values: Mapping[str, Any]) -> bool:
         """Loads field values from a dict
 
         Parameters:
             new_field_values: Mapping[str, Any]
                 The names and new values of fields to be updated
                 Unknown fields will be ignored
+
+        Return value: bool
+            True if all fields could be loaded from new_field_values.
+            False if any field was missing
         """
+        all_fields_present = True
         fields = dataclasses.fields(self)
         for field in fields:
             new_value = new_field_values.get(field.name)
@@ -42,6 +47,9 @@ class BaseConfig(abc.ABC):
                 # TODO check type
                 # assert isinstance(new_value, field.type)
                 setattr(self, field.name, new_value)
+            else:
+                all_fields_present = False
+        return all_fields_present
 
     def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict

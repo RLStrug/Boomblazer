@@ -19,12 +19,12 @@ Exception classes:
 
 import enum
 import pathlib
+import typing
 from collections.abc import Iterator
 from collections.abc import Mapping
 from typing import Any
 from typing import Optional
 from typing import TextIO
-from typing import TypedDict
 
 from boomblazer.environment.position import Position
 
@@ -47,7 +47,7 @@ class MapCell(enum.Enum):
     SPAWN = "S"
 
 
-MapDict = TypedDict(
+MapDict = typing.TypedDict(
     "MapDict",
     {
         "version": int,

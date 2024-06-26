@@ -12,6 +12,7 @@ Exception classes:
 import json
 import selectors
 import threading
+import typing
 from collections.abc import Iterable
 from types import TracebackType
 from typing import Optional
@@ -23,6 +24,9 @@ from boomblazer.network.address import Address
 from boomblazer.network.address import UNDEFINED_ADDRESS
 from boomblazer.network.network import Network
 
+
+# from typing import Self  # python 3.11+
+Self = typing.TypeVar("Self")
 
 class ClientError(Exception):
     """Exception thrown when an error occurs in the client
@@ -283,7 +287,7 @@ class Client(Network):
             self.send_quit()
         super().close()
 
-    def __enter__(self) -> "Client":
+    def __enter__(self: Self) -> Self:
         """Enters a context manager (with statement)
 
         Return value: Client

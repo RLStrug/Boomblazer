@@ -14,20 +14,19 @@ Exception classes:
         occurs
 """
 
+import typing
 from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
 from typing import Optional
-from typing import TYPE_CHECKING
-from typing import TypedDict
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.entity.fire import Fire
 from boomblazer.environment.map import MapCell
 from boomblazer.environment.position import Position
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from boomblazer.environment.entity.player import Player
     from boomblazer.environment.environment import Environment
 
@@ -37,7 +36,7 @@ class BombError(Exception):
     """
 
 
-BombDict = TypedDict(
+BombDict = typing.TypedDict(
     "BombDict",
     {"player": str, "position": Position, "range": int, "timer": int}
 )

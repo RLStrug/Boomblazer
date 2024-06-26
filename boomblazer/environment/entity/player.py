@@ -18,19 +18,18 @@ Exception classes:
 """
 
 import enum
+import typing
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
 from typing import Optional
-from typing import TYPE_CHECKING
-from typing import TypedDict
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.entity.bomb import Bomb
 from boomblazer.environment.map import MapCell
 from boomblazer.environment.position import Position
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from boomblazer.environment.environment import Environment
 
 
@@ -49,7 +48,7 @@ class CannotDropBombError(Exception):
     """
 
 
-PlayerDict = TypedDict(
+PlayerDict = typing.TypedDict(
     "PlayerDict",
     {
         "name": str, "position": Position, "max_bomb_count": int,

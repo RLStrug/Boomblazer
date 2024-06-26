@@ -55,13 +55,27 @@ class _CLI_Config(BaseConfig):
             The list of commands that start the game
     """
 
-    _DEFAULT_UP_COMMANDS: ClassVar[list[str]] = ["z", "up",]
-    _DEFAULT_DOWN_COMMANDS: ClassVar[list[str]] = ["s", "down",]
-    _DEFAULT_LEFT_COMMANDS: ClassVar[list[str]] = ["q", "left"]
-    _DEFAULT_RIGHT_COMMANDS: ClassVar[list[str]] = ["d", "right"]
-    _DEFAULT_BOMB_COMMANDS: ClassVar[list[str]] = ["b", "bomb",]
-    _DEFAULT_QUIT_COMMANDS: ClassVar[list[str]] = ["Q", "quit", "exit", "stop",]
-    _DEFAULT_READY_COMMANDS: ClassVar[list[str]] = ["ready", "start",]
+    _DEFAULT_UP_COMMANDS: ClassVar[list[str]] = [
+        "z", "up",
+    ]
+    _DEFAULT_DOWN_COMMANDS: ClassVar[list[str]] = [
+        "s", "down",
+    ]
+    _DEFAULT_LEFT_COMMANDS: ClassVar[list[str]] = [
+        "q", "left"
+    ]
+    _DEFAULT_RIGHT_COMMANDS: ClassVar[list[str]] = [
+        "d", "right"
+    ]
+    _DEFAULT_BOMB_COMMANDS: ClassVar[list[str]] = [
+        "b", "bomb",
+    ]
+    _DEFAULT_QUIT_COMMANDS: ClassVar[list[str]] = [
+        "Q", "quit", "exit", "stop",
+    ]
+    _DEFAULT_READY_COMMANDS: ClassVar[list[str]] = [
+        "ready", "start",
+    ]
 
     up_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_UP_COMMANDS.copy

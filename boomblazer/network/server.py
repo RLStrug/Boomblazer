@@ -19,6 +19,7 @@ import selectors
 import sys
 import threading
 import time
+import typing
 from collections.abc import Iterable
 from collections.abc import Sequence
 from collections.abc import Set
@@ -39,6 +40,9 @@ from boomblazer.network.network import Network
 from boomblazer.environment.entity.player import Player
 from boomblazer.version import GAME_NAME
 
+
+# from typing import Self  # python 3.11+
+Self = typing.TypeVar("Self")
 
 class ServerError(Exception):
     """Exception thrown when an error occurs in the server
@@ -395,7 +399,7 @@ class Server(Network):
         self.send_stop_game(b"Server closing")
         super().close()
 
-    def __enter__(self) -> "Server":
+    def __enter__(self: Self) -> Self:
         """Enters a context manager (with statement)
 
         Return value: Server

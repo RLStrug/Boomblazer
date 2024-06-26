@@ -13,8 +13,8 @@ Simply run this command:
 
 
 ## Usage
-To launch a server on port 1337 using the map "mapfile.txt" run:
-`boomblazer-server 1337 mapfile.txt`
+To launch a server on the default port using the map "map.txt" run:
+`boomblazer-server map.txt`
 
 To play the game using ncurses user interface run:
 `boomblazer-ncurses`

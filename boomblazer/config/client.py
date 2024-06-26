@@ -14,7 +14,6 @@ import dataclasses
 from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
-from boomblazer.config.config_loader import config_instances
 
 
 @dataclasses.dataclass(slots=True)
@@ -45,4 +44,3 @@ class _ClientConfig(BaseConfig):
 
 
 client_config=_ClientConfig()
-config_instances["client"] = client_config

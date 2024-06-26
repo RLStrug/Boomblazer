@@ -16,10 +16,10 @@ Exception classes:
 import collections
 import contextlib
 import json
+import typing
 from collections.abc import Mapping
 from typing import Any
 from typing import Optional
-from typing import TypedDict
 from typing import Union
 
 from boomblazer.environment.entity.bomb import Bomb
@@ -35,7 +35,7 @@ from boomblazer.environment.map import MapCell
 from boomblazer.environment.map import MapDict
 
 
-EnvironmentDict = TypedDict(
+EnvironmentDict = typing.TypedDict(
     "EnvironmentDict",
     {
         "map": MapDict, "players": list[PlayerDict], "boxes": list[Position],

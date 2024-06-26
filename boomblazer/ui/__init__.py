@@ -3,6 +3,13 @@
 Submodules:
     base_UI:
         Base UI model
+
+Submodules not imported automatically:
+        The following submodules are not automatically imported by the
+        statement `import boomblazer.config` because they can cause errors if
+        some conditions are not met.
+        For example, boomblazer.config.ncurses will raise an exception if the
+        module _ncurses is not available
     cli:
         Implements a command line interface
     ncurses:
@@ -10,11 +17,7 @@ Submodules:
 """
 
 from . import base_ui
-from . import cli
-from . import ncurses
 
 __all__ = [
     "base_ui",
-    "cli",
-    "ncurses",
 ]

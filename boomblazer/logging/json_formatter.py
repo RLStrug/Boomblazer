@@ -10,16 +10,16 @@ Classes:
 import logging
 import logging.config
 import json
+import typing
 from collections.abc import Iterable
 from collections.abc import Mapping
 from typing import Any
 from typing import ClassVar
 from typing import Optional
-from typing import NamedTuple
 from typing import Union
 
 
-class JsonFormatterStyleTuple(NamedTuple):
+class JsonFormatterStyleTuple(typing.NamedTuple):
     """Data type that can be passed to the style parameter of JsonFormatter
 
     Members:

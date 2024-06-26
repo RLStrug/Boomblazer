@@ -15,17 +15,16 @@ Exception classes:
         occurs
 """
 
+import typing
 from collections.abc import Mapping
 from collections.abc import Sequence
 from typing import Any
 from typing import Optional
-from typing import TypedDict
-from typing import TYPE_CHECKING
 
 from boomblazer.config.game import game_config
 from boomblazer.environment.position import Position
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from boomblazer.environment.environment import Environment
 
 
@@ -34,7 +33,7 @@ class FireError(Exception):
     """
 
 
-FireDict = TypedDict("FireDict", {"position": Position, "timer": int})
+FireDict = typing.TypedDict("FireDict", {"position": Position, "timer": int})
 
 
 class Fire:
