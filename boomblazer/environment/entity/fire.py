@@ -44,10 +44,10 @@ class Fire:
     fixed amount of game ticks. It will kill players that cross its path.
 
     Members:
-        _position: Position
+        position: Position
             The position at which the fire blast is located
-        _timer: int
-            The number of game ticks left before the fire blast dissipate
+        timer: int
+            The number of game ticks left before the fire blast dissipates
 
     Class methods:
         from_dict:
@@ -63,30 +63,26 @@ class Fire:
             dissipates
         to_dict:
             Returns the current instance data in the form of a dict
-
-    Properties:
-        position: (Read only)
-            The X and Y coordinates of the fire blast
-        timer: (Read only)
-            The number of game ticks left before the fire blast dissipates
     """
 
-    __slots__ = ("_position", "_timer",)
+    __slots__ = ("position", "timer",)
 
     def __init__(
-            self, position: Sequence[int],
+            self, position: Position,
             timer: Optional[int] = None
     ) -> None:
         """Initializes a new fire blast
 
         Parameters:
-            position: Sequence[int] (length = 2)
+            position: Position
                 The coordinates of the fire blast
+            timer: int
+                The number of game ticks left before the fire blast dissipates
         """
         if timer is None:
             timer = game_config.fire_timer_ticks
-        self._position = Position(*position)
-        self._timer = timer
+        self.position = position
+        self.timer = timer
 
     # ---------------------------------------- #
     # GAME LOGIC
@@ -99,36 +95,14 @@ class Fire:
             environment: Environment
                 The game environment
         """
-        self._timer -= 1
-        if self._timer <= 0:
+        self.timer -= 1
+        if self.timer <= 0:
             return
 
         environment.players = [
             player for player in environment.players
             if player.position != self.position
         ]
-
-    # ---------------------------------------- #
-    # GETTERS / SETTERS
-    # ---------------------------------------- #
-
-    @property
-    def position(self) -> Position:
-        """Returns the coordinates of the fire blast
-
-        Return value: Position
-            The coordinates of the fire blast
-        """
-        return self._position
-
-    @property
-    def timer(self) -> int:
-        """Returns the number of game ticks left before the fire dissipates
-
-        Return value:
-            The number of game ticks left before the fire blast dissipates
-        """
-        return self._timer
 
     # ---------------------------------------- #
     # IMPORT
@@ -167,5 +141,5 @@ class Fire:
         """
         return FireDict({
             "position": self.position,
-            "timer": self._timer,
+            "timer": self.timer,
         })

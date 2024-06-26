@@ -39,7 +39,7 @@ class BombError(Exception):
 
 BombDict = TypedDict(
     "BombDict",
-    {"player": str, "position": Position, "bomb_range": int, "timer": int}
+    {"player": str, "position": Position, "range": int, "timer": int}
 )
 
 
@@ -50,17 +50,17 @@ class Bomb:
     amount of game ticks. It will destroy boxes and kill players in its blast.
 
     Members:
-        _position: Position
+        position: Position
             The position which the bomb is located
-        _player: Player
+        player: Player
             The player who planted the bomb.
             This information is needed because each player can only plant so
             many bombs at a time.
             When the bomb explodes, the player will be notified that another
             bomb can be planted.
-        _bomb_range: int
+        range: int
             The range in blocks of the explosion blast
-        _timer: int
+        timer: int
             The number of game ticks left before the bomb explodes
 
     Class methods:
@@ -76,40 +76,32 @@ class Bomb:
             Decrements the number of ticks left before the explosion
         to_dict:
             Returns the current instance data in the form of a dict
-
-    Properties:
-        position: (Read only)
-            The X and Y coordinates of the bomb
-        timer: (Read only)
-            The number of game ticks left before the bomb explodes
-        player: (Read only)
-            The player who planted the bomb
-        bomb_range: (Read only)
-            The range in blocks of the explosion blast
     """
 
-    __slots__ = ("_position", "_player", "_bomb_range", "_timer",)
+    __slots__ = ("position", "player", "range", "timer",)
 
     def __init__(
-            self, position: Sequence[int], player: "Player",
-            bomb_range: int, timer: Optional[int] = None
+            self, position: Position, player: "Player",
+            range_: int, timer: Optional[int] = None
     ) -> None:
         """Initializes a newly planted bomb
 
         Parameters:
-            position: Sequence[int] (length = 2)
+            position: Position
                 The coordinates of the bomb
-            player:
+            player: Player
                 The player who planted the bomb
-            bomb_range:
+            range_: int
                 The range of the explosion blast
+            timer: int
+                The number of game ticks left before the bomb explodes
         """
         if timer is None:
             timer = game_config.bomb_timer_ticks
-        self._position = Position(*position)
-        self._player = player
-        self._bomb_range = bomb_range
-        self._timer = timer
+        self.position = position
+        self.player = player
+        self.range = range_
+        self.timer = timer
 
     # ---------------------------------------- #
     # GAME LOGIC
@@ -121,8 +113,8 @@ class Bomb:
             environment: Environment
                 The game environment
         """
-        self._timer -= 1
-        if self._timer > 0:
+        self.timer -= 1
+        if self.timer > 0:
             return
 
         environment.fires.append(Fire(self.position))
@@ -133,7 +125,7 @@ class Bomb:
         )
 
         for move in directions:
-            for distance in range(1, self.bomb_range + 1):
+            for distance in range(1, self.range + 1):
                 blast_position = move(distance)
                 blasted_cell = environment.map[blast_position]
                 if blasted_cell is MapCell.WALL:
@@ -152,45 +144,6 @@ class Bomb:
         # self._treat_exploded_boxes(exploded_boxes)
 
     # ---------------------------------------- #
-    # GETTERS / SETTERS
-    # ---------------------------------------- #
-    @property
-    def position(self) -> Position:
-        """Returns the coordinates of the bomb
-
-        Return value: tuple[int, int]
-            The coordinates of the bomb
-        """
-        return self._position
-
-    @property
-    def timer(self) -> int:
-        """Returns the number of game ticks left before the bomb explodes
-
-        Return value: int
-            The number of game ticks left before the bomb explodes
-        """
-        return self._timer
-
-    @property
-    def player(self) -> "Player":
-        """Returns the player who planted the bomb
-
-        Return value: Player
-            The Player instance of the player who planted the bomb
-        """
-        return self._player
-
-    @property
-    def bomb_range(self) -> int:
-        """Returns the range in blocks of the explosion blast
-
-        Return value: int
-            The range in blocks of the explosion blast
-        """
-        return self._bomb_range
-
-    # ---------------------------------------- #
     # IMPORT
     # ---------------------------------------- #
     @classmethod
@@ -207,7 +160,7 @@ class Bomb:
                         The X and Y coordinates of the bomb
                     player: str
                         The name of the player who planted the bomb
-                    bomb_range: int
+                    range: int
                         The range of the bomb blast
                     timer: int
                         The number of remaining ticks befaure explosion
@@ -232,7 +185,7 @@ class Bomb:
         return cls(
             position=Position(*data["position"]),
             player=player,
-            bomb_range=int(data["bomb_range"]),
+            range_=int(data["range"]),
             timer=int(data["timer"])
         )
 
@@ -250,6 +203,6 @@ class Bomb:
         return BombDict({
             "position": self.position,
             "player": self.player.name,
-            "bomb_range": self._bomb_range,
-            "timer": self._timer,
+            "range": self.range,
+            "timer": self.timer,
         })

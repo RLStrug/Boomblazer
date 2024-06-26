@@ -62,16 +62,16 @@ class Player:
     """Represents a game player
 
     Members:
-        _name: str
+        name: str
             The player's name
-        _position: Position
+        position: Position
             The position at which the player is located
-        _max_bomb_count: int
+        max_bomb_count: int
             The current maximum amount of bombs a player can plant at the same
             time
-        _current_bomb_count: int
+        current_bomb_count: int
             The current number of active bombs planted by the player
-        _bomb_range: int
+        bomb_range: int
             The range in blocks of a bomb explosion blast
 
     Class methods:
@@ -91,27 +91,14 @@ class Player:
             Allows the player to plant more bombs at the same time
         decrement_max_bomb_count:
             Forces the player to plant less bombs at the same time
-
-    Properties:
-        name: (Read only)
-            The player's name
-        position:
-            The X and Y coordinates of the bomb
-        max_bomb_count: (Read only)
-            The current maximum amount of bombs that can be planted at the same
-            time
-        current_bomb_count: (Read only)
-            The current number of active bombs planted by the player
-        bomb_range: (Read only)
-            The range in blocks of the explosion blast
     """
 
     __slots__ = (
-        "_name", "_position", "_max_bomb_count", "_current_bomb_count",
-        "_bomb_range",
+        "name", "position", "max_bomb_count", "current_bomb_count",
+        "bomb_range",
     )
 
-    def __init__(self, name: str, position: Sequence[int] = (0, 0), *,
+    def __init__(self, name: str, position: Position = Position(0, 0), *,
             max_bomb_count: Optional[int] = None,
             current_bomb_count: int = 0,
             bomb_range: Optional[int] = None
@@ -121,7 +108,7 @@ class Player:
         Parameters:
             name: str
                 The player's name
-            position: Sequence[int] (length = 2), default=(0,0)
+            position: Position, default=(0,0)
                 The player's position
 
         Keyword only parameters:
@@ -137,70 +124,11 @@ class Player:
             max_bomb_count = game_config.player_bomb_count
         if bomb_range is None:
             bomb_range = game_config.player_bomb_range
-        self._name = name
-        self._position = Position(*position)
-        self._max_bomb_count = max_bomb_count
-        self._current_bomb_count = current_bomb_count
-        self._bomb_range = bomb_range
-
-    # ---------------------------------------- #
-    # GETTERS / SETTERS
-    # ---------------------------------------- #
-
-    @property
-    def position(self) -> Position:
-        """Returns the player's coordinates
-
-        Return value: Position
-            The player's coordinates
-        """
-        return self._position
-
-    @position.setter
-    def position(self, value: Sequence[int]) -> None:
-        """Sets the player's coordinates
-
-        Parameters: Sequence[int] (length = 2)
-            The player's coordinates
-        """
-        self._position = Position(*value)
-
-    @property
-    def name(self) -> str:
-        """Returns the player's name
-
-        Return value: str
-            The player's name
-        """
-        return self._name
-
-    @property
-    def max_bomb_count(self) -> int:
-        """Returns the current maximum amount of bombs that can be planted at
-        the same time
-
-        Return value: int
-            The current maximum amount of bombs can plant at the same time
-        """
-        return self._max_bomb_count
-
-    @property
-    def current_bomb_count(self) -> int:
-        """Returns the current number of active bombs planted by the player
-
-        Return value: int
-            The current number of active bombs planted by the player
-        """
-        return self._current_bomb_count
-
-    @property
-    def bomb_range(self) -> int:
-        """Return the range in blocks of the explosion blast
-
-        Return value:
-            The range in blocks of the explosion blast
-        """
-        return self._bomb_range
+        self.name = name
+        self.position = position
+        self.max_bomb_count = max_bomb_count
+        self.current_bomb_count = current_bomb_count
+        self.bomb_range = bomb_range
 
     # ---------------------------------------- #
     # BOMBS
@@ -217,25 +145,25 @@ class Player:
                 When the player has already reached the max number of active
                 bombs planted on the map
         """
-        if self._current_bomb_count >= self._max_bomb_count:
+        if self.current_bomb_count >= self.max_bomb_count:
             raise CannotDropBombError
-        self._current_bomb_count += 1
-        return Bomb(self._position, self, self._bomb_range)
+        self.current_bomb_count += 1
+        return Bomb(self.position, self, self.bomb_range)
 
     def increment_bomb_range(self) -> None:
         """Makes the player's planted bombs have a larger blast range
         """
-        self._bomb_range += 1
+        self.bomb_range += 1
 
     def increment_max_bomb_count(self) -> None:
         """Allows the player to plant more bombs at the same time
         """
-        self._max_bomb_count += 1
+        self.max_bomb_count += 1
 
     def decrement_current_bomb_count(self) -> None:
         """Forces the player to plant less bombs at the same time
         """
-        self._current_bomb_count -= 1
+        self.current_bomb_count -= 1
 
     # ---------------------------------------- #
     # GAME LOGIC
@@ -252,7 +180,7 @@ class Player:
         """
         if (
                 action & PlayerAction.PLANT_BOMB and
-                self._current_bomb_count < self._max_bomb_count
+                self.current_bomb_count < self.max_bomb_count
                 # # Is it truly useful to forbid planting a bomb on top of
                 # # another? To prevent planting multiple bombs by accident?
                 # not self.environment.bomb_here(player.position) and
@@ -324,9 +252,9 @@ class Player:
             current number of active bombs planted, the player's bomb range
         """
         return PlayerDict({
-            "name": self._name,
+            "name": self.name,
             "position": self.position,
-            "max_bomb_count": self._max_bomb_count,
-            "current_bomb_count": self._current_bomb_count,
-            "bomb_range": self._bomb_range,
+            "max_bomb_count": self.max_bomb_count,
+            "current_bomb_count": self.current_bomb_count,
+            "bomb_range": self.bomb_range,
         })
