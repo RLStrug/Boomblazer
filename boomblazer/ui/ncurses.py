@@ -23,8 +23,8 @@ import sys
 from collections.abc import Sequence
 from typing import Optional
 
-from boomblazer.argument_parser import base_parser
-from boomblazer.argument_parser import handle_base_arguments
+from boomblazer.utils.argument_parser import base_parser
+from boomblazer.utils.argument_parser import handle_base_arguments
 from boomblazer.config.ncurses import ncurses_config
 from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.network.address import Address

@@ -26,8 +26,8 @@ from collections.abc import Set
 from types import TracebackType
 from typing import Optional
 
-from boomblazer.argument_parser import base_parser
-from boomblazer.argument_parser import handle_base_arguments
+from boomblazer.utils.argument_parser import base_parser
+from boomblazer.utils.argument_parser import handle_base_arguments
 from boomblazer.config.game import game_config
 from boomblazer.config.game_folders import game_folders_config
 from boomblazer.config.server import server_config
@@ -38,6 +38,7 @@ from boomblazer.environment.map import MapError
 from boomblazer.network.address import Address
 from boomblazer.network.network import Network
 from boomblazer.environment.entity.player import Player
+from boomblazer.utils.repeater import Repeater
 from boomblazer.version import GAME_NAME
 
 
@@ -72,7 +73,7 @@ class Server(Network):
             Defines if the game is running or over
         _player_actions: dict[Player, PlayerAction]:
             Actions to be performed by players during next game tick
-        _tick_thread: threading.Thread
+        _tick_thread: Repeater
             Thread used to update the game environment at regular interval
 
     Special method:
@@ -148,7 +149,7 @@ class Server(Network):
 
         self.is_game_running = False
         self._player_actions: dict[Player, PlayerAction] = {}
-        self._tick_thread = threading.Thread()
+        self._tick_thread = Repeater()
 
 
     def _find_map_file(self, map_filename: str) -> pathlib.Path:
@@ -225,8 +226,9 @@ class Server(Network):
         self.is_game_running = True
         self.environment.spawn_players()
         self.send_environment()
-        self._tick_thread = threading.Thread(
-            target=self.tick, name="server-tick"
+        self._tick_thread = Repeater(
+            target=self.tick, interval=game_config.tick_frequency,
+            name="server-tick"
         )
         self._tick_thread.start()
 
@@ -241,17 +243,9 @@ class Server(Network):
     def tick(self):
         """Updates the game environment every tick and sends it to clients
         """
-        while self.is_game_running:
-            start_time = time.monotonic()
-
-            self.environment.tick(self._player_actions)
-            self.send_environment()
-            self.reset_player_actions()
-
-            end_time = time.monotonic()
-            time_spent = end_time - start_time
-            if time_spent < game_config.tick_frequency:
-                time.sleep(game_config.tick_frequency - time_spent)
+        self.environment.tick(self._player_actions)
+        self.send_environment()
+        self.reset_player_actions()
 
     def reset_player_actions(self):
         """Resets players' commands after the end of the tick
@@ -394,6 +388,7 @@ class Server(Network):
         """
         self.is_game_running = False
         if self._tick_thread.ident is not None:
+            self._tick_thread.stop()
             self._tick_thread.join()
 
         self.send_stop_game(b"Server closing")

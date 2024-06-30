@@ -1,4 +1,4 @@
-"""Defines an argument parser common to all UIs and server
+"""Defines an argument parser common to all entry points
 
 Global variables:
     base_parser: argparse.ArgumentParser

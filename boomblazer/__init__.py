@@ -11,6 +11,8 @@ Submodules:
         Network related modules
     ui:
         A selection of user interfaces that can be used to play the game
+    utils:
+        Utility module
     version:
         Stores the software version of the game
 """
@@ -20,6 +22,7 @@ from . import environment
 from . import logging
 from . import network
 from . import ui
+from . import utils
 from . import version
 
 __all__ = [
@@ -28,5 +31,6 @@ __all__ = [
     "logging",
     "network",
     "ui",
+    "utils",
     "version",
 ]
