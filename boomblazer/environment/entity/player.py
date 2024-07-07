@@ -20,7 +20,6 @@ Exception classes:
 import enum
 import typing
 from collections.abc import Mapping
-from collections.abc import Sequence
 from typing import Any
 from typing import Optional
 

@@ -18,13 +18,11 @@ Constants:
 import abc
 import enum
 import logging
-import pathlib
 import threading
 import typing
 from types import TracebackType
 from typing import Optional
 
-from boomblazer.config.game_folders import game_folders_config
 from boomblazer.network.client import Client
 from boomblazer.network.address import Address
 from boomblazer.network.server import Server
@@ -163,12 +161,10 @@ class BaseUI(abc.ABC):
         """Closes the client and the local server
         """
         if self.server is not None:
-            if self._server_thread.ident is not None:
-                self.server.is_game_running = False
-                self._server_thread.join()
             self.server.close()
-        if self.client is not None:
-            self.client.close()
+            if self._server_thread.ident is not None:
+                self._server_thread.join()
+        self.client.close()
 
     def __enter__(self: Self) -> Self:
         """Enters a context manager (with statement)

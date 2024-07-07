@@ -15,10 +15,7 @@ import contextlib
 import json
 import pathlib
 import logging
-import selectors
 import sys
-import threading
-import time
 import typing
 from collections.abc import Iterable
 from collections.abc import Sequence
@@ -30,7 +27,6 @@ from boomblazer.utils.argument_parser import base_parser
 from boomblazer.utils.argument_parser import handle_base_arguments
 from boomblazer.config.game import game_config
 from boomblazer.config.game_folders import game_folders_config
-from boomblazer.config.server import server_config
 from boomblazer.environment.environment import Environment
 from boomblazer.environment.entity.player import PlayerAction
 from boomblazer.environment.map import Map
@@ -69,8 +65,8 @@ class Server(Network):
             Links connected players to their address
         _logger: logging.Logger
             The server logger
-        is_game_running: bool
-            Defines if the game is running or over
+        is_running: bool
+            Defines if the server is running or over
         _player_actions: dict[Player, PlayerAction]:
             Actions to be performed by players during next game tick
         _tick_thread: Repeater
@@ -118,7 +114,7 @@ class Server(Network):
     """
 
     __slots__ = (
-        "environment", "clients", "is_game_running", "_player_actions",
+        "environment", "clients", "is_running", "_player_actions",
         "_tick_thread",
     )
 
@@ -147,10 +143,9 @@ class Server(Network):
             raise ServerError(exc) from exc
         self.environment = Environment(map_)
 
-        self.is_game_running = False
+        self.is_running = True
         self._player_actions: dict[Player, PlayerAction] = {}
         self._tick_thread = Repeater()
-
 
     def _find_map_file(self, map_filename: str) -> pathlib.Path:
         """Searches for map file in all folders defined in config
@@ -179,23 +174,40 @@ class Server(Network):
     # ---------------------------------------- #
 
     def start(self) -> None:
-        """Start the game
+        """Start the server
 
         Waits for the players and initializes the game map environment
         """
-        self.wait_players()
-        self.launch_game()
+        while self.is_running:
+            self.wait_players()
+
+            if not self.is_running:
+                break
+
+            self.launch_game()
+            if self._tick_thread.ident is not None:
+                self._tick_thread.stop()
+                self._tick_thread.join()
 
     def wait_players(self) -> None:
         """Waits for players to connect until everyone is ready
         """
         self._logger.info("Waiting for players")
         ready_players: set[Address] = set()
+        # Wait until all players are ready to start
         while (
                 len(self.clients) < 1 or
                 len(ready_players) != len(self.clients)
         ):
-            # TODO Do not wait indefinitely
+            # Do not wait indefinitely in case server closed abruptly
+            events = self.selector.select(self._CLIENT_MESSAGE_WAIT_TIME)
+            # If server is closed, no need to check for messages
+            if not self.is_running:
+                break
+            # If no messages, go back to waiting
+            if not events:
+                continue
+
             msg, addr = self.recv_message()
             if msg is None:
                 # Skip bad message
@@ -223,7 +235,6 @@ class Server(Network):
         Handles user input as they come on the main thread
         """
         self._logger.info("Game start")
-        self.is_game_running = True
         self.environment.spawn_players()
         self.send_environment()
         self._tick_thread = Repeater(
@@ -255,12 +266,14 @@ class Server(Network):
     def handle_players_inputs(self):
         """Handle each player's action for current tick
         """
-        sel = selectors.DefaultSelector()
-        sel.register(self.sock, selectors.EVENT_READ)
-
-        while self.is_game_running:
-            # Do not wait indefinitely in case game ended abruptly
-            events = sel.select(self._CLIENT_MESSAGE_WAIT_TIME)
+        # Handle players input until there is no living player
+        while len(self.environment.players) > 0:
+            # Do not wait indefinitely in case server closed abruptly
+            events = self.selector.select(self._CLIENT_MESSAGE_WAIT_TIME)
+            # If server is closed, no need to check for messages
+            if not self.is_running:
+                break
+            # If no messages, go back to waiting
             if not events:
                 continue
 
@@ -315,8 +328,6 @@ class Server(Network):
             player = self.clients[addr]
             self.environment.remove_player(player)
             del self.clients[addr]
-        if len(self.clients) == 0 and self.is_game_running:
-            self.close()
 
     # ---------------------------------------- #
     # NETWORK COMMUNICATIONS
@@ -386,7 +397,7 @@ class Server(Network):
     def close(self) -> None:
         """Closes the server
         """
-        self.is_game_running = False
+        self.is_running = False
         if self._tick_thread.ident is not None:
             self._tick_thread.stop()
             self._tick_thread.join()

@@ -10,7 +10,6 @@ Exception classes:
 """
 
 import json
-import selectors
 import threading
 import typing
 from collections.abc import Iterable
@@ -142,12 +141,9 @@ class Client(Network):
         if self.server_addr is UNDEFINED_ADDRESS:
             raise ClientError("Server address undefined")
 
-        sel = selectors.DefaultSelector()
-        sel.register(self.sock, selectors.EVENT_READ)
-
         for _ in range(client_config.max_connect_tries):
             self.send_join()
-            events = sel.select(client_config.max_connect_wait)
+            events = self.selector.select(client_config.max_connect_wait)
             if not events:
                 continue
 
@@ -171,12 +167,9 @@ class Client(Network):
     def tick(self) -> None:
         """Updates the game environment every time the server sends a message
         """
-        sel = selectors.DefaultSelector()
-        sel.register(self.sock, selectors.EVENT_READ)
-
         while self.is_game_running:
             # Do not wait indefinitely in case game ended abruptly
-            events = sel.select(self._SERVER_MESSAGE_WAIT_TIME)
+            events = self.selector.select(self._SERVER_MESSAGE_WAIT_TIME)
             if not events:
                 continue
 

@@ -11,10 +11,8 @@ Classes:
 
 
 import dataclasses
-from collections.abc import Callable
 from collections.abc import MutableMapping
 from typing import Any
-from typing import ClassVar
 
 from boomblazer.config.base_config import BaseConfig
 from boomblazer.version import GAME_NAME

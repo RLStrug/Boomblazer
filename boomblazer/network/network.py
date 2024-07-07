@@ -14,6 +14,7 @@ Type aliases:
 """
 
 import logging
+import selectors
 import socket
 from collections.abc import Iterable
 from typing import Optional
@@ -30,6 +31,8 @@ class Network:
     Members:
         sock: socket.socket
             Socket that handles the network communication with UDP
+        selector: selectors.DefaultSelector
+            Event listenner for network message reception
         _logger: logging.Logger
             Logger that registers network traffic
 
@@ -48,7 +51,7 @@ class Network:
             Closes the network connection
     """
 
-    __slots__ = ("sock", "_logger",)
+    __slots__ = ("sock", "selector", "_logger",)
 
     def __init__(self, logger: logging.Logger) -> None:
         """Initialize the Network object
@@ -58,6 +61,8 @@ class Network:
                 The network message logger
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.selector = selectors.DefaultSelector()
+        self.selector.register(self.sock, selectors.EVENT_READ)
         self._logger = logger
 
     def bind(self, addr: Address) -> None:
@@ -107,3 +112,4 @@ class Network:
         """Closes the network connection
         """
         self.sock.close()
+        self.selector.close()

@@ -18,7 +18,6 @@ import curses.ascii
 import curses.textpad
 import enum
 import logging
-import pathlib
 import sys
 from collections.abc import Sequence
 from typing import Optional
