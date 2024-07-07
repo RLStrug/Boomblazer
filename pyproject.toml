@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Boomblazer"
+version = "0.5.10"
+
+requires-python = ">= 3.9"
+
+authors = [
+  {name = "Lucas Perez"},
+]
+
+description = "Game inspired by bomberman"
+readme = "README.md"
+
+license = {file = "LICENSE"}
+
+keywords = [
+  "game",
+  "multiplayer",
+  "network",
+  "ncurses",
+  "bomberman"
+]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+
+  "Environment :: Console",
+  "Environment :: Curses",
+
+  "Intended Audience :: End Users/Desktop",
+
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+
+  "Natural Language :: English",
+
+  "Operating System :: OS Independent",
+
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+
+  "Topic :: Games/Entertainment",
+
+  "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+ncurses = ["windows-curses; platform_system=='Windows'"]
+
+[project.scripts]
+boomblazer = "boomblazer.__main__:main"
+boomblazer-server = "boomblazer.network.server:main"
+boomblazer-cli = "boomblazer.ui.cli:main"
+boomblazer-ncurses = "boomblazer.ui.ncurses:main"
+
+[project.urls]
+Homepage = "https://github.com/RLStrug/Boomblazer"
+Repository = "https://github.com/RLStrug/Boomblazer.git"
+Issues = "https://github.com/RLStrug/Boomblazer/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false

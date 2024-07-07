@@ -1,7 +1,13 @@
-__pycache__
-.ignore
-.mypy_cache
-.venv
-*.egg-info
-build
+# Build files
+*.egg
+*.egg-info/
+.venv/
+__pycache__/
+build/
+dist/
+
+# Mypy files
+.mypy_cache/
+
+# Runtime files
 Boomblazer_data
