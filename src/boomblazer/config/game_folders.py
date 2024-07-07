@@ -20,11 +20,13 @@ Functions:
 """
 
 import dataclasses
+import importlib.resources
 import pathlib
 import platform
 from collections.abc import Mapping
 from typing import Any
 
+from ..metadata import PACKAGE_NAME
 from ..metadata import GAME_NAME
 from .base_config import BaseConfig
 
@@ -75,8 +77,7 @@ def _get_default_map_folders() -> list[pathlib.Path]:
         The list of paths where the map folders should be stored
     """
     return [
-        pathlib.Path(".", "official_maps"),  # DEBUG
-        _get_default_data_folder() / "official_maps",
+        importlib.resources.files(PACKAGE_NAME) / "official_maps",
         _get_default_data_folder() / "custom_maps",
     ]
 
