@@ -20,6 +20,7 @@ import enum
 import logging
 import sys
 from collections.abc import Sequence
+from typing import Any
 from typing import Optional
 
 from ..config.ncurses import ncurses_config
@@ -59,7 +60,9 @@ class CursesInterface(BaseUI):
 
     __slots__ = ("stdscr",)
 
-    def __init__(self, stdscr: curses.window, *args, **kwargs) -> None:
+    def __init__(
+            self, stdscr: curses.window, *args: Any, **kwargs: Any
+    ) -> None:
         """Initiates the curses user interface
 
         Parameters:

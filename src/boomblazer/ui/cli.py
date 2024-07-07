@@ -20,6 +20,7 @@ import selectors
 import shutil
 import sys
 from collections.abc import Sequence
+from typing import Any
 from typing import Optional
 
 from ..config.cli import cli_config
@@ -51,7 +52,7 @@ class CommandLineInterface(BaseUI):
 
     __slots__ = ()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initiates the command line user interface
         """
         super().__init__(*args, **kwargs)

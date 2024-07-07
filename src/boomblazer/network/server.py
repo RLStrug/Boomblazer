@@ -21,6 +21,7 @@ from collections.abc import Iterable
 from collections.abc import Sequence
 from collections.abc import Set
 from types import TracebackType
+from typing import Any
 from typing import Optional
 
 from ..config.game import game_config
@@ -122,7 +123,7 @@ class Server(Network):
 
     def __init__(
             self, addr: Address, map_filename: str,
-            *args, **kwargs
+            *args: Any, **kwargs: Any
     ) -> None:
         """Initialize the Server object
 
@@ -251,19 +252,19 @@ class Server(Network):
     # GAME
     # ---------------------------------------- #
 
-    def tick(self):
+    def tick(self) -> None:
         """Updates the game environment every tick and sends it to clients
         """
         self.environment.tick(self._player_actions)
         self.send_environment()
         self.reset_player_actions()
 
-    def reset_player_actions(self):
+    def reset_player_actions(self) -> None:
         """Resets players' commands after the end of the tick
         """
         self._player_actions = {}
 
-    def handle_players_inputs(self):
+    def handle_players_inputs(self) -> None:
         """Handle each player's action for current tick
         """
         # Handle players input until there is no living player

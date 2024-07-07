@@ -146,7 +146,7 @@ class JsonFormatter(logging.Formatter):
         self.extra = style.extra
         self.defaults = dict(defaults)
 
-    def usesTime(self):
+    def usesTime(self) -> bool:
         """Checks if the format uses the creation time of the record
 
         Return value: bool

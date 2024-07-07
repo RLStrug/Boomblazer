@@ -18,7 +18,7 @@ from .base_config import BaseConfig
 from .config_loader import config_instances
 
 
-@dataclasses.dataclass(slots=True)
+@dataclasses.dataclass
 class _CLI_Config(BaseConfig):
     """Dataclass containing the CLI configuration values
 

@@ -8,6 +8,7 @@ Classes:
 import threading
 import time
 from collections.abc import Callable
+from typing import Any
 from typing import Optional
 
 
@@ -32,7 +33,7 @@ class Repeater(threading.Thread):
     def __init__(
             self, interval: float = 0.0,
             target: Optional[Callable[..., None]] = None,
-            **kwargs
+            **kwargs: Any
     ) -> None:
         """Initializes the Repeater
 
@@ -56,7 +57,7 @@ class Repeater(threading.Thread):
         """
         self.finished.set()
 
-    def repeat(self, *args, **kwargs) -> None:
+    def repeat(self, *args: Any, **kwargs: Any) -> None:
         """Repeats the given function until the repeater is stopped
 
         Parameters:

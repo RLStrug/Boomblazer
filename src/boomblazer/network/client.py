@@ -14,6 +14,7 @@ import threading
 import typing
 from collections.abc import Iterable
 from types import TracebackType
+from typing import Any
 from typing import Optional
 
 from ..config.client import client_config
@@ -112,7 +113,7 @@ class Client(Network):
     def __init__(
             self, server_addr: Address = UNDEFINED_ADDRESS,
             username: bytes = b"",
-            *args, **kwargs
+            *args: Any, **kwargs: Any
     ) -> None:
         """Initializes a new Client
 

@@ -175,7 +175,8 @@ class Environment:
 
     @classmethod
     def from_json(
-            cls, json_str: Union[str, bytes, bytearray], *args, **kwargs
+            cls, json_str: Union[str, bytes, bytearray],
+            *args: Any, **kwargs: Any
     ) -> "Environment":
         """Instanciates a Environment from json data
 
@@ -214,7 +215,7 @@ class Environment:
             "fires": [fire.to_dict() for fire in self.fires],
         })
 
-    def to_json(self, *args, **kwargs) -> str:
+    def to_json(self, *args: Any, **kwargs: Any) -> str:
         """Returns the current instance data in the form of json data
 
         Parameters:

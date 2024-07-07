@@ -81,7 +81,7 @@ def _get_default_map_folders() -> list[pathlib.Path]:
     ]
 
 
-@dataclasses.dataclass(slots=True)
+@dataclasses.dataclass
 class _GameFoldersConfig(BaseConfig):
     """Dataclass containing the game folders location
 

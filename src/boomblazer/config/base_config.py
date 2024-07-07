@@ -14,7 +14,7 @@ from typing import Any
 from typing import Optional
 
 
-@dataclasses.dataclass(slots=True)
+@dataclasses.dataclass
 class BaseConfig(abc.ABC):
     """Base class for configuration variables dataclasses
 

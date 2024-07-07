@@ -15,7 +15,7 @@ from typing import ClassVar
 from .base_config import BaseConfig
 
 
-@dataclasses.dataclass(slots=True)
+@dataclasses.dataclass
 class _GameConfig(BaseConfig):
     """Dataclass containing the game configuration values
 

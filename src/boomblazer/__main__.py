@@ -77,7 +77,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not hasattr(program, "main"):
         raise NotImplementedError(f"{args.ui} interface has no entry point")
 
-    return program.main(argv[1:])
+    return int(program.main(argv[1:]))
 
 
 if __name__ == "__main__":
