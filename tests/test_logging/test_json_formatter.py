@@ -1,10 +1,22 @@
-#!/usr/bin/env python3
-"""Tests the boomblazer.logging.json_formatter module
+"""Tests boomblazer.logging.json_formatter
 """
 
-import logging
-import logging.config
+import unittest
 
+from boomblazer.logging import json_formatter
+
+
+class TestJsonFormatter(unittest.TestCase):
+    """Tests JsonFormatter
+    """
+
+    @unittest.skip("TODO")
+    def test_json_formatter(self) -> None:
+        """Tests json_formatter
+        """
+        pass
+
+"""
 logger_names = (
     "compact", "space", "nl", "custom", "compact-extra", "space-extra",
     "nl-extra", "custom-extra",
@@ -88,3 +100,4 @@ for logger_name in logger_names:
         1 / 0
     except ZeroDivisionError:
         logger.exception("eee")
+"""

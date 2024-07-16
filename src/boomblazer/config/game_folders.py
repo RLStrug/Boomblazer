@@ -15,11 +15,13 @@ Functions:
         Returns the default location of the log folder
     _get_default_data_folder:
         Returns the default location of the data folder
-    _get_default_map_folders:
+    _get_default_map_folder:
         Returns the default list of map folders location
 """
 
 import dataclasses
+import functools
+import importlib
 import importlib.resources
 import pathlib
 import platform
@@ -70,16 +72,13 @@ def _get_default_data_folder() -> pathlib.Path:
     # else ("Java", ""): pass
     return pathlib.Path(".", f"{GAME_NAME}_data", "share")
 
-def _get_default_map_folders() -> list[pathlib.Path]:
-    """Returns the default list of map folders location
+def _get_default_custom_maps_folder() -> pathlib.Path:
+    """Returns the default list of the custom maps folder
 
-    Return value: list[pathlib.Path]
-        The list of paths where the map folders should be stored
+    Return value: pathlib.Path
+        The path where the custom maps should be stored
     """
-    return [
-        importlib.resources.files(PACKAGE_NAME) / "official_maps",
-        _get_default_data_folder() / "custom_maps",
-    ]
+    return _get_default_data_folder() / "custom_maps"
 
 
 @dataclasses.dataclass
@@ -89,16 +88,51 @@ class _GameFoldersConfig(BaseConfig):
     Members:
         log_folder: pathlib.Path
             Folder containing log files
-        map_folders: list[pathlib.Path]
-            List of folders where map folders can be found
+        custom_maps_folder: pathlib.Path
+            List of folders where maps folders can be found
+
+    Properties:
+        resources_folder: importlib.resources.abc.Traversable
+            The folder containing the package resources
+        official_maps_folder: importlib.resources.abc.Traversable
+            The folder containing the official maps
+        maps_folders: list[importlib.resources.abc.Traversable]
+            The list of the folder containing maps
     """
 
     log_folder: pathlib.Path = dataclasses.field(
         default_factory=_get_default_log_folder
     )
-    map_folders: list[pathlib.Path] = dataclasses.field(
-        default_factory=_get_default_map_folders
+    custom_maps_folder: pathlib.Path = dataclasses.field(
+        default_factory=_get_default_custom_maps_folder
     )
+
+    @functools.cached_property
+    def resources_folder(self) -> importlib.abc.Traversable:
+        """Return the folder containing the package resources
+
+        Return value: importlib.resources.abc.Traversable
+            The folder containing the package resources
+        """
+        return importlib.resources.files(PACKAGE_NAME)
+
+    @functools.cached_property
+    def official_maps_folder(self) -> importlib.abc.Traversable:
+        """Return the folder containing the official maps
+
+        Return value: importlib.resources.abc.Traversable
+            The folder containing the official maps
+        """
+        return self.resources_folder / "official_maps"
+
+    @property
+    def maps_folders(self) -> list[importlib.abc.Traversable]:
+        """Return the list of the folders containing maps
+
+        Return value: importlib.resources.abc.Traversable
+            The list of the folders containing maps
+        """
+        return [self.official_maps_folder, self.custom_maps_folder]
 
     # @override
     def load(self, new_field_values: Mapping[str, Any]) -> bool:
@@ -114,12 +148,11 @@ class _GameFoldersConfig(BaseConfig):
             False if any field was missing
         """
         # Cannot use super() because dataclass(slots=True) does not produce
-        # true subclass
+        # true subclass. This feature is unavailable in python 3.9, but will be
+        # used as soon as possible
         ret_val = BaseConfig.load(self, new_field_values)
         self.log_folder = pathlib.Path(self.log_folder)
-        self.map_folders = [
-            pathlib.Path(map_folder) for map_folder in self.map_folders
-        ]
+        self.custom_maps_folder = pathlib.Path(self.custom_maps_folder)
         return ret_val
 
     # @override
@@ -131,9 +164,7 @@ class _GameFoldersConfig(BaseConfig):
         """
         return {
             "log_folder": str(self.log_folder),
-            "map_folders": [
-                str(map_folder) for map_folder in self.map_folders
-            ],
+            "custom_maps_folder": str(self.custom_maps_folder),
         }
 
 

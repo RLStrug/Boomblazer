@@ -18,13 +18,13 @@ Exception classes:
 """
 
 import enum
-import pathlib
+import importlib
 import typing
 from collections.abc import Iterator
 from collections.abc import Mapping
 from typing import Any
+from typing import IO
 from typing import Optional
-from typing import TextIO
 
 from .position import Position
 
@@ -114,11 +114,11 @@ class Map:
     # ---------------------------------------- #
 
     @classmethod
-    def from_io_data(cls, map_io: TextIO) -> "Map":
+    def from_io_data(cls, map_io: IO[str]) -> "Map":
         """Instanciates a Map from IO data
 
         Parameters:
-            map_io: TextIO
+            map_io: IO[str]
                 IO object containing the initial map data
 
         Return value: Map
@@ -148,20 +148,20 @@ class Map:
         return map_
 
     @classmethod
-    def from_file(cls, map_filepath: pathlib.Path) -> "Map":
+    def from_file(cls, map_filepath: importlib.abc.Traversable) -> "Map":
         """Instanciates a Map from a file
 
         Used by the server when starting a new game
 
         Parameters:
-            map_filepath: pathlib.Path
+            map_filepath: importlib.abc.Traversable
                 Path to the file containing the initial map data
 
         Return value: Map
             A Map instance initialized from the file
         """
         try:
-            with open(map_filepath, "r", encoding="utf8") as map_file:
+            with map_filepath.open("r", encoding="utf8") as map_file:
                 return cls.from_io_data(map_file)
         except OSError as exc:
             raise MapError(f"Cannot open {str(map_filepath)!r}") from exc

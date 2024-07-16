@@ -12,6 +12,7 @@ Exception classes:
 
 import argparse
 import contextlib
+import importlib.resources
 import json
 import pathlib
 import logging
@@ -148,7 +149,7 @@ class Server(Network):
         self._player_actions: dict[Player, PlayerAction] = {}
         self._tick_thread = Repeater()
 
-    def _find_map_file(self, map_filename: str) -> pathlib.Path:
+    def _find_map_file(self, map_filename: str) -> importlib.abc.Traversable:
         """Searches for map file in all folders defined in config
 
         The map folders are tried in the order they are declared in the config
@@ -159,14 +160,14 @@ class Server(Network):
             map_filename: str
                 The name of the map file
 
-        Return value: pathlib.Path
+        Return value: importlib.resources.abc.Traversable
             The path to the map file
         """
-        for map_folder in game_folders_config.map_folders:
-            map_filepath = map_folder / map_filename
+        for maps_folder in game_folders_config.maps_folders:
+            map_filepath = maps_folder / map_filename
             if map_filepath.is_file():
                 return map_filepath
-            self._logger.debug("%r not in %r", map_filename, str(map_folder))
+            self._logger.debug("%r not in %r", map_filename, str(maps_folder))
         # If file not in defined folders, try current working directory
         return pathlib.Path(".", map_filename)
 

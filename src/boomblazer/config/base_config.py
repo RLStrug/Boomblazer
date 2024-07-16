@@ -66,12 +66,12 @@ class BaseConfig(abc.ABC):
             members_to_reset: Optional[Sequence[str]] (default = None)
                 The name of attributes to reset (all by default)
         """
-        if fields_to_reset is None:
-            fields_to_reset = self.__slots__
-
         fields = dataclasses.fields(self)
         for field in fields:
-            if field.name not in fields_to_reset:
+            if (
+                    fields_to_reset is not None and
+                    field.name not in fields_to_reset
+            ):
                 continue
             if field.default is not dataclasses.MISSING:
                 setattr(self, field.name, field.default)
