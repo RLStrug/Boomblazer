@@ -7,14 +7,13 @@ from boomblazer.logging import json_formatter
 
 
 class TestJsonFormatter(unittest.TestCase):
-    """Tests JsonFormatter
-    """
+    """Tests JsonFormatter"""
 
     @unittest.skip("TODO")
     def test_json_formatter(self) -> None:
-        """Tests json_formatter
-        """
+        """Tests json_formatter"""
         pass
+
 
 """
 logger_names = (

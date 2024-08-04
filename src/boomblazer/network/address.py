@@ -1,9 +1,5 @@
 """Represents a network address
 
-Classes:
-    Address:
-        Represents a network address
-
 Global Constants:
     UNDEFINED_ADDRESS: Address
         Represents an undefined address
@@ -13,14 +9,15 @@ import typing
 
 from ..config.server import server_config
 
+
 class Address(typing.NamedTuple):
     """Represents a network address
 
     Members:
         host: str
-            The host part of the address
+            Host part of the address
         port: int
-            The port part of the address
+            Port part of the address
 
     Class methods:
         from_string:
@@ -40,13 +37,13 @@ class Address(typing.NamedTuple):
 
         Parameters:
             address_repr: str
-                The string representation of the address
+                String representation of the address
                 If the host part is empty, it will default to 0.0.0.0
                 If the port part is empty, it will use the default value
                 defined in the config variables
 
         Return value: Address
-            The parsed Address
+            Parsed Address
         """
         # We only want the last split in case the host part contains ":"
         address = address_repr.rsplit(":", 1)
@@ -61,8 +58,9 @@ class Address(typing.NamedTuple):
         """Returns the string representation of the address
 
         Return value: str
-            The string representation of the address
+            String representation of the address
         """
         return f"{self.host}:{self.port}"
+
 
 UNDEFINED_ADDRESS = Address("", 0)

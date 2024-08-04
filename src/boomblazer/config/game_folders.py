@@ -3,21 +3,9 @@
 Global variables:
     game_folders_config: _GameFoldersConfig
         Singleton of _GameFoldersConfig dataclass
-
-Classes:
-    _GameFoldersConfig:
-        Dataclass containing the game folders location
-
-Functions:
-    _get_default_cache_folder:
-        Returns the default location of the cache folder
-    _get_default_log_folder:
-        Returns the default location of the log folder
-    _get_default_data_folder:
-        Returns the default location of the data folder
-    _get_default_map_folder:
-        Returns the default list of map folders location
 """
+
+from __future__ import annotations
 
 import dataclasses
 import functools
@@ -25,18 +13,23 @@ import importlib
 import importlib.resources
 import pathlib
 import platform
-from collections.abc import Mapping
-from typing import Any
+import typing
 
 from ..metadata import PACKAGE_NAME
 from ..metadata import GAME_NAME
 from .base_config import BaseConfig
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Mapping
+    from importlib.resources.abc import Traversable
+    from typing import Any
+
+
 def _get_default_cache_folder() -> pathlib.Path:
     """Returns the default location of the cache folder
 
     Return value: pathlib.Path
-        The path where the cache folder should be
+        Path where the cache folder should be
     """
     os = platform.system()
     if os == "Linux":
@@ -48,19 +41,21 @@ def _get_default_cache_folder() -> pathlib.Path:
     # else ("Java", ""): pass
     return pathlib.Path(".", f"{GAME_NAME}_data", "cache")
 
+
 def _get_default_log_folder() -> pathlib.Path:
     """Returns the default location of the log folder
 
     Return value: pathlib.Path
-        The path where the log folder should be
+        Path where the log folder should be
     """
     return _get_default_cache_folder() / "log"
+
 
 def _get_default_data_folder() -> pathlib.Path:
     """Returns the default location of the data folder
 
     Return value: pathlib.Path
-        The path where the data folder should be
+        Path where the data folder should be
     """
     os = platform.system()
     if os == "Linux":
@@ -72,11 +67,12 @@ def _get_default_data_folder() -> pathlib.Path:
     # else ("Java", ""): pass
     return pathlib.Path(".", f"{GAME_NAME}_data", "share")
 
+
 def _get_default_custom_maps_folder() -> pathlib.Path:
-    """Returns the default list of the custom maps folder
+    """Returns the default custom maps folder
 
     Return value: pathlib.Path
-        The path where the custom maps should be stored
+        Folder containing the custom maps
     """
     return _get_default_data_folder() / "custom_maps"
 
@@ -90,14 +86,6 @@ class _GameFoldersConfig(BaseConfig):
             Folder containing log files
         custom_maps_folder: pathlib.Path
             List of folders where maps folders can be found
-
-    Properties:
-        resources_folder: importlib.resources.abc.Traversable
-            The folder containing the package resources
-        official_maps_folder: importlib.resources.abc.Traversable
-            The folder containing the official maps
-        maps_folders: list[importlib.resources.abc.Traversable]
-            The list of the folder containing maps
     """
 
     log_folder: pathlib.Path = dataclasses.field(
@@ -108,29 +96,29 @@ class _GameFoldersConfig(BaseConfig):
     )
 
     @functools.cached_property
-    def resources_folder(self) -> importlib.abc.Traversable:
+    def resources_folder(self) -> Traversable:
         """Return the folder containing the package resources
 
         Return value: importlib.resources.abc.Traversable
-            The folder containing the package resources
+            Folder containing the package resources
         """
         return importlib.resources.files(PACKAGE_NAME)
 
     @functools.cached_property
-    def official_maps_folder(self) -> importlib.abc.Traversable:
+    def official_maps_folder(self) -> Traversable:
         """Return the folder containing the official maps
 
         Return value: importlib.resources.abc.Traversable
-            The folder containing the official maps
+            Folder containing the official maps
         """
         return self.resources_folder / "official_maps"
 
     @property
-    def maps_folders(self) -> list[importlib.abc.Traversable]:
+    def maps_folders(self) -> list[Traversable]:
         """Return the list of the folders containing maps
 
         Return value: importlib.resources.abc.Traversable
-            The list of the folders containing maps
+            List of the folders containing maps
         """
         return [self.official_maps_folder, self.custom_maps_folder]
 
@@ -140,8 +128,7 @@ class _GameFoldersConfig(BaseConfig):
 
         Parameters:
             new_field_values: dict
-                The names and new values of fields to be updated
-                Unknown fields will be ignored
+                Fields to be updated. Unknown fields will be ignored
 
         Return value: bool
             True if all fields could be loaded from new_field_values.
@@ -168,4 +155,4 @@ class _GameFoldersConfig(BaseConfig):
         }
 
 
-game_folders_config=_GameFoldersConfig()
+game_folders_config = _GameFoldersConfig()

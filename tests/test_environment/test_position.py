@@ -7,11 +7,9 @@ from boomblazer.environment import position
 
 
 class TestPosition(unittest.TestCase):
-    """Tests Position
-    """
+    """Tests Position"""
 
     @unittest.skip("TODO")
     def test_position(self) -> None:
-        """Tests position
-        """
+        """Tests position"""
         pass

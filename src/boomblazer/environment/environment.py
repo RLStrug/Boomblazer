@@ -1,26 +1,11 @@
-"""Implements a game environment
+"""Implements a game environment"""
 
-Classes:
-    Environment:
-        The current game environment state
-
-Type aliases:
-    EnvironmentDict:
-        Result of the conversion from a Environment to a dict
-
-Exception classes:
-    EnvironmentError: Exception
-        Error raised when a Environment intialization data is invalid
-"""
+from __future__ import annotations
 
 import collections
 import contextlib
 import json
 import typing
-from collections.abc import Mapping
-from typing import Any
-from typing import Optional
-from typing import Union
 
 from .entity.bomb import Bomb
 from .entity.bomb import BombDict
@@ -34,14 +19,19 @@ from .map import MapCell
 from .map import MapDict
 from .position import Position
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Any
 
-EnvironmentDict = typing.TypedDict(
-    "EnvironmentDict",
-    {
-        "map": MapDict, "players": list[PlayerDict], "boxes": list[Position],
-        "bombs": list[BombDict], "fires": list[FireDict]
-    }
-)
+
+class EnvironmentDict(typing.TypedDict):
+    """Environment serialization"""
+
+    map: MapDict
+    players: list[PlayerDict]
+    boxes: list[Position]
+    bombs: list[BombDict]
+    fires: list[FireDict]
 
 
 class Environment:
@@ -50,56 +40,26 @@ class Environment:
     An instance of this class contains data about everything on the map.
     This includes spawn points, players, boxes, bombs, fire blasts and the map
     itself.
-
-    Members:
-        map: Map
-            The map
-        spawn_points: list[Position]
-            The current map environment state
-        players: list[Player]
-            The currently living players
-        boxes: set[Position]
-            The boxes currently present on the map
-        bombs: collections.deque[Bomb]
-            The bombs currently planted on the map
-        fires: collections.deque[Fire]
-            The currently active fire blasts
-
-    Class methods:
-        from_dict:
-            Instanciates a Environment from a dict
-        from_json:
-            Instanciates a Environment from json data
-
-    Special methods:
-        __init__:
-            Initializes a game Environment
-
-    Methods:
-        load_map:
-            Loads the map cells, and extracts boxes and spawn points
-        to_dict:
-            Returns the current instance data in the form of a dict
-        to_json:
-            Returns the current instance data in the form of json data
-        bomb_here:
-            Tells if there is a bomb at given position
-        fire_here:
-            Tells if there is a fire blast at given position
-        _init_players_position:
-            Move players to their respective spawn points
     """
 
-    __slots__ = ("map", "spawn_points", "boxes", "bombs", "players", "fires")
+    __slots__ = {
+        "map": "(Map) Map data",
+        "spawn_points": "(list[Position]) Players spawn points",
+        "boxes": "(set[Position]) Boxes currently present on the map",
+        "bombs": "(collections.deque[Bomb]) Bombs currently planted on the map",
+        "players": "(list[Player]) Currently living players",
+        "fires": "(collections.deque[Fire]) Currently active fire blasts",
+    }
 
     def __init__(
-            self, map_: Optional[Map] = None,
+        self,
+        map_: Map | None = None,
     ) -> None:
         """Initializes a game Environment
 
         Parameters:
-            map: Optional[Map] (default = None)
-                The map data. If not None, it will extract spawn points and
+            map: Map | None (default = None)
+                Map data. If not None, it will extract spawn points and
                 boxes from the map cells
         """
         self.spawn_points: list[Position] = []
@@ -114,11 +74,11 @@ class Environment:
             self.map = Map()
 
     def load_map(self, map_: Map) -> None:
-        """Loads the map cells, and extracts boxes and spawn points
+        """Loads map cells, and extracts boxes and spawn points
 
         Parameters:
             map_: Map
-                The map data
+                Map data
         """
         self.map = map_
         for y, row in enumerate(self.map):
@@ -142,29 +102,15 @@ class Environment:
 
         Parameters:
             data: Mapping[str, Any]
-                A mapping that should contain the following keys and values:
-                    map: MapDict
-                        The map data
-                    players: Iterable[PlayerDict]
-                        The currently living players
-                    boxes: Iterable[Position]
-                        The boxes currently on the map
-                    bombs: Iterable[BombDict]
-                        The bombs currently planted
-                    fires: Iterable[FireDict]
-                        The fire blasts currently raging
+                A mapping that should be like EnvironmentDict
 
         Return value: Environment
-            A Environment instance initialized from data
+            Environment instance initialized from data
         """
         environment = Environment()
         environment.map = Map.from_dict(data["map"])
-        environment.players = [
-                Player.from_dict(player) for player in data["players"]
-        ]
-        environment.boxes = {
-            Position(*box) for box in data["boxes"]
-        }
+        environment.players = [Player.from_dict(player) for player in data["players"]]
+        environment.boxes = {Position(*box) for box in data["boxes"]}
         environment.bombs = collections.deque(
             Bomb.from_dict(bomb, environment.players) for bomb in data["bombs"]
         )
@@ -175,8 +121,7 @@ class Environment:
 
     @classmethod
     def from_json(
-            cls, json_str: Union[str, bytes, bytearray],
-            *args: Any, **kwargs: Any
+        cls, json_str: str | bytes | bytearray, **kwargs: Any
     ) -> "Environment":
         """Instanciates a Environment from json data
 
@@ -185,15 +130,13 @@ class Environment:
         Parameters:
             json_str: str | bytes | bytearray
                 JSON data representing the map current environment state
-            *args:
-                positional arguments to pass to json.loads
             **kwargs:
                 keyword arguments to pass to json.loads
 
         Return value: Environment
-            A Environment instance initialized from the JSON data
+            Environment instance initialized from the JSON data
         """
-        json_data = json.loads(json_str, *args, **kwargs)
+        json_data = json.loads(json_str, **kwargs)
         return cls.from_dict(json_data)
 
     # ---------------------------------------- #
@@ -201,33 +144,30 @@ class Environment:
     # ---------------------------------------- #
 
     def to_dict(self) -> EnvironmentDict:
-        """Returns the current instance data in the form of a dict
+        """Returns the current instance data serialized
 
         Return value: EnvironmentDict
-            A dictionary containing the map version number, the environment
-            state, the living players, and the planted bombs
+            Serialized Environment
         """
-        return EnvironmentDict({
-            "map": self.map.to_dict(),
-            "boxes": list(self.boxes),
-            "players": [player.to_dict() for player in self.players],
-            "bombs": [bomb.to_dict() for bomb in self.bombs],
-            "fires": [fire.to_dict() for fire in self.fires],
-        })
+        return EnvironmentDict(
+            map=self.map.to_dict(),
+            boxes=list(self.boxes),
+            players=[player.to_dict() for player in self.players],
+            bombs=[bomb.to_dict() for bomb in self.bombs],
+            fires=[fire.to_dict() for fire in self.fires],
+        )
 
-    def to_json(self, *args: Any, **kwargs: Any) -> str:
+    def to_json(self, **kwargs: Any) -> str:
         """Returns the current instance data in the form of json data
 
         Parameters:
-            *args:
-                positional arguments to pass to json.loads
             **kwargs:
                 keyword arguments to pass to json.loads
 
         Return value: str
             Serialized Environment data as a JSON object
         """
-        return json.dumps(self.to_dict(), *args, **kwargs)
+        return json.dumps(self.to_dict(), **kwargs)
 
     # ---------------------------------------- #
     # BOMBS
@@ -238,7 +178,7 @@ class Environment:
 
         Parameters:
             position: tuple[int, int]
-                The position to check
+                Position to check
 
         Return value: bool
             True if a bomb is planted a position, False otherwise
@@ -249,15 +189,15 @@ class Environment:
     # PLAYERS
     # ---------------------------------------- #
 
-    def add_player(self, player_name: str) -> Optional[Player]:
+    def add_player(self, player_name: str) -> Player | None:
         """Adds a player to the game environment
 
         Parameters:
             player_name: str
-                The name of the player
+                Name of the player
 
-        Return value: Optional[Player]
-            The player if it could be added to the players list, None otherwise
+        Return value: Player | None
+            Player, if it could be added to the players list, None otherwise
         """
         if len(self.spawn_points) < len(self.players):
             return None
@@ -268,18 +208,17 @@ class Environment:
     def remove_player(self, player: Player) -> None:
         """Removes a player from the game environment
 
-        Will fail silently if the player does not exist
+        Will fail silently if player does not exist
 
         Parameters:
             player: Player
-                The player to remove
+                Player to remove
         """
         with contextlib.suppress(ValueError):
             self.players.remove(player)
 
     def spawn_players(self) -> None:
-        """Moves all players to their spawn points
-        """
+        """Moves all players to their spawn points"""
         for player, spawn_point in zip(self.players, self.spawn_points):
             player.position = spawn_point
 
@@ -292,7 +231,7 @@ class Environment:
 
         Parameters:
             position: tuple[int, int]
-                The position to check
+                Position to check
 
         Return value: bool
             True if a fire blast is raging a position, False otherwise
@@ -329,10 +268,10 @@ class Environment:
     # ---------------------------------------- #
 
     def __str__(self) -> str:
-        """Returns a printable representation of the map environment state
+        """Returns a printable representation of the game environment
 
         Return value:
-            A printable representation of the map environment state
+            Printable representation of the map environment state
         """
         map_str = [[cell.value for cell in row] for row in self.map]
         for player in self.players:

@@ -8,13 +8,3 @@ Submodules:
     player:
         Implements a game player
 """
-
-from . import bomb
-from . import fire
-from . import player
-
-__all__ = [
-    "bomb",
-    "fire",
-    "player",
-]

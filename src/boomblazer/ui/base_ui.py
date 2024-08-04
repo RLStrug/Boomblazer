@@ -1,43 +1,36 @@
 """Base UI model
 
-Enumerations:
-    GameState: Enum
-        Defines in what states the game currently is
-
-Classes:
-    BaseUI:
-        The base class for client UIs
-
 Constants:
     _ALL_INTERFACES: str
-        The IP address representing all interfaces available
+        IP address representing all interfaces available
     _LOCAL_HOST: str
-        The IP address of the local machine
+        IP address of the local machine
 """
+
+from __future__ import annotations
 
 import abc
 import enum
 import logging
 import threading
 import typing
-from types import TracebackType
-from typing import Optional
 
 from ..network.address import Address
 from ..network.client import Client
 from ..network.server import Server
 
+if typing.TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Self
 
-# from typing import Self  # python 3.11+
-Self = typing.TypeVar("Self")
 
 _ALL_INTERFACES = "0.0.0.0"
 _LOCAL_HOST = "127.0.0.1"
 
 
 class GameState(enum.Enum):
-    """Defines in what states the game currently is
-    """
+    """Defines in what states the game currently is"""
+
     MAIN_MENU = enum.auto()
     LOBBY = enum.auto()
     PLAYING = enum.auto()
@@ -47,103 +40,68 @@ class GameState(enum.Enum):
 
 
 class BaseUI(abc.ABC):
-    """The base class for client UIs
+    """The base class for client UIs"""
 
-    Members:
-        _logger: logging.Logger
-            Logs the messages of the UI
-        client: Client
-            The client associated with this UI
-        server: Server
-            The server associated with this UI
-        _server_thread: threading.Thread
-            Thread used to launch local server
+    __slots__ = {
+        "_logger": "(logging.Logger) Logs the messages of the UI",
+        "client": "(Client) Client associated with this UI",
+        "server": "(Server) Server associated with this UI",
+        "_server_thread": "(threading.Thread) Thread used to launch local server",
+    }
 
-    Special methods:
-        __init__:
-            Initializes a new BaseUI
-        __enter__:
-            Enters a context manager (with statement)
-        __exit__:
-            Exits a context manager (with statement)
-
-    Methods:
-        join_game:
-            Joins a game
-        create_game:
-            Creates a game
-        create_game_and_join:
-            Creates a game and joins it
-        close:
-            Closes the client and the local server
-    """
-
-    __slots__ = (
-        "_logger", "client", "server", "_server_thread",
-    )
-
-    def __init__(
-            self, *,
-            logger: logging.Logger
-    ) -> None:
+    def __init__(self, *, logger: logging.Logger) -> None:
         """Initializes a new BaseUI
 
         Named only parameters:
             logger: logging.Logger
-                The game message logger
+                Game message logger
         """
         self._logger = logger
         self.client = Client(logger=logger)
-        self.server: Optional[Server] = None
+        self.server: Server | None = None
         self._server_thread = threading.Thread()
 
-    def join_game(
-            self, addr: Address, username: str
-    ) -> None:
+    def join_game(self, addr: Address, username: str) -> None:
         """Joins a game
 
         Parameters:
             addr: Address
-                The address of the server
+                Address of the server
             username: str
-                The player's name
+                Player's name
         """
         self.client.server_addr = addr
         self.client.username = username.encode("utf8")
         self.client.start()
 
-    def create_game(
-            self, addr: Address, map_filename: str
-    ) -> None:
+    def create_game(self, addr: Address, map_filename: str) -> None:
         """Creates a game
 
         Parameters:
             addr: Address
-                The interface and port of the server
+                Interface and port of the server
             map_filename: str
-                The file containing the initial map environment data
+                File containing the initial map environment data
         """
         self.server = Server(addr, map_filename, logger=self._logger)
         # Unlike Client.start, which returns after connection, Server.start
         # returns after game is over. So we need to execute it in a different
         # thread
-        self._server_thread = threading.Thread(
-            target=self.server.start, name="server"
-        )
+        self._server_thread = threading.Thread(target=self.server.start, name="server")
         self._server_thread.start()
 
     def create_game_and_join(
-            self, address: Address, username: str, map_filename: str
+        self, address: Address, username: str, map_filename: str
     ) -> None:
         """Creates a game and joins it
 
         Parameters:
             address: Address
-                The interface and port on which the server will listen
+                Interface and port on which the server will listen
             username:
-                The player's name
+                Player's name
             map_filename: str
-                The file containing the initial map environment data
+                File containing the initial map environment data
         """
         self.create_game(address, map_filename)
 
@@ -158,15 +116,14 @@ class BaseUI(abc.ABC):
     # ---------------------------------------- #
 
     def close(self) -> None:
-        """Closes the client and the local server
-        """
+        """Closes the client and the local server"""
         if self.server is not None:
             self.server.close()
             if self._server_thread.ident is not None:
                 self._server_thread.join()
         self.client.close()
 
-    def __enter__(self: Self) -> Self:
+    def __enter__(self) -> Self:
         """Enters a context manager (with statement)
 
         Return value: BaseUI
@@ -175,21 +132,22 @@ class BaseUI(abc.ABC):
         return self
 
     def __exit__(
-            self, exc_type: Optional[type[BaseException]],
-            exc_val: Optional[BaseException],
-            exc_tb: Optional[TracebackType]
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Exits a context manager (with statement)
 
         Parameters:
-            exc_type: Optional[type[BaseException]]
-                The type of the exception that occured during the context
+            exc_type: type[BaseException] | None
+                Type of the exception that occured during the context
                 management, or `None` if none occured
-            exc_val: Optional[BaseException]
-                The value of the exception that occured during the context
+            exc_val: BaseException | None
+                Value of the exception that occured during the context
                 management, or `None` if none occured
-            exc_tb: Optional[TracebackType]
-                The traceback of the exception that occured during the context
+            exc_tb: TracebackType | None
+                Traceback of the exception that occured during the context
                 management, or `None` if none occured
 
         Return value: None

@@ -1,39 +1,27 @@
-"""Base class for configuration variables dataclasses
+"""Base class for configuration variables dataclasses"""
 
-Classes:
-    BaseConfig:
-        Base class for configuration variables dataclasses
-"""
-
+from __future__ import annotations
 
 import abc
 import dataclasses
-from collections.abc import Mapping
-from collections.abc import Sequence
-from typing import Any
-from typing import Optional
+import typing
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Mapping
+    from collections.abc import Sequence
+    from typing import Any
 
 
 @dataclasses.dataclass
 class BaseConfig(abc.ABC):
-    """Base class for configuration variables dataclasses
-
-    Methods:
-        load:
-            Loads field values from a dict
-        dump:
-            Dumps field values to a dict
-        reset:
-            Resets all, or some field values to default
-    """
+    """Base class for configuration variables dataclasses"""
 
     def load(self, new_field_values: Mapping[str, Any]) -> bool:
         """Loads field values from a dict
 
         Parameters:
             new_field_values: Mapping[str, Any]
-                The names and new values of fields to be updated
-                Unknown fields will be ignored
+                Fields new values. Unknown fields will be ignored
 
         Return value: bool
             True if all fields could be loaded from new_field_values.
@@ -59,19 +47,16 @@ class BaseConfig(abc.ABC):
         """
         return dataclasses.asdict(self)
 
-    def reset(self, fields_to_reset: Optional[Sequence[str]] = None) -> None:
+    def reset(self, fields_to_reset: Sequence[str] | None = None) -> None:
         """Resets all, or some field values to default
 
         Parameters:
-            members_to_reset: Optional[Sequence[str]] (default = None)
-                The name of attributes to reset (all by default)
+            members_to_reset: Sequence[str] | None (default = None)
+                Attributes to reset (all by default)
         """
         fields = dataclasses.fields(self)
         for field in fields:
-            if (
-                    fields_to_reset is not None and
-                    field.name not in fields_to_reset
-            ):
+            if fields_to_reset is not None and field.name not in fields_to_reset:
                 continue
             if field.default is not dataclasses.MISSING:
                 setattr(self, field.name, field.default)

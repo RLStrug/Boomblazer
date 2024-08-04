@@ -3,20 +3,19 @@
 Global variables:
     ncurses_config: _NcursesConfig
         Singleton of _Config dataclass
-
-Classes:
-    _NcursesConfig:
-        Dataclass containing the ncurses UI configuration values
 """
 
+from __future__ import annotations
 
 import curses
 import dataclasses
-from collections.abc import MutableSequence
-from typing import ClassVar
+import typing
 
 from .base_config import BaseConfig
 from .config_loader import config_instances
+
+if typing.TYPE_CHECKING:
+    from collections.abc import MutableSequence
 
 
 @dataclasses.dataclass
@@ -25,60 +24,77 @@ class _NcursesConfig(BaseConfig):
 
     Class constants:
         _DEFAULT_MENU_UP_BUTTONS: list[int]
-            The default list of buttons that move up in a menu
+            Default list of buttons that move up in a menu
         _DEFAULT_MENU_DOWN_BUTTONS: list[int]
-            The default list of buttons that move down in a menu
+            Default list of buttons that move down in a menu
         _DEFAULT_MENU_SELECT_BUTTONS: list[int]
-            The default list of buttons that select an option in a menu
+            Default list of buttons that select an option in a menu
         _DEFAULT_MOVE_UP_BUTTONS: list[int]
-            The default list of buttons that move the player upwards
+            Default list of buttons that move the player upwards
         _DEFAULT_MOVE_DOWN_BUTTONS: list[int]
-            The default list of buttons that move the player downwards
+            Default list of buttons that move the player downwards
         _DEFAULT_MOVE_LEFT_BUTTONS: list[int]
-            The default list of buttons that move the player leftwards
+            Default list of buttons that move the player leftwards
         _DEFAULT_MOVE_RIGHT_BUTTONS: list[int]
-            The default list of buttons that move the player rightwards
+            Default list of buttons that move the player rightwards
         _DEFAULT_DROP_BOMB_BUTTONS: list[int]
-            The default list of buttons that drop a bomb
+            Default list of buttons that drop a bomb
         _DEFAULT_QUIT_BUTTONS: list[int]
-            The default list of buttons that quit the game
+            Default list of buttons that quit the game
 
     Members:
         menu_up_buttons: MutableSequence[int]
-            The list of buttons that move up in a menu
+            List of buttons that move up in a menu
         menu_down_buttons: MutableSequence[int]
-            The list of buttons that move down in a menu
+            List of buttons that move down in a menu
         menu_select_buttons: MutableSequence[int]
-            The list of buttons that select an option in a menu
+            List of buttons that select an option in a menu
         move_up_buttons: MutableSequence[int]
-            The list of buttons that move the player upwards
+            List of buttons that move the player upwards
         move_down_buttons: MutableSequence[int]
-            The list of buttons that move the player downwards
+            List of buttons that move the player downwards
         move_left_buttons: MutableSequence[int]
-            The list of buttons that move the player leftwards
+            List of buttons that move the player leftwards
         move_right_buttons: MutableSequence[int]
-            The list of buttons that move the player rightwards
+            List of buttons that move the player rightwards
         drop_bomb_buttons: MutableSequence[int]
-            The list of buttons that drop a bomb
+            List of buttons that drop a bomb
         quit_buttons: MutableSequence[int]
-            The list of buttons that quit the game
+            List of buttons that quit the game
     """
 
-    _DEFAULT_MENU_UP_BUTTONS: ClassVar[list[int]] = [curses.KEY_UP,]
-    _DEFAULT_MENU_DOWN_BUTTONS: ClassVar[list[int]] = [curses.KEY_DOWN,]
-    _DEFAULT_MENU_SELECT_BUTTONS: ClassVar[list[int]] = [ord('\n'),]
-    _DEFAULT_MOVE_UP_BUTTONS: ClassVar[list[int]] = [ord("z"), curses.KEY_UP,]
-    _DEFAULT_MOVE_DOWN_BUTTONS: ClassVar[list[int]] = [
-        ord("s"), curses.KEY_DOWN,
+    _DEFAULT_MENU_UP_BUTTONS: typing.ClassVar[list[int]] = [
+        curses.KEY_UP,
     ]
-    _DEFAULT_MOVE_LEFT_BUTTONS: ClassVar[list[int]] = [
-        ord("q"), curses.KEY_LEFT,
+    _DEFAULT_MENU_DOWN_BUTTONS: typing.ClassVar[list[int]] = [
+        curses.KEY_DOWN,
     ]
-    _DEFAULT_MOVE_RIGHT_BUTTONS: ClassVar[list[int]] = [
-        ord("d"), curses.KEY_RIGHT,
+    _DEFAULT_MENU_SELECT_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("\n"),
     ]
-    _DEFAULT_DROP_BOMB_BUTTONS: ClassVar[list[int]] = [ord("b"), ord('\n'),]
-    _DEFAULT_QUIT_BUTTONS: ClassVar[list[int]] = [ord("Q"),]
+    _DEFAULT_MOVE_UP_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("z"),
+        curses.KEY_UP,
+    ]
+    _DEFAULT_MOVE_DOWN_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("s"),
+        curses.KEY_DOWN,
+    ]
+    _DEFAULT_MOVE_LEFT_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("q"),
+        curses.KEY_LEFT,
+    ]
+    _DEFAULT_MOVE_RIGHT_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("d"),
+        curses.KEY_RIGHT,
+    ]
+    _DEFAULT_DROP_BOMB_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("b"),
+        ord("\n"),
+    ]
+    _DEFAULT_QUIT_BUTTONS: typing.ClassVar[list[int]] = [
+        ord("Q"),
+    ]
 
     menu_up_buttons: MutableSequence[int] = dataclasses.field(
         default_factory=_DEFAULT_MENU_UP_BUTTONS.copy
@@ -108,5 +124,6 @@ class _NcursesConfig(BaseConfig):
         default_factory=_DEFAULT_QUIT_BUTTONS.copy
     )
 
-ncurses_config=_NcursesConfig()
+
+ncurses_config = _NcursesConfig()
 config_instances["ncurses"] = ncurses_config

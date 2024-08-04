@@ -7,11 +7,9 @@ from boomblazer.utils import argument_parser
 
 
 class TestArgumentParser(unittest.TestCase):
-    """Tests ArgumentParser
-    """
+    """Tests ArgumentParser"""
 
     @unittest.skip("TODO")
     def test_argument_parser(self) -> None:
-        """Tests argument_parser
-        """
+        """Tests argument_parser"""
         pass

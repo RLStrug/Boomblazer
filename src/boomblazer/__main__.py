@@ -21,11 +21,11 @@ Constants:
         Indicates success or failure of the program
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
-
-from collections.abc import Sequence
-from typing import Optional
+import typing
 
 from .metadata import GAME_NAME
 from .metadata import VERSION
@@ -41,8 +41,11 @@ try:
 except ImportError:
     ncurses = NotImplemented
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+
+def main(argv: Sequence[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
 
@@ -53,7 +56,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "server": server,
         "cli": cli,
         "ncurses": ncurses,
-        "pygame": NotImplemented
+        "pygame": NotImplemented,
     }
 
     ####################
@@ -63,9 +66,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument(
         "-V", "--version", action="version", version=f"{GAME_NAME} {VERSION}"
     )
-    parser.add_argument(
-        "ui", choices=ui_mapping.keys(), nargs="?", default="ncurses"
-    )
+    parser.add_argument("ui", choices=ui_mapping.keys(), nargs="?", default="ncurses")
     args = parser.parse_args(argv[0:1])  # Only parse the first argument
 
     ###############

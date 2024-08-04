@@ -11,70 +11,68 @@ Type aliases:
         Type of the formatters config
     _HandlersConfig:
         Type of the handlers config
-
-Functions:
-    _default_filters_factory:
-        Returns the default filters of the logger
-    _default_formatters_factory:
-        Returns the default formatters of the logger
-    _default_handlers_factory:
-        Returns the default handlers of the logger
-
-Classes:
-    _LoggingConfig:
-        Dataclass containing the logging configuration values
 """
 
+from __future__ import annotations
 
 import dataclasses
-from collections.abc import MutableMapping
-from typing import Any
+import typing
 
 from .base_config import BaseConfig
 
+if typing.TYPE_CHECKING:
+    from collections.abc import MutableMapping
+    from typing import Any
 
-_FiltersConfig = MutableMapping[str, MutableMapping[str, Any]]
-_FormattersConfig = MutableMapping[str, MutableMapping[str, Any]]
-_HandlersConfig = MutableMapping[str, MutableMapping[str, Any]]
+    _FiltersConfig = MutableMapping[str, MutableMapping[str, Any]]
+    _FormattersConfig = MutableMapping[str, MutableMapping[str, Any]]
+    _HandlersConfig = MutableMapping[str, MutableMapping[str, Any]]
 
 
 def _default_filters_factory() -> _FiltersConfig:
     """Returns the default filters of the logger
 
     Return value: MutableMapping[str, MutableMapping[str, Any]]
-        The default filters of the logger
+        Default filters of the logger
     """
-    return {
-    }
+    return {}
+
 
 def _default_formatters_factory() -> _FormattersConfig:
     """Returns the default formatters of the logger
 
     Return value: MutableMapping[str, MutableMapping[str, Any]]
-        The default formatters of the logger
+        Default formatters of the logger
     """
     return {
-        "simple" : {
+        "simple": {
             "class": "logging.Formatter",
             "format": "[{asctime}] [{levelname}]: {message}",
             "style": "{",
         },
         # JSON lines format
-        "jsonl" : {
+        "jsonl": {
             "class": "boomblazer.logging.json_formatter.JsonFormatter",
             "format": [
-                "message", "asctime", "levelname", "name", "module",
-                "funcName", "lineno", "threadName",
+                "message",
+                "asctime",
+                "levelname",
+                "name",
+                "module",
+                "funcName",
+                "lineno",
+                "threadName",
             ],
             "style": "compact-extra",
         },
     }
 
+
 def _default_handlers_factory() -> _HandlersConfig:
     """Returns the default handlers of the logger
 
     Return value: MutableMapping[str, MutableMapping[str, Any]]
-        The default handlers of the logger
+        Default handlers of the logger
     """
     return {
         "handler_1": {
@@ -87,7 +85,7 @@ def _default_handlers_factory() -> _HandlersConfig:
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "jsonl",
-            "filename": f"log.jsonl",
+            "filename": "log.jsonl",
             "maxBytes": 1000000,  # 1Mb
             "backupCount": 1,
         },
@@ -100,11 +98,11 @@ class _LoggingConfig(BaseConfig):
 
     Members:
         filters: _FiltersConfig
-            The filters of the logger
+            Filters of the logger
         formatters: _FormattersConfig
-            The formatters of the logger
+            Formatters of the logger
         handlers: _HandlersConfig
-            The handlers of the logger
+            Handlers of the logger
     """
 
     filters: _FiltersConfig = dataclasses.field(
@@ -118,4 +116,4 @@ class _LoggingConfig(BaseConfig):
     )
 
 
-logging_config=_LoggingConfig()
+logging_config = _LoggingConfig()

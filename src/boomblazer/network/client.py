@@ -1,21 +1,10 @@
-"""Implements a game client
+"""Implements a game client"""
 
-Classes:
-    Client: Network
-        Implements client side of the network protocol
-
-Exception classes:
-    ClientError: Exception
-        Exception thrown when an error occurs in the client
-"""
+from __future__ import annotations
 
 import json
 import threading
 import typing
-from collections.abc import Iterable
-from types import TracebackType
-from typing import Any
-from typing import Optional
 
 from ..config.client import client_config
 from ..environment.entity.player import PlayerAction
@@ -24,13 +13,15 @@ from .address import Address
 from .address import UNDEFINED_ADDRESS
 from .network import Network
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterable
+    from types import TracebackType
+    from typing import Any
+    from typing import Self
 
-# from typing import Self  # python 3.11+
-Self = typing.TypeVar("Self")
 
 class ClientError(Exception):
-    """Exception thrown when an error occurs in the client
-    """
+    """Exception thrown when an error occurs in the client"""
 
 
 class Client(Network):
@@ -49,81 +40,35 @@ class Client(Network):
             nothing. The value should not be too high either to avoid looking
             unresponsive to the user, even though the event should not happen
             often
-
-    Members:
-        server_addr: Address
-            The address of the remote game server
-        username: str
-            Defines the name of the player
-        environment: Environment
-            Defines the current game environment
-        is_game_running: bool
-            Defines if the game is running or over
-        _tick_thread: threading.Thread
-            Thread used to update the game environment when a server packet is
-            recieved
-        update_semaphore: threading.semaphore
-            Releases a token after each update recieved from the server. Its
-            number of tokens should not exceed one in order to avoid
-            overloading the underlying UI with updates if it somehow manages to
-            be slower than network. Therefore, the Client should always try to
-            acquire a token non-blockingly before releasing one.
-        connected_players: dict[str, bool]
-            Only used during lobby phase.
-            Used to list which players are ready to start
-
-    Special methods:
-        __init__:
-            Initializes a new Client
-        __enter__:
-            Enters a context manager (with statement)
-        __exit__:
-            Exits a context manager (with statement)
-
-    Methods:
-        start:
-            Joins the server and sets up the reception af server packets
-        tick:
-            Updates the game environment every time the server sends a message
-        recv_message:
-            Recieves a message from the server hosting the game
-        send_message:
-            Sends a message to the server hosting the game
-        send_ready:
-            Tells the server we are ready to start the game
-        send_join:
-            Tells the server to let the player join the game
-        send_move:
-            Tells the server that the player wants to move
-        send_plant_bomb:
-            Tells the server that the player wants to plant a bomb
-        send_quit:
-            Tells the server that the player wants to quit the game
-        close:
-            Closes the network connections
     """
 
-    __slots__ = (
-        "server_addr", "username", "environment", "is_game_running",
-        "_tick_thread", "update_semaphore", "connected_players",
-    )
+    __slots__ = {
+        "server_addr": "(Address) Address of the remote game server",
+        "username": "(str) Name of the player",
+        "environment": "(Environment) Defines the current game environment",
+        "is_game_running": "(bool) Defines if the game is running or over",
+        "_tick_thread": "(threading.Thread) Thread that updates the game environment",
+        "update_semaphore": "(threading.semaphore) Marks if server sent an update",
+        "connected_players": "(dict[str, bool]) Players readyness state",
+    }
 
     _SERVER_MESSAGE_WAIT_TIME = 0.5
 
     def __init__(
-            self, server_addr: Address = UNDEFINED_ADDRESS,
-            username: bytes = b"",
-            *args: Any, **kwargs: Any
+        self,
+        server_addr: Address = UNDEFINED_ADDRESS,
+        username: bytes = b"",
+        **kwargs: Any,
     ) -> None:
         """Initializes a new Client
 
         Parameters:
             server_addr: Address
-                The IP address and port number of the server hosting the game
+                Address of the server hosting the game
             username: str
-                The name of the player
+                Name of the player
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
         self.server_addr = server_addr
         self.username = username
         self.environment = Environment()
@@ -137,8 +82,7 @@ class Client(Network):
     # ---------------------------------------- #
 
     def start(self) -> None:
-        """Joins the server and sets up the reception af server packets
-        """
+        """Joins the server and sets up the reception af server packets"""
         if self.server_addr is UNDEFINED_ADDRESS:
             raise ClientError("Server address undefined")
 
@@ -153,21 +97,17 @@ class Client(Network):
             self._logger.info(
                 "Connected to %s:%d", self.server_addr[0], self.server_addr[1]
             )
-            self._tick_thread = threading.Thread(
-                target=self.tick, name="client-tick"
-            )
+            self._tick_thread = threading.Thread(target=self.tick, name="client-tick")
             self._tick_thread.start()
             return
 
         # If connection failed
         self._logger.info(
-            "Failed to connect to %s:%d",
-            self.server_addr[0], self.server_addr[1]
+            "Failed to connect to %s:%d", self.server_addr[0], self.server_addr[1]
         )
 
     def tick(self) -> None:
-        """Updates the game environment every time the server sends a message
-        """
+        """Updates the game environment every time the server sends a message"""
         while self.is_game_running:
             # Do not wait indefinitely in case game ended abruptly
             events = self.selector.select(self._SERVER_MESSAGE_WAIT_TIME)
@@ -200,16 +140,18 @@ class Client(Network):
 
     # @override
     def send_message(
-            self, command: bytes, arg: bytes = b"",
-            peers: Optional[Iterable[Address]] = None
+        self,
+        command: bytes,
+        arg: bytes = b"",
+        peers: Iterable[Address] | None = None,
     ) -> None:
         """Sends a message to the server hosting the game
 
         Parameters:
             command: bytes
-                The command to send to the server
+                Command to send to the server
             arg: bytes
-                The argument associated to `command`
+                Argument associated to `command`
         """
         if peers is None:
             peers = (self.server_addr,)
@@ -262,8 +204,7 @@ class Client(Network):
         self.send_message(b"BOMB")
 
     def send_quit(self) -> None:
-        """Tells the server that the player wants to quit the game
-        """
+        """Tells the server that the player wants to quit the game"""
         self.send_message(b"QUIT")
 
     # ---------------------------------------- #
@@ -272,8 +213,7 @@ class Client(Network):
 
     # @override
     def close(self) -> None:
-        """Closes the network connections
-        """
+        """Closes the network connections"""
         self.is_game_running = False
         if self._tick_thread.ident is not None:
             self._tick_thread.join()
@@ -281,7 +221,7 @@ class Client(Network):
             self.send_quit()
         super().close()
 
-    def __enter__(self: Self) -> Self:
+    def __enter__(self) -> Self:
         """Enters a context manager (with statement)
 
         Return value: Client
@@ -290,20 +230,21 @@ class Client(Network):
         return self
 
     def __exit__(
-            self, exc_type: Optional[type[BaseException]],
-            exc_val: Optional[BaseException],
-            exc_tb: Optional[TracebackType]
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Exits a context manager (with statement)
 
         Parameters:
-            exc_type: Optional[type[BaseException]]
+            exc_type: type[BaseException] | None
                 The type of the exception that occured during the context
                 management, or `None` if none occured
-            exc_val: Optional[BaseException]
+            exc_val: BaseException | None
                 The value of the exception that occured during the context
                 management, or `None` if none occured
-            exc_tb: Optional[TracebackType]
+            exc_tb: TracebackType | None
                 The traceback of the exception that occured during the context
                 management, or `None` if none occured
 

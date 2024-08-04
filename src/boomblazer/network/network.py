@@ -1,9 +1,5 @@
 """Implements a network communication protocol for the game
 
-Classes:
-    Network:
-        Base class for game network connection
-
 Constants:
     _SEPARATOR: bytes
         The bytes sequence that separtes the command from its argument
@@ -13,52 +9,38 @@ Type aliases:
         A message containing a command and an argument
 """
 
+from __future__ import annotations
+
 import logging
 import selectors
 import socket
-from collections.abc import Iterable
-from typing import Optional
+import typing
 
 from .address import Address
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterable
 
 MessageType = tuple[bytes, bytes]  # (command, argument)
 
 _SEPARATOR = b":"
 
+
 class Network:
-    """Base class for game network connection
+    """Base class for game network connection"""
 
-    Members:
-        sock: socket.socket
-            Socket that handles the network communication with UDP
-        selector: selectors.DefaultSelector
-            Event listenner for network message reception
-        _logger: logging.Logger
-            Logger that registers network traffic
-
-    Special methods:
-        __init__:
-            Initialize the Network object
-
-    Methods:
-        bind:
-            Binds the network socket to a local address
-        recv_message:
-            Recieves a message from the network and parses it
-        send_message:
-            Constructs a message and sends it to the network
-        close:
-            Closes the network connection
-    """
-
-    __slots__ = ("sock", "selector", "_logger",)
+    __slots__ = {
+        "sock": "(socket.socket) Socket that handles network communication with UDP",
+        "selector": "(selectors.DefaultSelector) Listenner for network message",
+        "_logger": "(logging.Logger) Logger that registers network traffic",
+    }
 
     def __init__(self, logger: logging.Logger) -> None:
         """Initialize the Network object
 
         Parameters:
             logger: logging.Logger
-                The network message logger
+                Network message logger
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.selector = selectors.DefaultSelector()
@@ -70,15 +52,15 @@ class Network:
 
         Parameters:
             addr: Address
-                The local address to bind the socket to
+                Local address to bind the socket to
         """
         self.sock.bind(addr)
 
-    def recv_message(self) -> tuple[Optional[MessageType], Address]:
+    def recv_message(self) -> tuple[MessageType | None, Address]:
         """Recieves a message from the network and parses it
 
-        Return value: tuple[Optional[MessageType], Address]
-            A message sent by the server and the IP address and port number
+        Return value: tuple[MessageType | None, Address]
+            Message sent by the server and the IP address and port number
             from which the message was recieved.
             The message contains a command and an argument, or is `None` if the
             message was invalid
@@ -91,17 +73,17 @@ class Network:
         return (command, arg), addr
 
     def send_message(
-            self, command: bytes, arg: bytes, peers: Iterable[Address]
+        self, command: bytes, arg: bytes, peers: Iterable[Address]
     ) -> None:
-        """Constructs a message and sends it to the network
+        """Constructs a message and sends it through the network
 
         Parameters:
             command: bytes
-                The command to send to the server
+                Command to send
             arg: bytes
-                The argument associated to `command`
+                Argument associated to `command`
             peers: Iterable[Address]
-                The peers at whom the message will be sent
+                Peers at whom the message will be sent
         """
         msg = command + _SEPARATOR + arg
         for addr in peers:
@@ -109,7 +91,6 @@ class Network:
             self.sock.sendto(msg, addr)
 
     def close(self) -> None:
-        """Closes the network connection
-        """
+        """Closes the network connection"""
         self.sock.close()
         self.selector.close()

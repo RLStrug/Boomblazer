@@ -10,15 +10,3 @@ Submodules:
     position:
         Implements the position of an entity in the game
 """
-
-from . import entity
-from . import environment
-from . import map
-from . import position
-
-__all__ = [
-    "entity",
-    "environment",
-    "map",
-    "position",
-]

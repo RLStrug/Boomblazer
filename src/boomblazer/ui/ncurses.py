@@ -2,15 +2,9 @@
 """Implements a curses interface
 
 This file can be run as a script.
-
-Classes:
-    CursesInterface: BaseUI
-        A curses interface to play the game
-
-Functions:
-    main:
-        Instanciates a curses interface and launches the game
 """
+
+from __future__ import annotations
 
 import argparse
 import curses
@@ -19,9 +13,7 @@ import curses.textpad
 import enum
 import logging
 import sys
-from collections.abc import Sequence
-from typing import Any
-from typing import Optional
+import typing
 
 from ..config.ncurses import ncurses_config
 from ..environment.entity.player import PlayerAction
@@ -31,66 +23,47 @@ from ..utils.argument_parser import base_parser
 from ..utils.argument_parser import handle_base_arguments
 from .base_ui import BaseUI
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import Any
+
 
 class CursesInterface(BaseUI):
-    """A command line interface to play the game
+    """A command line interface to play the game"""
 
-    Special methods:
-        __init__:
-            Initiates the command line user interface
+    __slots__ = {
+        "stdscr": "(curses._CursesWindow) Screen controller",
+    }
 
-    Members:
-        stdscr: curses._CursesWindow
-            The screen controller
-
-    Methods:
-        main_menu:
-            Creates or joins the game and go to the lobby
-        join_menu:
-            Gather server url and port then join
-        create_menu:
-            Gather server port, game map, username, creates server, and joins it
-        play_game:
-            Sends player actions and displays game state
-        handle_user_input:
-            Sends user input to server as player actions
-        handle_network_input:
-            Recieves game info from the server
-    """
-
-    __slots__ = ("stdscr",)
-
-    def __init__(
-            self, stdscr: curses.window, *args: Any, **kwargs: Any
-    ) -> None:
+    def __init__(self, stdscr: curses.window, *args: Any, **kwargs: Any) -> None:
         """Initiates the curses user interface
 
         Parameters:
         stdscr: curses._CursesWindow
-            The screen controller
+            Screen controller
         """
         super().__init__(*args, **kwargs)
         self.stdscr = stdscr
 
     def main_menu(self) -> None:
-        """Creates or joins the game and go to the lobby
-        """
+        """Creates or joins the game and go to the lobby"""
         waiting = True
-        choices = enum.IntEnum(
-            "MainMenuChoiceEnum",
-            "JOIN CREATE EXIT",
-            start=0
-        )
+        choices = enum.IntEnum("MainMenuChoiceEnum", "JOIN CREATE EXIT", start=0)
         current_choice = choices(0)
-        labels = (
-            "Join a game", "Create a game", "Exit"
-        )
+        labels = ("Join a game", "Create a game", "Exit")
         while waiting:
             self.stdscr.clear()
             for idx, label in enumerate(labels):
-                self.stdscr.insstr(idx, 0, label,
-                    curses.A_STANDOUT if current_choice is choices(idx)
-                    else curses.A_NORMAL)
+                self.stdscr.insstr(
+                    idx,
+                    0,
+                    label,
+                    (
+                        curses.A_STANDOUT
+                        if current_choice is choices(idx)
+                        else curses.A_NORMAL
+                    ),
+                )
 
             key = self.stdscr.getch()
             new_choice = int(current_choice)
@@ -108,29 +81,35 @@ class CursesInterface(BaseUI):
             self.create_menu()
 
     def join_menu(self) -> None:
-        """Gather server address then join
-        """
+        """Gather server address then join"""
         waiting = True
-        choices = enum.IntEnum(
-            "JoinMenuChoiceEnum",
-            "ADDRESS NAME JOIN EXIT",
-            start=0
-        )
+        choices = enum.IntEnum("JoinMenuChoiceEnum", "ADDRESS NAME JOIN EXIT", start=0)
         current_choice = choices(0)
         labels = (
-            "Server address:", "Player name:", "Join", "Exit",
+            "Server address:",
+            "Player name:",
+            "Join",
+            "Exit",
         )
         textboxes = tuple(
-            curses.textpad.Textbox(curses.newwin(
-                1, curses.COLS, idx, len(labels[idx]) + 1))
+            curses.textpad.Textbox(
+                curses.newwin(1, curses.COLS, idx, len(labels[idx]) + 1)
+            )
             for idx in range(2)
         )
         while waiting:
             self.stdscr.clear()
             for idx, label in enumerate(labels):
-                self.stdscr.insstr(idx, 0, label,
-                    curses.A_STANDOUT if current_choice is choices(idx)
-                    else curses.A_NORMAL)
+                self.stdscr.insstr(
+                    idx,
+                    0,
+                    label,
+                    (
+                        curses.A_STANDOUT
+                        if current_choice is choices(idx)
+                        else curses.A_NORMAL
+                    ),
+                )
             for idx, (label, textbox) in enumerate(zip(labels, textboxes)):
                 self.stdscr.insstr(idx, len(label) + 1, textbox.gather())
             self.stdscr.refresh()
@@ -153,9 +132,7 @@ class CursesInterface(BaseUI):
                     new_choice += 1
             current_choice = choices(new_choice % len(choices))
 
-        address = Address.from_string(
-                textboxes[choices.ADDRESS].gather().strip()
-        )
+        address = Address.from_string(textboxes[choices.ADDRESS].gather().strip())
         name = textboxes[choices.NAME].gather().strip()
 
         self.stdscr.clear()
@@ -167,29 +144,35 @@ class CursesInterface(BaseUI):
             self.lobby_menu()
 
     def create_menu(self) -> None:
-        """Gather game map, username, creates server, and joins it
-        """
+        """Gather game map, username, creates server, and joins it"""
         waiting = True
-        choices = enum.IntEnum(
-            "JoinMenuChoiceEnum",
-            "MAP NAME JOIN EXIT",
-            start=0
-        )
+        choices = enum.IntEnum("JoinMenuChoiceEnum", "MAP NAME JOIN EXIT", start=0)
         current_choice = choices(0)
         labels = (
-            "Game map:", "Player name:", "Create", "Exit",
+            "Game map:",
+            "Player name:",
+            "Create",
+            "Exit",
         )
         textboxes = tuple(
-            curses.textpad.Textbox(curses.newwin(
-                1, curses.COLS, idx, len(labels[idx]) + 1))
+            curses.textpad.Textbox(
+                curses.newwin(1, curses.COLS, idx, len(labels[idx]) + 1)
+            )
             for idx in range(2)
         )
         while waiting:
             self.stdscr.clear()
             for idx, label in enumerate(labels):
-                self.stdscr.insstr(idx, 0, label,
-                    curses.A_STANDOUT if current_choice is choices(idx)
-                    else curses.A_NORMAL)
+                self.stdscr.insstr(
+                    idx,
+                    0,
+                    label,
+                    (
+                        curses.A_STANDOUT
+                        if current_choice is choices(idx)
+                        else curses.A_NORMAL
+                    ),
+                )
             for idx, (label, textbox) in enumerate(zip(labels, textboxes)):
                 self.stdscr.insstr(idx, len(label) + 1, textbox.gather())
             self.stdscr.refresh()
@@ -226,15 +209,13 @@ class CursesInterface(BaseUI):
             self.lobby_menu()
 
     def lobby_menu(self) -> None:
-        """Wait in lobby for everyone to be ready to start game
-        """
+        """Wait in lobby for everyone to be ready to start game"""
         need_redraw = True
-        choices = enum.IntEnum(
-            "LobbyMenuChoiceEnum",
-            "READY EXIT",
-            start=0
+        choices = enum.IntEnum("LobbyMenuChoiceEnum", "READY EXIT", start=0)
+        labels = (
+            "Ready",
+            "Exit",
         )
-        labels = ("Ready", "Exit",)
         current_choice = choices(0)
 
         self.stdscr.nodelay(True)  # User input is non blocking
@@ -244,16 +225,21 @@ class CursesInterface(BaseUI):
                 need_redraw = False
                 self.stdscr.clear()
                 for idx, (player, is_ready) in enumerate(
-                        self.client.connected_players.items()
+                    self.client.connected_players.items()
                 ):
                     self.stdscr.insstr(idx, 0, f"{player}")
                     if is_ready:
                         self.stdscr.insstr(idx, len(player), " (ready)")
                 for idx, label in enumerate(labels):
                     self.stdscr.insstr(
-                        curses.LINES - len(choices) + idx, 0, label,
-                        curses.A_STANDOUT if current_choice is choices(idx)
-                        else curses.A_NORMAL
+                        curses.LINES - len(choices) + idx,
+                        0,
+                        label,
+                        (
+                            curses.A_STANDOUT
+                            if current_choice is choices(idx)
+                            else curses.A_NORMAL
+                        ),
                     )
 
             key = self.stdscr.getch()
@@ -278,10 +264,8 @@ class CursesInterface(BaseUI):
         self.play_game()
         self.stdscr.nodelay(False)  # User input is blocking
 
-
     def play_game(self) -> None:
-        """Sends player actions and displays game state
-        """
+        """Sends player actions and displays game state"""
         need_redraw = True
 
         while self.client.is_game_running:
@@ -313,7 +297,7 @@ def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
 
     Parameters:
         stdscr: curses._CursesWindow
-            The screen controller
+            Screen controller
         args: argparse.Namespace
             Parsed arguments
     """
@@ -326,7 +310,7 @@ def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
     return 0
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """Instanciates a curses interface
 
     Parameters:

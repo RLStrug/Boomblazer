@@ -7,11 +7,9 @@ from boomblazer.environment.entity import fire
 
 
 class TestFire(unittest.TestCase):
-    """Tests Fire
-    """
+    """Tests Fire"""
 
     @unittest.skip("TODO")
     def test_fire(self) -> None:
-        """Tests fire
-        """
+        """Tests fire"""
         pass

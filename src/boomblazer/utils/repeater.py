@@ -1,15 +1,14 @@
-"""Defines a thread that executes a function at regular interval
+"""Defines a thread that executes a function at regular interval"""
 
-Classes:
-    Repeater: threading.Thread
-        A thread that repeats the execution of a function at regular interval
-"""
+from __future__ import annotations
 
 import threading
 import time
-from collections.abc import Callable
-from typing import Any
-from typing import Optional
+import typing
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import Any
 
 
 class Repeater(threading.Thread):
@@ -19,29 +18,21 @@ class Repeater(threading.Thread):
         interval: float
         function: Callable[[...], None]
         finished: threading.Event
-
-    Special Methods:
-        __init__:
-
-    Methods:
-        stop:
-            Stops the repeater
-        repeat:
-            Repeats the given function until the repeater is stopped
     """
 
     def __init__(
-            self, interval: float = 0.0,
-            target: Optional[Callable[..., None]] = None,
-            **kwargs: Any
+        self,
+        interval: float = 0.0,
+        target: Callable[..., None] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Initializes the Repeater
 
         Parameters:
             interval: float (default = 0.0)
-                The interval in seconds between 2 repeats
-            target: Optional[Callable[[...], None]]
-                The function that should be repeated.
+                Interval in seconds between 2 repeats
+            target: Callable[[...], None] | None
+                Function that should be repeated.
                 If None, nothing will be executed
             **kwargs:
                 Keyword arguments to pass to threading.Thread constructor
@@ -53,8 +44,7 @@ class Repeater(threading.Thread):
         self.finished = threading.Event()
 
     def stop(self) -> None:
-        """Stops the repeater
-        """
+        """Stops the repeater"""
         self.finished.set()
 
     def repeat(self, *args: Any, **kwargs: Any) -> None:
@@ -62,9 +52,9 @@ class Repeater(threading.Thread):
 
         Parameters:
             *args:
-                Positional arguments to be passed to the function
+                Positional arguments to be passed to self.function
             **kwargs:
-                Keyword arguments to be passed to the function
+                Keyword arguments to be passed to self.function
         """
         timer = self.interval
         try:

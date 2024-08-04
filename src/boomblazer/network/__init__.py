@@ -10,15 +10,3 @@ Submodules:
     server:
         Implements a game server
 """
-
-from . import address
-from . import client
-from . import network
-from . import server
-
-__all__ = [
-    "address",
-    "client",
-    "network",
-    "server",
-]

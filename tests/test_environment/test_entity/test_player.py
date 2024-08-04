@@ -7,11 +7,9 @@ from boomblazer.environment.entity import player
 
 
 class TestPlayer(unittest.TestCase):
-    """Tests Player
-    """
+    """Tests Player"""
 
     @unittest.skip("TODO")
     def test_player(self) -> None:
-        """Tests player
-        """
+        """Tests player"""
         pass

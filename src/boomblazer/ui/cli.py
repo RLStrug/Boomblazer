@@ -4,24 +4,16 @@
 This is for debug purposes, the game is not meant to be playable with this
 interface.
 This file can be run as a script.
-
-Classes:
-    CommandLineInterface: BaseUI
-        A command line interface to play the game
-
-Functions:
-    main:
-        Instanciates a CLI and launches the game
 """
+
+from __future__ import annotations
 
 import argparse
 import logging
 import selectors
 import shutil
 import sys
-from collections.abc import Sequence
-from typing import Any
-from typing import Optional
+import typing
 
 from ..config.cli import cli_config
 from ..environment.entity.player import PlayerAction
@@ -31,67 +23,43 @@ from ..utils.argument_parser import base_parser
 from ..utils.argument_parser import handle_base_arguments
 from .base_ui import BaseUI
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import Any
+
 
 class CommandLineInterface(BaseUI):
-    """A command line interface to play the game
-
-    Special methods:
-        __init__:
-            Initiates the command line user interface
-
-    Methods:
-        main_menu:
-            Creates or joins the game and go to the lobby
-        play_game:
-            Sends player actions and displays game state
-        handle_user_input:
-            Sends user input to server as player actions
-        handle_network_input:
-            Recieves game info from the server
-    """
+    """A command line interface to play the game"""
 
     __slots__ = ()
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initiates the command line user interface
-        """
-        super().__init__(*args, **kwargs)
 
     def main_menu(self, args: argparse.Namespace) -> None:
         """Creates or joins the game and go to the lobby
 
         Parameters:
             args: argparse.Namespace
-                The arguments given through the command line.
+                Arguments given through the command line.
                 It must contain the following:
                     cmd: str
                         Whether to join, or create the game
                     address (join only): str
-                        The address of the server
-                    port: int
-                        The port of the server
+                        Address of the server
                     name: str
-                        The player name
+                        Player name
                     map_filename (create only): pathlib.Path
-                        The file containing the map data
+                        File containing the map data
         """
         if args.cmd == "join":
             self.join_game(args.address, args.name)
         elif args.cmd == "create":
-            self.create_game_and_join(
-                args.address, args.name, args.map_filename
-            )
+            self.create_game_and_join(args.address, args.name, args.map_filename)
         else:  # exit
             return
         self.play_game()
 
     def play_game(self) -> None:
-        """Sends player actions and displays game state
-        """
-        print(
-            f'Send "{cli_config.ready_commands[0]}" when you are ready '
-            'to start the game.'
-        )
+        """Sends player actions and displays game state"""
+        print(f"Send {cli_config.ready_commands[0]} when you are ready to start")
         print("The game will start when all players are ready")
         print(
             f"up: {cli_config.up_commands[0]} ; "
@@ -114,8 +82,7 @@ class CommandLineInterface(BaseUI):
                 self.handle_network_input()
 
     def handle_user_input(self, cmd: str) -> None:
-        """Sends user input to server as player actions
-        """
+        """Sends user input to server as player actions"""
         if cmd in cli_config.ready_commands:
             self.client.send_ready()
         elif cmd in cli_config.up_commands:
@@ -133,8 +100,7 @@ class CommandLineInterface(BaseUI):
             self.client.is_game_running = False
 
     def handle_network_input(self) -> None:
-        """Recieves game info from the server
-        """
+        """Recieves game info from the server"""
         if self.client.environment.map.version == 0:
             print("Players:")
             for player, is_ready in self.client.connected_players.items():
@@ -145,7 +111,7 @@ class CommandLineInterface(BaseUI):
             print(self.client.environment)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """Instanciates a CLI and launches the game
 
     Parameters:
@@ -156,15 +122,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     subparsers = parser.add_subparsers(dest="cmd")
 
     parser_join = subparsers.add_parser("join")
-    parser_join.add_argument(
-        "address", metavar="HOST[:PORT]", type=Address.from_string
-    )
+    parser_join.add_argument("address", metavar="HOST[:PORT]", type=Address.from_string)
     parser_join.add_argument("name")
 
     parser_create = subparsers.add_parser("create")
     parser_create.add_argument(
-        "--address", metavar="[[HOST]:[PORT]]", type=Address.from_string,
-        default=""
+        "--address", metavar="[[HOST]:[PORT]]", type=Address.from_string, default=""
     )
     parser_create.add_argument("name")
     parser_create.add_argument("map_filename")

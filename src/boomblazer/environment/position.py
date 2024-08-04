@@ -1,20 +1,16 @@
-"""Implements the position of an entity in the game
-
-Classes:
-    Position:
-        Represents a position in the game
-"""
+"""Implements the position of an entity in the game"""
 
 import typing
+
 
 class Position(typing.NamedTuple):
     """Represents a position in the game
 
     Members:
         x: int
-            The column (horizontal position) at which the entity is located
+            Column (horizontal position) at which the entity is located
         y: int
-            The row (vertical position) at which the entity is located
+            Row (vertical position) at which the entity is located
     """
 
     x: int
@@ -25,11 +21,10 @@ class Position(typing.NamedTuple):
 
         Parameters:
             step: int (default = 1)
-                How much should the new position should be moved from the
-                current
+                How much should the new position should be moved from the current
 
         Return value: Position
-            The new position
+            Upwards position
         """
         return Position(self.x, self.y - step)
 
@@ -38,11 +33,10 @@ class Position(typing.NamedTuple):
 
         Parameters:
             step: int (default = 1)
-                How much should the new position should be moved from the
-                current
+                How much should the new position should be moved from the current
 
         Return value: Position
-            The new position
+            Downwards position
         """
         return Position(self.x, self.y + step)
 
@@ -51,11 +45,10 @@ class Position(typing.NamedTuple):
 
         Parameters:
             step: int (default = 1)
-                How much should the new position should be moved from the
-                current
+                How much should the new position should be moved from the current
 
         Return value: Position
-            The new position
+            Leftwards position
         """
         return Position(self.x - step, self.y)
 
@@ -64,10 +57,9 @@ class Position(typing.NamedTuple):
 
         Parameters:
             step: int (default = 1)
-                How much should the new position should be moved from the
-                current
+                How much should the new position should be moved from the current
 
         Return value: Position
-            The new position
+            Rightwards position
         """
         return Position(self.x + step, self.y)

@@ -3,15 +3,12 @@
 Global variables:
     client_config: _ClientConfig
         Singleton of _ClientConfig dataclass
-
-Classes:
-    _ClientConfig:
-        Dataclass containing the client configuration values
 """
 
+from __future__ import annotations
 
 import dataclasses
-from typing import ClassVar
+import typing
 
 from .base_config import BaseConfig
 
@@ -22,25 +19,22 @@ class _ClientConfig(BaseConfig):
 
     Class constants:
         _DEFAULT_MAX_CONNECT_TRIES: int
-            The default number of times a client should try connecting to a
-            server
+            Default number of times the client will try to connect to the server
         _DEFAULT_MAX_CONNECT_WAIT: float
-            The default number of seconds a client should wait for server
-            answer before trying again to connect or giving up
+            Default waiting time for server connection answer
 
     Members:
         max_connect_tries: int
-            The number of times a client should try connecting to a server
+            Number of times the client will try to connect to the server
         max_connect_wait: float
-            The number of seconds a client should wait for server answer before
-            trying again to connect or giving up
+            Waiting time for server connection answer
     """
 
-    _DEFAULT_MAX_CONNECT_TRIES: ClassVar[int] = 3
-    _DEFAULT_MAX_CONNECT_WAIT: ClassVar[float] = 1.0
+    _DEFAULT_MAX_CONNECT_TRIES: typing.ClassVar[int] = 3
+    _DEFAULT_MAX_CONNECT_WAIT: typing.ClassVar[float] = 1.0
 
     max_connect_tries: int = _DEFAULT_MAX_CONNECT_TRIES
     max_connect_wait: float = _DEFAULT_MAX_CONNECT_WAIT
 
 
-client_config=_ClientConfig()
+client_config = _ClientConfig()

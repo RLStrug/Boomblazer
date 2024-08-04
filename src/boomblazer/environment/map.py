@@ -1,32 +1,18 @@
-"""Implements a game map
+"""Implements a game map"""
 
-Enumerations:
-    MapCell:
-        Represents a cell content on the map
-
-Classes:
-    Map:
-        The game map data
-
-Type aliases:
-    MapDict:
-        Result of the conversion from a Map to a dict
-
-Exception classes:
-    MapError: Exception
-        Error raised when a Map intialization data is invalid
-"""
+from __future__ import annotations
 
 import enum
-import importlib
 import typing
-from collections.abc import Iterator
-from collections.abc import Mapping
-from typing import Any
-from typing import IO
-from typing import Optional
 
 from .position import Position
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterator
+    from collections.abc import Mapping
+    from importlib.resources.abc import Traversable
+    from typing import Any
+    from typing import IO
 
 
 class MapError(Exception):
@@ -39,72 +25,42 @@ class MapError(Exception):
 
 
 class MapCell(enum.Enum):
-    """Represents a cell content on the map
-    """
+    """Represents a cell content on the map"""
+
     WALL = "#"  # not destructible wall
     BOX = "+"  # destructible
     EMPTY = " "
     SPAWN = "S"
 
 
-MapDict = typing.TypedDict(
-    "MapDict",
-    {
-        "version": int,
-        "data": list[str],
-    }
-)
+class MapDict(typing.TypedDict):
+    """Map Serialization"""
+
+    version: int
+    data: list[str]
 
 
 class Map:
-    """Represents a game map current state
+    """Represents a game map current state"""
 
-    Members:
-        version: int
-            The map version number. This ensures compatibility between server,
-            clients, and map file
-        _data: list[list[MapCell]]
-            The map cells data
-
-    Class methods:
-        from_io_data:
-            Instanciates a Map from IO data
-        from_file:
-            Instanciates a Map from a file
-        from_dict:
-            Instanciates a Map from a dict
-
-    Special methods:
-        __init__:
-            Initializes a game Map
-        __iter__:
-            Iterates over map rows
-        __getitem__:
-            Gets a cell from the map
-        __setitem__:
-            Sets a cell from the map
-        __str__:
-            Returns a printable representation of the map
-
-    Methods:
-        to_dict:
-            Returns the current instance data in the form of a dict
-    """
-
-    __slots__ = ("version", "_data",)
+    __slots__ = {
+        "version": "(int) Map version number",
+        "_data": "(list[list[MapCell]]) Map cells",
+    }
 
     def __init__(
-            self, version: int = 0,
-            data: Optional[list[list[MapCell]]] = None,
+        self,
+        version: int = 0,
+        data: list[list[MapCell]] | None = None,
     ) -> None:
         """Initializes a game Map
 
         Parameters:
             version: int (default = 0)
-                The map version number. This ensures compatibility between
+                Map version number. This ensures compatibility between
                 server, clients, and map file
             data: list[list[MapCell]] (default = [[]])
-                The map cells data
+                Map cells data
         """
         self.version = version
         self._data = data or [[]]
@@ -122,7 +78,7 @@ class Map:
                 IO object containing the initial map data
 
         Return value: Map
-            A Map instance initialized from the IO data
+            Map instance initialized from the IO data
         """
         # Get version number
         magic_string = "Boomblazer map version alpha "
@@ -137,10 +93,7 @@ class Map:
             raise MapError("Version number should be a number... >:(") from exc
 
         try:
-            data = [
-                [MapCell(cell) for cell in line.rstrip("\r\n")]
-                for line in map_io
-            ]
+            data = [[MapCell(cell) for cell in line.rstrip("\r\n")] for line in map_io]
         except ValueError as exc:
             raise MapError("Unknown map cell value") from exc
 
@@ -148,13 +101,11 @@ class Map:
         return map_
 
     @classmethod
-    def from_file(cls, map_filepath: importlib.abc.Traversable) -> "Map":
+    def from_file(cls, map_filepath: Traversable) -> "Map":
         """Instanciates a Map from a file
 
-        Used by the server when starting a new game
-
         Parameters:
-            map_filepath: importlib.abc.Traversable
+            map_filepath: importlib.resources.abc.Traversable
                 Path to the file containing the initial map data
 
         Return value: Map
@@ -174,19 +125,12 @@ class Map:
 
         Parameters:
             data: Mapping[str, Any]
-                A mapping that should contain the following keys and values:
-                    version: int
-                        The map version number
-                    data: Sequence[Sequence[str]]
-                        The map current environment state
+                A mapping that should be like MapDict
 
         Return value: Map
-            A Map instance initialized from data
+            Map instance initialized from data
         """
-        map_data = [
-            [MapCell(cell) for cell in row]
-            for row in data["data"]
-        ]
+        map_data = [[MapCell(cell) for cell in row] for row in data["data"]]
         return cls(
             version=int(data["version"]),
             data=map_data,
@@ -197,17 +141,15 @@ class Map:
     # ---------------------------------------- #
 
     def to_dict(self) -> MapDict:
-        """Returns the current instance data in the form of a dict
+        """Returns the current instance data serialized
 
         Return value: MapDict
-            A dictionary containing the map version number, and the cells data
+            Serialized Map
         """
-        return MapDict({
-            "version": self.version,
-            "data": [
-                "".join(cell.value for cell in row) for row in self._data
-            ],
-        })
+        return MapDict(
+            version=self.version,
+            data=["".join(cell.value for cell in row) for row in self._data],
+        )
 
     # ---------------------------------------- #
     # CELL GET/SET
@@ -218,7 +160,7 @@ class Map:
 
         Parameters:
             position: Position
-                The coordinates of the cell to fetch
+                Coordinates of the cell to fetch
         """
         return self._data[position.y][position.x]
 
@@ -227,9 +169,9 @@ class Map:
 
         Parameters:
             position: Position
-                The coordinates of the cell to update
+                Coordinates of the cell to update
             value: MapCell
-                The new value of the selected cell
+                New value of the selected cell
         """
         self._data[position.y][position.x] = MapCell(value)
 
@@ -241,7 +183,7 @@ class Map:
         """Iterates over map rows
 
         Return value: Iterator[list[MapCell]]
-            An Iterator that yields the map rows
+            Iterator that yields the map rows
         """
         return iter(self._data)
 
@@ -249,9 +191,6 @@ class Map:
         """Returns a printable representation of the map
 
         Return value:
-            A printable representation of the map
+            Printable representation of the map
         """
-        return "\n".join(
-            "".join(cell.value for cell in row)
-            for row in self._data
-        )
+        return "\n".join("".join(cell.value for cell in row) for row in self._data)

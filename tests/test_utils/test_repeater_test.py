@@ -14,18 +14,14 @@ def spam(times: queue.SimpleQueue[float]) -> None:
 
 
 class TestRepeater(unittest.TestCase):
-    """Tests Repeater
-    """
+    """Tests Repeater"""
 
     def test_repeater(self) -> None:
-        """Tests Repeater usage
-        """
-        times : queue.SimpleQueue[float] = queue.SimpleQueue()
+        """Tests Repeater usage"""
+        times: queue.SimpleQueue[float] = queue.SimpleQueue()
 
         thread = Repeater(
-            interval=0.02, target=spam,
-            name="RepeaterThread",
-            args=(times,)
+            interval=0.02, target=spam, name="RepeaterThread", args=(times,)
         )
 
         thread.start()
@@ -37,7 +33,6 @@ class TestRepeater(unittest.TestCase):
         for _ in range(2):
             t1 = times.get_nowait()
             self.assertAlmostEqual(
-                t1 - t0, 0.02, places=3,
-                msg="The function did not repeat in due time"
+                t1 - t0, 0.02, places=3, msg="The function did not repeat in due time"
             )
             t0 = t1

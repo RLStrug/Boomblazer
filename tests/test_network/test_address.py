@@ -7,11 +7,9 @@ from boomblazer.network import address
 
 
 class TestAddress(unittest.TestCase):
-    """Tests Address
-    """
+    """Tests Address"""
 
     @unittest.skip("TODO")
     def test_address(self) -> None:
-        """Tests address
-        """
+        """Tests address"""
         pass

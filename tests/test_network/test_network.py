@@ -7,11 +7,9 @@ from boomblazer.network import network
 
 
 class TestNetwork(unittest.TestCase):
-    """Tests Network
-    """
+    """Tests Network"""
 
     @unittest.skip("TODO")
     def test_network(self) -> None:
-        """Tests network
-        """
+        """Tests network"""
         pass

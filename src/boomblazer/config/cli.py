@@ -3,19 +3,18 @@
 Global variables:
     cli_config: _CLI_Config
         Singleton of _Config dataclass
-
-Classes:
-    _CLI_Config:
-        Dataclass containing the CLI configuration values
 """
 
+from __future__ import annotations
 
 import dataclasses
-from collections.abc import MutableSequence
-from typing import ClassVar
+import typing
 
 from .base_config import BaseConfig
 from .config_loader import config_instances
+
+if typing.TYPE_CHECKING:
+    from collections.abc import MutableSequence
 
 
 @dataclasses.dataclass
@@ -24,57 +23,66 @@ class _CLI_Config(BaseConfig):
 
     Class constants:
         _DEFAULT_UP_COMMANDS: list[str]
-            The default list of commands that move the player upwards
+            Default list of commands that move the player upwards
         _DEFAULT_DOWN_COMMANDS: list[str]
-            The default list of commands that move the player downwards
+            Default list of commands that move the player downwards
         _DEFAULT_LEFT_COMMANDS: list[str]
-            The default list of commands that move the player leftwards
+            Default list of commands that move the player leftwards
         _DEFAULT_RIGHT_COMMANDS: list[str]
-            The default list of commands that move the player rightwards
+            Default list of commands that move the player rightwards
         _DEFAULT_BOMB_COMMANDS: list[str]
-            The default list of commands that drop a bomb
+            Default list of commands that drop a bomb
         _DEFAULT_QUIT_COMMANDS: list[str]
-            The default list of commands that quit the game
+            Default list of commands that quit the game
         _DEFAULT_READY_COMMANDS: list[str]
-            The default list of commands that start the game
+            Default list of commands that start the game
 
     Members:
         up_commands: MutableSequence[str]
-            The list of commands that move the player upwards
+            List of commands that move the player upwards
         down_commands: MutableSequence[str]
-            The list of commands that move the player downwards
+            List of commands that move the player downwards
         left_commands: MutableSequence[str]
-            The list of commands that move the player leftwards
+            List of commands that move the player leftwards
         right_commands: MutableSequence[str]
-            The list of commands that move the player rightwards
+            List of commands that move the player rightwards
         bomb_commands: MutableSequence[str]
-            The list of commands that drop a bomb
+            List of commands that drop a bomb
         quit_commands: MutableSequence[str]
-            The list of commands that quit the game
+            List of commands that quit the game
         ready_commands: MutableSequence[str]
-            The list of commands that start the game
+            List of commands that start the game
     """
 
-    _DEFAULT_UP_COMMANDS: ClassVar[list[str]] = [
-        "z", "up",
+    _DEFAULT_UP_COMMANDS: typing.ClassVar[list[str]] = [
+        "z",
+        "up",
     ]
-    _DEFAULT_DOWN_COMMANDS: ClassVar[list[str]] = [
-        "s", "down",
+    _DEFAULT_DOWN_COMMANDS: typing.ClassVar[list[str]] = [
+        "s",
+        "down",
     ]
-    _DEFAULT_LEFT_COMMANDS: ClassVar[list[str]] = [
-        "q", "left"
+    _DEFAULT_LEFT_COMMANDS: typing.ClassVar[list[str]] = [
+        "q",
+        "left",
     ]
-    _DEFAULT_RIGHT_COMMANDS: ClassVar[list[str]] = [
-        "d", "right"
+    _DEFAULT_RIGHT_COMMANDS: typing.ClassVar[list[str]] = [
+        "d",
+        "right",
     ]
-    _DEFAULT_BOMB_COMMANDS: ClassVar[list[str]] = [
-        "b", "bomb",
+    _DEFAULT_BOMB_COMMANDS: typing.ClassVar[list[str]] = [
+        "b",
+        "bomb",
     ]
-    _DEFAULT_QUIT_COMMANDS: ClassVar[list[str]] = [
-        "Q", "quit", "exit", "stop",
+    _DEFAULT_QUIT_COMMANDS: typing.ClassVar[list[str]] = [
+        "Q",
+        "quit",
+        "exit",
+        "stop",
     ]
-    _DEFAULT_READY_COMMANDS: ClassVar[list[str]] = [
-        "ready", "start",
+    _DEFAULT_READY_COMMANDS: typing.ClassVar[list[str]] = [
+        "ready",
+        "start",
     ]
 
     up_commands: MutableSequence[str] = dataclasses.field(
@@ -100,5 +108,5 @@ class _CLI_Config(BaseConfig):
     )
 
 
-cli_config=_CLI_Config()
+cli_config = _CLI_Config()
 config_instances["cli"] = cli_config

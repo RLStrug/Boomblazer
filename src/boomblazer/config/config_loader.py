@@ -2,26 +2,18 @@
 
 Global variables:
     config_filename: pathlib.Path
-        Path to the file containing the config values. Once set to a valid file
-        path, it should not be modified
+        Path to the file containing the config values.
     config_instances: dict[str, BaseConfig]
         Mapping pointing to the dataclasse singletons
-
-Functions:
-    _find_config_file:
-        Returns the usual paths where the config file should be
-    load_config:
-        Loads the config values from the file pointed by config_filename
-    save_config:
-        Saves the config values to the file pointed by config_filename
 """
+
+from __future__ import annotations
 
 import json
 import logging
 import pathlib
 import platform
-from collections.abc import Iterator
-from typing import Optional
+import typing
 
 from ..metadata import GAME_NAME
 from .base_config import BaseConfig
@@ -31,8 +23,11 @@ from .game_folders import game_folders_config
 from .logging import logging_config
 from .server import server_config
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterator
 
-config_filename : Optional[pathlib.Path] = None
+
+config_filename: pathlib.Path | None = None
 
 config_instances: dict[str, BaseConfig] = {
     "client": client_config,
@@ -49,7 +44,7 @@ def _find_config_file() -> Iterator[pathlib.Path]:
     """Returns the usual paths where the config file should be
 
     Return value: Iterator[pathlib.Path]
-        The paths where the config file should be, in prefered order
+        Paths where the config file should be, in prefered order
     """
     os = platform.system()
     if os == "Linux":
@@ -59,14 +54,11 @@ def _find_config_file() -> Iterator[pathlib.Path]:
     if os == "Windows":
         ...
     # else ("Java", ""): pass
-    yield pathlib.Path(
-        ".", f"{GAME_NAME}_data", "config", f"{GAME_NAME}_config.json"
-    )
+    yield pathlib.Path(".", f"{GAME_NAME}_data", "config", f"{GAME_NAME}_config.json")
 
 
 def load_config() -> None:
-    """Loads the config values from the file pointed by config_filename
-    """
+    """Loads config values from the file pointed by config_filename"""
     global config_filename
     # If config file is not set, search in usual places
     if config_filename is None:
@@ -98,10 +90,8 @@ def load_config() -> None:
     game_folders_config.custom_maps_folder.mkdir(parents=True, exist_ok=True)
 
 
-
 def save_config() -> None:
-    """Saves the config values to the file pointed by config_filename
-    """
+    """Saves config values to the file pointed by config_filename"""
     global config_filename
     # If config file is not set, search in usual places
     if config_filename is None:

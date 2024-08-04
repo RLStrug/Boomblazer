@@ -1,27 +1,9 @@
-"""Implements a game player
+"""Implements a game player"""
 
-Enumerations:
-    PlayerAction:
-        Actions that can be performed by a player
-
-Classes:
-    Player:
-        Represents a game player
-
-Type aliases:
-    PlayerDict:
-        Result of the conversion from a Player to a dict
-
-Exception classes:
-    CannotDropBombError: Exception
-        Error raised when a Player tries to plant a bomb unsuccessfully
-"""
+from __future__ import annotations
 
 import enum
 import typing
-from collections.abc import Mapping
-from typing import Any
-from typing import Optional
 
 from ...config.game import game_config
 from ..map import MapCell
@@ -29,12 +11,15 @@ from ..position import Position
 from .bomb import Bomb
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import Any
+
     from ..environment import Environment
 
 
 class PlayerAction(enum.Flag):
-    """Actions that can be performed by a player
-    """
+    """Actions that can be performed by a player"""
+
     MOVE_UP = enum.auto()
     MOVE_DOWN = enum.auto()
     MOVE_LEFT = enum.auto()
@@ -43,80 +28,54 @@ class PlayerAction(enum.Flag):
 
 
 class CannotDropBombError(Exception):
-    """Error raised when a Player tries to plant a bomb unsuccessfully
-    """
+    """Error raised when a Player tries to plant a bomb unsuccessfully"""
 
 
-PlayerDict = typing.TypedDict(
-    "PlayerDict",
-    {
-        "name": str, "position": Position, "max_bomb_count": int,
-        "current_bomb_count": int, "bomb_range": int
-    }
-)
+class PlayerDict(typing.TypedDict):
+    """Serialization of a Player"""
+
+    name: str
+    position: Position
+    max_bomb_count: int
+    current_bomb_count: int
+    bomb_range: int
 
 
 class Player:
-    """Represents a game player
+    """Represents a game player"""
 
-    Members:
-        name: str
-            The player's name
-        position: Position
-            The position at which the player is located
-        max_bomb_count: int
-            The current maximum amount of bombs a player can plant at the same
-            time
-        current_bomb_count: int
-            The current number of active bombs planted by the player
-        bomb_range: int
-            The range in blocks of a bomb explosion blast
+    __slots__ = {
+        "name": "(str) Player's name",
+        "position": "(Position) Position at which the player is located",
+        "max_bomb_count": "(int) Maximum amount of bombs that can be planted",
+        "current_bomb_count": "(int) Number of bombs planted",
+        "bomb_range": "(int) Range of a bomb explosion blast",
+    }
 
-    Class methods:
-        from_dict:
-            Instanciates a Player from a dict
-
-    Special methods:
-        __init__:
-            Initialize the player data
-
-    Methods:
-        create_bomb:
-            Tries to plant a bomb at player's position
-        increment_bomb_range:
-            Makes the player's planted bombs have a larger blast range
-        increment_max_bomb_count:
-            Allows the player to plant more bombs at the same time
-        decrement_max_bomb_count:
-            Forces the player to plant less bombs at the same time
-    """
-
-    __slots__ = (
-        "name", "position", "max_bomb_count", "current_bomb_count",
-        "bomb_range",
-    )
-
-    def __init__(self, name: str, position: Position = Position(0, 0), *,
-            max_bomb_count: Optional[int] = None,
-            current_bomb_count: int = 0,
-            bomb_range: Optional[int] = None
+    def __init__(
+        self,
+        name: str,
+        position: Position = Position(0, 0),
+        *,
+        max_bomb_count: int | None = None,
+        current_bomb_count: int = 0,
+        bomb_range: int | None = None,
     ) -> None:
-        """Initialize the player data
+        """Initialize player data
 
         Parameters:
             name: str
-                The player's name
+                Player's name
             position: Position, default=(0,0)
-                The player's position
+                Player's position
 
         Keyword only parameters:
             max_bomb_count:
-                The current maximum amount of bombs the player can plant at the
-                same time
+                Current maximum amount of bombs that can be planted at the same time
             current_bomb_count: int
-                The current number of active bombs planted by the player
+                Current number of active bombs planted
             bomb_range: int
-                The range in blocks of a bomb explosion blast
+                Range of a bomb explosion blast
         """
         if max_bomb_count is None:
             max_bomb_count = game_config.player_bomb_count
@@ -136,7 +95,7 @@ class Player:
         """Tries to plant a bomb at player's position
 
         Return value:
-            The newly plated Bomb instance
+            The newly planted Bomb
 
         Raises:
             CannotDropBombError:
@@ -148,21 +107,6 @@ class Player:
         self.current_bomb_count += 1
         return Bomb(self.position, self, self.bomb_range)
 
-    def increment_bomb_range(self) -> None:
-        """Makes the player's planted bombs have a larger blast range
-        """
-        self.bomb_range += 1
-
-    def increment_max_bomb_count(self) -> None:
-        """Allows the player to plant more bombs at the same time
-        """
-        self.max_bomb_count += 1
-
-    def decrement_current_bomb_count(self) -> None:
-        """Forces the player to plant less bombs at the same time
-        """
-        self.current_bomb_count -= 1
-
     # ---------------------------------------- #
     # GAME LOGIC
     # ---------------------------------------- #
@@ -172,19 +116,19 @@ class Player:
 
         Parameters:
             action: PlayerAction
-                The actions performed by the player on this tick
+                Actions performed by the player on this tick
             environment: Environment
-                The game environment
+                Game environment
         """
         if (
-                action & PlayerAction.PLANT_BOMB and
-                self.current_bomb_count < self.max_bomb_count
-                # # Is it truly useful to forbid planting a bomb on top of
-                # # another? To prevent planting multiple bombs by accident?
-                # not self.environment.bomb_here(player.position) and
-                # # Is it possible for the player to be standing on a cell that
-                # # is unsuitable for planting a bomb?
-                # self.environment.map[player.position] == MapCell.EMPTY
+            action & PlayerAction.PLANT_BOMB
+            and self.current_bomb_count < self.max_bomb_count
+            # # Is it truly useful to forbid planting a bomb on top of
+            # # another? To prevent planting multiple bombs by accident?
+            # not self.environment.bomb_here(player.position) and
+            # # Is it possible for the player to be standing on a cell that
+            # # is unsuitable for planting a bomb?
+            # self.environment.map[player.position] == MapCell.EMPTY
         ):
             new_bomb = self.create_bomb()
             environment.bombs.append(new_bomb)
@@ -212,29 +156,17 @@ class Player:
 
         Parameters:
             data: Mapping[str, Any]
-                A mapping that should contain the following keys and values:
-                    name: str
-                        The player's name
-                    position: Sequence[int] (length = 2)
-                        The player's X and Y coordinates
-                    max_bomb_count: int
-                        The current maximum amount of bombs the player can
-                        plant at the same time
-                    current_bomb_count: int
-                        The current number of active bombs planted by the
-                        player
-                    bomb_range: int
-                        The range in blocks of a bomb explosion blast
+                A mapping that be like PlayerDict
 
         Return value: Player
-            A player instance initialized from the data in data
+            Player instance initialized from data
         """
         return cls(
             name=str(data["name"]),
             position=Position(*data["position"]),
             max_bomb_count=int(data["max_bomb_count"]),
             current_bomb_count=int(data["current_bomb_count"]),
-            bomb_range=int(data["bomb_range"])
+            bomb_range=int(data["bomb_range"]),
         )
 
     # ---------------------------------------- #
@@ -242,17 +174,15 @@ class Player:
     # ---------------------------------------- #
 
     def to_dict(self) -> PlayerDict:
-        """Returns the current instance data in the form of a dict
+        """Returns the current instance data serialized
 
         Return value: PlayerDict
-            A dictionary containing the position, player's name, position,
-            maximum number of bombs that can be planted at the same time, the
-            current number of active bombs planted, the player's bomb range
+            Serialized Player
         """
-        return PlayerDict({
-            "name": self.name,
-            "position": self.position,
-            "max_bomb_count": self.max_bomb_count,
-            "current_bomb_count": self.current_bomb_count,
-            "bomb_range": self.bomb_range,
-        })
+        return PlayerDict(
+            name=self.name,
+            position=self.position,
+            max_bomb_count=self.max_bomb_count,
+            current_bomb_count=self.current_bomb_count,
+            bomb_range=self.bomb_range,
+        )
