@@ -43,8 +43,7 @@ _logger = logging.getLogger(GAME_NAME)
 def _find_config_file() -> Iterator[pathlib.Path]:
     """Returns the usual paths where the config file should be
 
-    Return value: Iterator[pathlib.Path]
-        Paths where the config file should be, in prefered order
+    :returns: Paths where the config file should be, in prefered order
     """
     os = platform.system()
     if os == "Linux":

@@ -19,47 +19,31 @@ class Position(typing.NamedTuple):
     def up(self, step: int = 1) -> "Position":
         """Returns a position up from the current position
 
-        Parameters:
-            step: int (default = 1)
-                How much should the new position should be moved from the current
-
-        Return value: Position
-            Upwards position
+        :param step: How much should the new position should be moved from the current
+        :returns: Upwards position
         """
         return Position(self.x, self.y - step)
 
     def down(self, step: int = 1) -> "Position":
         """Returns a position down from the current position
 
-        Parameters:
-            step: int (default = 1)
-                How much should the new position should be moved from the current
-
-        Return value: Position
-            Downwards position
+        :param step: How much should the new position should be moved from the current
+        :returns: Downwards position
         """
         return Position(self.x, self.y + step)
 
     def left(self, step: int = 1) -> "Position":
         """Returns a position left from the current position
 
-        Parameters:
-            step: int (default = 1)
-                How much should the new position should be moved from the current
-
-        Return value: Position
-            Leftwards position
+        :param step: How much should the new position should be moved from the current
+        :returns: Leftwards position
         """
         return Position(self.x - step, self.y)
 
     def right(self, step: int = 1) -> "Position":
         """Returns a position right from the current position
 
-        Parameters:
-            step: int (default = 1)
-                How much should the new position should be moved from the current
-
-        Return value: Position
-            Rightwards position
+        :param step: How much should the new position should be moved from the current
+        :returns: Rightwards position
         """
         return Position(self.x + step, self.y)

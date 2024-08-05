@@ -63,19 +63,11 @@ class Player:
     ) -> None:
         """Initialize player data
 
-        Parameters:
-            name: str
-                Player's name
-            position: Position, default=(0,0)
-                Player's position
-
-        Keyword only parameters:
-            max_bomb_count:
-                Current maximum amount of bombs that can be planted at the same time
-            current_bomb_count: int
-                Current number of active bombs planted
-            bomb_range: int
-                Range of a bomb explosion blast
+        :param name: Player's name
+        :param position: Player's position
+        :param max_bomb_count: Maximum amount of bombs that can be planted
+        :param current_bomb_count: Number of active bombs planted
+        :param bomb_range: Range of a bomb explosion blast
         """
         if max_bomb_count is None:
             max_bomb_count = game_config.player_bomb_count
@@ -94,13 +86,8 @@ class Player:
     def create_bomb(self) -> Bomb:
         """Tries to plant a bomb at player's position
 
-        Return value:
-            The newly planted Bomb
-
-        Raises:
-            CannotDropBombError:
-                When the player has already reached the max number of active
-                bombs planted on the map
+        :returns: The newly planted Bomb
+        :raises CannotDropBombError: If max number of planted bombs is reached
         """
         if self.current_bomb_count >= self.max_bomb_count:
             raise CannotDropBombError
@@ -114,11 +101,8 @@ class Player:
     def tick(self, action: PlayerAction, environment: "Environment") -> None:
         """Apply effects of the player's actions on the game environment
 
-        Parameters:
-            action: PlayerAction
-                Actions performed by the player on this tick
-            environment: Environment
-                Game environment
+        :param action: Actions performed by the player on this tick
+        :param environment: Game environment
         """
         if (
             action & PlayerAction.PLANT_BOMB
@@ -154,12 +138,8 @@ class Player:
     def from_dict(cls, data: Mapping[str, Any]) -> "Player":
         """Instanciates a Player from a dict
 
-        Parameters:
-            data: Mapping[str, Any]
-                A mapping that be like PlayerDict
-
-        Return value: Player
-            Player instance initialized from data
+        :param data: A mapping that be like PlayerDict
+        :returns: Player instance initialized from data
         """
         return cls(
             name=str(data["name"]),
@@ -176,8 +156,7 @@ class Player:
     def to_dict(self) -> PlayerDict:
         """Returns the current instance data serialized
 
-        Return value: PlayerDict
-            Serialized Player
+        :returns: Serialized Player
         """
         return PlayerDict(
             name=self.name,

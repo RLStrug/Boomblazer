@@ -56,29 +56,17 @@ class _GameConfig(BaseConfig):
 
     @property
     def tick_frequency(self) -> float:
-        """Returns time between 2 ticks
-
-        Return value: float
-            Time between 2 ticks
-        """
+        """Time between 2 ticks"""
         return 1 / self.ticks_per_second
 
     @property
     def bomb_timer_ticks(self) -> int:
-        """Returns the number of ticks before a bomb explodes
-
-        Return value: int
-            Number of ticks before a bomb explodes
-        """
+        """Number of ticks before a bomb explodes"""
         return round(self.bomb_timer_seconds * self.ticks_per_second)
 
     @property
     def fire_timer_ticks(self) -> int:
-        """Returns the number of ticks before a fire blast dissipates
-
-        Return value: int
-            Number of ticks before a fire blast dissipates
-        """
+        """Number of ticks before a fire blast dissipates"""
         return round(self.fire_timer_seconds * self.ticks_per_second)
 
 

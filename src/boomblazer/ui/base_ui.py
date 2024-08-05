@@ -64,11 +64,8 @@ class BaseUI(abc.ABC):
     def join_game(self, addr: Address, username: str) -> None:
         """Joins a game
 
-        Parameters:
-            addr: Address
-                Address of the server
-            username: str
-                Player's name
+        :param addr: Address of the server
+        :param username: Player's name
         """
         self.client.server_addr = addr
         self.client.username = username.encode("utf8")
@@ -77,11 +74,8 @@ class BaseUI(abc.ABC):
     def create_game(self, addr: Address, map_filename: str) -> None:
         """Creates a game
 
-        Parameters:
-            addr: Address
-                Interface and port of the server
-            map_filename: str
-                File containing the initial map environment data
+        :param addr: Interface and port of the server
+        :param map_filename: File containing the initial map environment data
         """
         self.server = Server(addr, map_filename, logger=self._logger)
         # Unlike Client.start, which returns after connection, Server.start
@@ -95,13 +89,9 @@ class BaseUI(abc.ABC):
     ) -> None:
         """Creates a game and joins it
 
-        Parameters:
-            address: Address
-                Interface and port on which the server will listen
-            username:
-                Player's name
-            map_filename: str
-                File containing the initial map environment data
+        :param address: Interface and port on which the server will listen
+        :param username: Player's name
+        :param map_filename: File containing the initial map environment data
         """
         self.create_game(address, map_filename)
 
@@ -126,8 +116,7 @@ class BaseUI(abc.ABC):
     def __enter__(self) -> Self:
         """Enters a context manager (with statement)
 
-        Return value: BaseUI
-            The instance itself
+        :returns: The instance itself
         """
         return self
 
@@ -139,19 +128,9 @@ class BaseUI(abc.ABC):
     ) -> None:
         """Exits a context manager (with statement)
 
-        Parameters:
-            exc_type: type[BaseException] | None
-                Type of the exception that occured during the context
-                management, or `None` if none occured
-            exc_val: BaseException | None
-                Value of the exception that occured during the context
-                management, or `None` if none occured
-            exc_tb: TracebackType | None
-                Traceback of the exception that occured during the context
-                management, or `None` if none occured
-
-        Return value: None
-            Does not return a value. This means that if an exception occurred,
-            it should be propagated, not ignored
+        :param exc_type: Type of the exception that occured during the context
+        :param exc_val: Value of the exception that occured during the context
+        :param exc_tb: Traceback of the exception that occured during the context
+        :returns: None (exceptions are propagated)
         """
         self.close()

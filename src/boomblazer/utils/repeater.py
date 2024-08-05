@@ -12,13 +12,13 @@ if typing.TYPE_CHECKING:
 
 
 class Repeater(threading.Thread):
-    """A thread that repeats the execution of a function at regular interval
+    """A thread that repeats the execution of a function at regular interval"""
 
-    Members:
-        interval: float
-        function: Callable[[...], None]
-        finished: threading.Event
-    """
+    __slots__ = {
+        "interval": "(float) Time between 2 repeats",
+        "function": "(Callable[[...], None]) Function to repeat",
+        "finished": "(threading.Event) Determines if the repeater should stop",
+    }
 
     def __init__(
         self,
@@ -28,15 +28,9 @@ class Repeater(threading.Thread):
     ) -> None:
         """Initializes the Repeater
 
-        Parameters:
-            interval: float (default = 0.0)
-                Interval in seconds between 2 repeats
-            target: Callable[[...], None] | None
-                Function that should be repeated.
-                If None, nothing will be executed
-            **kwargs:
-                Keyword arguments to pass to threading.Thread constructor
-                Positionals are not allowed.
+        :param interval: Interval in seconds between 2 repeats
+        :param target: Function that should be repeated.
+        :param **kwargs: Keyword arguments to pass to threading.Thread constructor
         """
         super().__init__(target=self.repeat, **kwargs)
         self.interval = interval
@@ -50,11 +44,8 @@ class Repeater(threading.Thread):
     def repeat(self, *args: Any, **kwargs: Any) -> None:
         """Repeats the given function until the repeater is stopped
 
-        Parameters:
-            *args:
-                Positional arguments to be passed to self.function
-            **kwargs:
-                Keyword arguments to be passed to self.function
+        :param *args: Positional arguments to be passed to self.function
+        :param **kwargs: Keyword arguments to be passed to self.function
         """
         timer = self.interval
         try:

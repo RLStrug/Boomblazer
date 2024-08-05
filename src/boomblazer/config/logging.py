@@ -32,8 +32,7 @@ if typing.TYPE_CHECKING:
 def _default_filters_factory() -> _FiltersConfig:
     """Returns the default filters of the logger
 
-    Return value: MutableMapping[str, MutableMapping[str, Any]]
-        Default filters of the logger
+    :returns: Default filters of the logger
     """
     return {}
 
@@ -41,8 +40,7 @@ def _default_filters_factory() -> _FiltersConfig:
 def _default_formatters_factory() -> _FormattersConfig:
     """Returns the default formatters of the logger
 
-    Return value: MutableMapping[str, MutableMapping[str, Any]]
-        Default formatters of the logger
+    :returns: Default formatters of the logger
     """
     return {
         "simple": {
@@ -71,8 +69,7 @@ def _default_formatters_factory() -> _FormattersConfig:
 def _default_handlers_factory() -> _HandlersConfig:
     """Returns the default handlers of the logger
 
-    Return value: MutableMapping[str, MutableMapping[str, Any]]
-        Default handlers of the logger
+    :returns: Default handlers of the logger
     """
     return {
         "handler_1": {

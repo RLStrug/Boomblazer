@@ -40,11 +40,8 @@ class Fire:
     def __init__(self, position: Position, timer: int | None = None) -> None:
         """Initializes a new fire blast
 
-        Parameters:
-            position: Position
-                Coordinates of the fire blast
-            timer: int
-                Number of game ticks left before the fire blast dissipates
+        :param position: Coordinates of the fire blast
+        :param timer: Number of game ticks left before the fire blast dissipates
         """
         if timer is None:
             timer = game_config.fire_timer_ticks
@@ -58,9 +55,7 @@ class Fire:
     def tick(self, environment: "Environment") -> None:
         """Update fire blast timer and kill players engulfed in flames
 
-        Parameters:
-            environment: Environment
-                Game environment
+        :param environment: Game environment
         """
         self.timer -= 1
         if self.timer <= 0:
@@ -78,12 +73,8 @@ class Fire:
     def from_dict(cls, data: Mapping[str, Any]) -> "Fire":
         """Instanciates a Fire from a dict
 
-        Parameters:
-            data: Mapping[str, Any]
-                Mapping that should be like FireDict
-
-        Return value: Fire
-            Fire initialized data
+        :param data: Mapping that should be like FireDict
+        :returns: Fire initialized data
         """
         return cls(position=Position(*data["position"]), timer=int(data["timer"]))
 
@@ -94,8 +85,7 @@ class Fire:
     def to_dict(self) -> FireDict:
         """Returns the current instance data serialized
 
-        Return value: FireDict
-            Serialized Fire
+        :returns: Serialized Fire
         """
         return FireDict(
             position=self.position,

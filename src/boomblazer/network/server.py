@@ -65,11 +65,8 @@ class Server(Network):
     def __init__(self, addr: Address, map_filename: str, **kwargs: Any) -> None:
         """Initialize the Server object
 
-        Parameters:
-            addr: Address
-                Interface and port on which the server will listen
-            map_filename: pathlib.Path
-                File containing the map environment initial data
+        :param addr: Interface and port on which the server will listen
+        :param map_filename: File containing the map environment initial data
         """
         super().__init__(**kwargs)
         self.bind(addr)
@@ -92,12 +89,8 @@ class Server(Network):
         Looks for map file in official maps folder first, then in custom maps folder.
         If the file is not found, return path to filename in current working directory
 
-        Parameters:
-            map_filename: str
-                Map filename
-
-        Return value: importlib.resources.abc.Traversable
-            Map filepath
+        :param map_filename: Map filename
+        :returns: Map filepath
         """
         for maps_folder in game_folders_config.maps_folders:
             map_filepath = maps_folder / map_filename
@@ -234,11 +227,8 @@ class Server(Network):
     def add_player(self, addr: Address, name: bytes) -> None:
         """Adds a player to the clients list
 
-        Parameters:
-            addr: Address
-                New client address
-            name: bytes
-                New player's name
+        :param addr: New client address
+        :param name: New player's name
         """
         player = self.environment.add_player(name.decode("utf8"))
         if player is not None:
@@ -249,9 +239,7 @@ class Server(Network):
 
         Will fail silently if the address is not associated to a player.
 
-        Parameters:
-            addr:
-                Client's address
+        :param addr: Client's address
         """
         with contextlib.suppress(ValueError, KeyError):
             player = self.clients[addr]
@@ -268,14 +256,9 @@ class Server(Network):
     ) -> None:
         """Sends a message to all clients
 
-        Parameters:
-            command: bytes
-                Command to send to the client
-            arg: bytes
-                Argument associated to `command`
-            peers: Iterable[Address] | None (default = None)
-                Peers at whom the message will be sent
-                If None, the message will be sent to all clients
+        :param command: Command to send to the client
+        :param arg: Argument associated to `command`
+        :param peers: Peers at whom the message will be sent (default: all clients)
         """
         if peers is None:
             peers = self.clients.keys()
@@ -288,9 +271,7 @@ class Server(Network):
     def send_players_list(self, ready_players: Set[Address]) -> None:
         """Sends the list of connected players' name
 
-        Parameters:
-            ready_players: Set[Address]
-                Players that are ready to start the game
+        :param ready_players: Players that are ready to start the game
         """
         players_list = json.dumps(
             {
@@ -303,9 +284,7 @@ class Server(Network):
     def send_stop_game(self, reason: bytes) -> None:
         """Tells all clients that the server is closed and why
 
-        Parameters:
-            reason: bytes
-                Reason why the server is closing
+        :param reason: Reason why the server is closing
         """
         self.send_message(b"STOP", reason)
 
@@ -334,8 +313,7 @@ class Server(Network):
     def __enter__(self) -> Self:
         """Enters a context manager (with statement)
 
-        Return value: Server
-            The instance itself
+        :returns: The instance itself
         """
         return self
 
@@ -347,20 +325,10 @@ class Server(Network):
     ) -> None:
         """Exits a context manager (with statement)
 
-        Parameters:
-            exc_type: type[BaseException] | None
-                Type of the exception that occured during the context
-                management, or `None` if none occured
-            exc_val: BaseException | None
-                Value of the exception that occured during the context
-                management, or `None` if none occured
-            exc_tb: TracebackType | None
-                Traceback of the exception that occured during the context
-                management, or `None` if none occured
-
-        Return value: None
-            Does not return a value. This means that if an exception occurred,
-            it should be propagated, not ignored
+        :param exc_type: Type of the exception that occured during the context
+        :param exc_val: Value of the exception that occured during the context
+        :param exc_tb: Traceback of the exception that occured during the context
+        :returns: None (exceptions are propagated)
         """
         self.close()
 
@@ -368,9 +336,7 @@ class Server(Network):
 def main(argv: Sequence[str] | None = None) -> int:
     """Instanciates a Server
 
-    Parameters:
-        argv: Sequence[str] | None
-            If None, uses command line arguments
+    :param argv: If None, uses command line arguments
     """
     parser = argparse.ArgumentParser(parents=[base_parser])
     parser.add_argument(

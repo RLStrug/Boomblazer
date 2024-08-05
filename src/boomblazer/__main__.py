@@ -46,6 +46,11 @@ if typing.TYPE_CHECKING:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Module entry point
+
+    :param argv: Command line parameters
+    :returns: 0 if success, other if failure
+    """
     if argv is None:
         argv = sys.argv[1:]
 

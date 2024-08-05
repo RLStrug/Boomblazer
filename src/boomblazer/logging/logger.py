@@ -16,8 +16,7 @@ if typing.TYPE_CHECKING:
 def _get_handlers_real_path() -> dict[str, dict[str, Any]]:
     """Gets handlers from config with log folder prepended to filenames
 
-    Return value: dict[str, dict[str, Any]]
-        Config handlers, with the log folder prepended to the destination files
+    :returns: Config handlers, with the log folder prepended to the destination files
     """
     real_handlers: dict[str, dict[str, Any]] = {
         name: dict(value) for name, value in logging_config.handlers.items()

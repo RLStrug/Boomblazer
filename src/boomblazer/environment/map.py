@@ -55,12 +55,8 @@ class Map:
     ) -> None:
         """Initializes a game Map
 
-        Parameters:
-            version: int (default = 0)
-                Map version number. This ensures compatibility between
-                server, clients, and map file
-            data: list[list[MapCell]] (default = [[]])
-                Map cells data
+        :param version: Map version number.
+        :param data: Map cells data
         """
         self.version = version
         self._data = data or [[]]
@@ -73,12 +69,8 @@ class Map:
     def from_io_data(cls, map_io: IO[str]) -> "Map":
         """Instanciates a Map from IO data
 
-        Parameters:
-            map_io: IO[str]
-                IO object containing the initial map data
-
-        Return value: Map
-            Map instance initialized from the IO data
+        :param map_io: IO object containing the initial map data
+        :returns: Map instance initialized from the IO data
         """
         # Get version number
         magic_string = "Boomblazer map version alpha "
@@ -104,12 +96,8 @@ class Map:
     def from_file(cls, map_filepath: Traversable) -> "Map":
         """Instanciates a Map from a file
 
-        Parameters:
-            map_filepath: importlib.resources.abc.Traversable
-                Path to the file containing the initial map data
-
-        Return value: Map
-            A Map instance initialized from the file
+        :param map_filepath: Path to the file containing the initial map data
+        :returns: A Map instance initialized from the file
         """
         try:
             with map_filepath.open("r", encoding="utf8") as map_file:
@@ -123,12 +111,8 @@ class Map:
 
         Used as intermediate constructor from JSON data
 
-        Parameters:
-            data: Mapping[str, Any]
-                A mapping that should be like MapDict
-
-        Return value: Map
-            Map instance initialized from data
+        :param data: A mapping that should be like MapDict
+        :returns: Map instance initialized from data
         """
         map_data = [[MapCell(cell) for cell in row] for row in data["data"]]
         return cls(
@@ -143,8 +127,7 @@ class Map:
     def to_dict(self) -> MapDict:
         """Returns the current instance data serialized
 
-        Return value: MapDict
-            Serialized Map
+        :returns: Serialized Map
         """
         return MapDict(
             version=self.version,
@@ -158,20 +141,15 @@ class Map:
     def __getitem__(self, position: Position) -> MapCell:
         """Gets a cell from the map
 
-        Parameters:
-            position: Position
-                Coordinates of the cell to fetch
+        :param position: Coordinates of the cell to fetch
         """
         return self._data[position.y][position.x]
 
     def __setitem__(self, position: Position, value: MapCell) -> None:
         """Sets a cell from the map
 
-        Parameters:
-            position: Position
-                Coordinates of the cell to update
-            value: MapCell
-                New value of the selected cell
+        :param position: Coordinates of the cell to update
+        :param value: New value of the selected cell
         """
         self._data[position.y][position.x] = MapCell(value)
 
@@ -182,15 +160,13 @@ class Map:
     def __iter__(self) -> Iterator[list[MapCell]]:
         """Iterates over map rows
 
-        Return value: Iterator[list[MapCell]]
-            Iterator that yields the map rows
+        :returns: Iterator that yields the map rows
         """
         return iter(self._data)
 
     def __str__(self) -> str:
         """Returns a printable representation of the map
 
-        Return value:
-            Printable representation of the map
+        :returns: Printable representation of the map
         """
         return "\n".join("".join(cell.value for cell in row) for row in self._data)

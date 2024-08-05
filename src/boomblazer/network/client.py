@@ -62,11 +62,8 @@ class Client(Network):
     ) -> None:
         """Initializes a new Client
 
-        Parameters:
-            server_addr: Address
-                Address of the server hosting the game
-            username: str
-                Name of the player
+        :param server_addr: Address of the server hosting the game
+        :param username: Name of the player
         """
         super().__init__(**kwargs)
         self.server_addr = server_addr
@@ -147,11 +144,8 @@ class Client(Network):
     ) -> None:
         """Sends a message to the server hosting the game
 
-        Parameters:
-            command: bytes
-                Command to send to the server
-            arg: bytes
-                Argument associated to `command`
+        :param command: Command to send to the server
+        :param arg: Argument associated to `command`
         """
         if peers is None:
             peers = (self.server_addr,)
@@ -224,8 +218,7 @@ class Client(Network):
     def __enter__(self) -> Self:
         """Enters a context manager (with statement)
 
-        Return value: Client
-            The instance itself
+        :returns: The instance itself
         """
         return self
 
@@ -237,19 +230,9 @@ class Client(Network):
     ) -> None:
         """Exits a context manager (with statement)
 
-        Parameters:
-            exc_type: type[BaseException] | None
-                The type of the exception that occured during the context
-                management, or `None` if none occured
-            exc_val: BaseException | None
-                The value of the exception that occured during the context
-                management, or `None` if none occured
-            exc_tb: TracebackType | None
-                The traceback of the exception that occured during the context
-                management, or `None` if none occured
-
-        Return value: None
-            Does not return a value. This means that if an exception occurred,
-            it should be propagated, not ignored
+        :param exc_type: The type of the exception that occured during the context
+        :param exc_val: The value of the exception that occured during the context
+        :param exc_tb: The traceback of the exception that occured during the context
+        :returns: None (exceptions are propagated)
         """
         self.close()

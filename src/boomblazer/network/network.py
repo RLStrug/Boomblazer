@@ -38,9 +38,7 @@ class Network:
     def __init__(self, logger: logging.Logger) -> None:
         """Initialize the Network object
 
-        Parameters:
-            logger: logging.Logger
-                Network message logger
+        :param logger: Network message logger
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.selector = selectors.DefaultSelector()
@@ -50,20 +48,14 @@ class Network:
     def bind(self, addr: Address) -> None:
         """Binds the network socket to a local address
 
-        Parameters:
-            addr: Address
-                Local address to bind the socket to
+        :param addr: Local address to bind the socket to
         """
         self.sock.bind(addr)
 
     def recv_message(self) -> tuple[MessageType | None, Address]:
         """Recieves a message from the network and parses it
 
-        Return value: tuple[MessageType | None, Address]
-            Message sent by the server and the IP address and port number
-            from which the message was recieved.
-            The message contains a command and an argument, or is `None` if the
-            message was invalid
+        :returns: Message and Address of sender
         """
         msg, addr = self.sock.recvfrom(65536)
         self._logger.info("[%s:%d] > %s", *addr, msg)
@@ -77,13 +69,9 @@ class Network:
     ) -> None:
         """Constructs a message and sends it through the network
 
-        Parameters:
-            command: bytes
-                Command to send
-            arg: bytes
-                Argument associated to `command`
-            peers: Iterable[Address]
-                Peers at whom the message will be sent
+        :param command: Command to send
+        :param arg: Argument associated to `command`
+        :param peers: Peers at whom the message will be sent
         """
         msg = command + _SEPARATOR + arg
         for addr in peers:

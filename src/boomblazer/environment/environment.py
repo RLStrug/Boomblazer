@@ -57,10 +57,7 @@ class Environment:
     ) -> None:
         """Initializes a game Environment
 
-        Parameters:
-            map: Map | None (default = None)
-                Map data. If not None, it will extract spawn points and
-                boxes from the map cells
+        :param map: Map data. If not None, extract spawn points and boxes from map cells
         """
         self.spawn_points: list[Position] = []
         self.boxes: set[Position] = set()
@@ -76,9 +73,7 @@ class Environment:
     def load_map(self, map_: Map) -> None:
         """Loads map cells, and extracts boxes and spawn points
 
-        Parameters:
-            map_: Map
-                Map data
+        :param map_: Map data
         """
         self.map = map_
         for y, row in enumerate(self.map):
@@ -100,12 +95,8 @@ class Environment:
 
         Used as intermediate constructor from JSON data
 
-        Parameters:
-            data: Mapping[str, Any]
-                A mapping that should be like EnvironmentDict
-
-        Return value: Environment
-            Environment instance initialized from data
+        :param data: A mapping that should be like EnvironmentDict
+        :returns: Environment instance initialized from data
         """
         environment = Environment()
         environment.map = Map.from_dict(data["map"])
@@ -127,14 +118,9 @@ class Environment:
 
         Used when a client recieves an update from the server
 
-        Parameters:
-            json_str: str | bytes | bytearray
-                JSON data representing the map current environment state
-            **kwargs:
-                keyword arguments to pass to json.loads
-
-        Return value: Environment
-            Environment instance initialized from the JSON data
+        :param json_str: JSON data representing the map current environment state
+        :param **kwargs: keyword arguments to pass to json.loads
+        :returns: Environment instance initialized from the JSON data
         """
         json_data = json.loads(json_str, **kwargs)
         return cls.from_dict(json_data)
@@ -146,8 +132,7 @@ class Environment:
     def to_dict(self) -> EnvironmentDict:
         """Returns the current instance data serialized
 
-        Return value: EnvironmentDict
-            Serialized Environment
+        :returns: Serialized Environment
         """
         return EnvironmentDict(
             map=self.map.to_dict(),
@@ -160,12 +145,8 @@ class Environment:
     def to_json(self, **kwargs: Any) -> str:
         """Returns the current instance data in the form of json data
 
-        Parameters:
-            **kwargs:
-                keyword arguments to pass to json.loads
-
-        Return value: str
-            Serialized Environment data as a JSON object
+        :param **kwargs: keyword arguments to pass to json.loads
+        :returns: Serialized Environment data as a JSON object
         """
         return json.dumps(self.to_dict(), **kwargs)
 
@@ -176,12 +157,8 @@ class Environment:
     def bomb_here(self, position: tuple[int, int]) -> bool:
         """Tells if there is a bomb at given position
 
-        Parameters:
-            position: tuple[int, int]
-                Position to check
-
-        Return value: bool
-            True if a bomb is planted a position, False otherwise
+        :param position: Position to check
+        :returns: True if a bomb is planted a position, False otherwise
         """
         return any(b.position == position for b in self.bombs)
 
@@ -192,12 +169,8 @@ class Environment:
     def add_player(self, player_name: str) -> Player | None:
         """Adds a player to the game environment
 
-        Parameters:
-            player_name: str
-                Name of the player
-
-        Return value: Player | None
-            Player, if it could be added to the players list, None otherwise
+        :param player_name: Name of the player
+        :returns: Player, if it could be added to the players list, None otherwise
         """
         if len(self.spawn_points) < len(self.players):
             return None
@@ -210,9 +183,7 @@ class Environment:
 
         Will fail silently if player does not exist
 
-        Parameters:
-            player: Player
-                Player to remove
+        :param player: Player to remove
         """
         with contextlib.suppress(ValueError):
             self.players.remove(player)
@@ -229,12 +200,8 @@ class Environment:
     def fire_here(self, position: tuple[int, int]) -> bool:
         """Tells if there is a fire blast at given position
 
-        Parameters:
-            position: tuple[int, int]
-                Position to check
-
-        Return value: bool
-            True if a fire blast is raging a position, False otherwise
+        :param position: Position to check
+        :returns: True if a fire blast is raging a position, False otherwise
         """
         return any(f.position == position for f in self.fires)
 
@@ -245,9 +212,7 @@ class Environment:
     def tick(self, players_actions: Mapping[Player, PlayerAction]) -> None:
         """Updates the game environment state
 
-        Parameters:
-            players_actions: Mapping[Player, PlayerAction]
-                Actions to be performed by players
+        :param players_actions: Actions to be performed by players
         """
         for player in self.players:
             player_action = players_actions.get(player, PlayerAction(0))
@@ -270,8 +235,7 @@ class Environment:
     def __str__(self) -> str:
         """Returns a printable representation of the game environment
 
-        Return value:
-            Printable representation of the map environment state
+        :returns: Printable representation of the map environment state
         """
         map_str = [[cell.value for cell in row] for row in self.map]
         for player in self.players:

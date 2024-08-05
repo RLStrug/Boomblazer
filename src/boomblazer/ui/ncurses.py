@@ -38,9 +38,7 @@ class CursesInterface(BaseUI):
     def __init__(self, stdscr: curses.window, *args: Any, **kwargs: Any) -> None:
         """Initiates the curses user interface
 
-        Parameters:
-        stdscr: curses._CursesWindow
-            Screen controller
+        :param stdscr: Screen controller
         """
         super().__init__(*args, **kwargs)
         self.stdscr = stdscr
@@ -295,11 +293,8 @@ class CursesInterface(BaseUI):
 def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
     """Launches the game
 
-    Parameters:
-        stdscr: curses._CursesWindow
-            Screen controller
-        args: argparse.Namespace
-            Parsed arguments
+    :param stdscr: Screen controller
+    :param args: Parsed arguments
     """
     curses.curs_set(0)  # Do not display cursor
     handle_base_arguments(args)
@@ -313,9 +308,7 @@ def c_main(stdscr: curses.window, args: argparse.Namespace) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     """Instanciates a curses interface
 
-    Parameters:
-        argv: Sequence[str] | None
-            If None, uses command line arguments
+    :param argv: If None, uses command line arguments
     """
     parser = argparse.ArgumentParser(parents=[base_parser])
     args = parser.parse_args(argv)

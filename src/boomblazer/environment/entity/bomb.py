@@ -54,15 +54,10 @@ class Bomb:
     ) -> None:
         """Initializes a newly planted bomb
 
-        Parameters:
-            position: Position
-                Coordinates of the bomb
-            player: Player
-                Player who planted the bomb
-            range_: int
-                Range of the explosion blast
-            timer: int
-                Number of game ticks left before the bomb explodes
+        :param position: Coordinates of the bomb
+        :param player: Player who planted the bomb
+        :param range_: Range of the explosion blast
+        :param timer: Number of game ticks left before the bomb explodes
         """
         if timer is None:
             timer = game_config.bomb_timer_ticks
@@ -77,9 +72,7 @@ class Bomb:
     def tick(self, environment: "Environment") -> None:
         """Update bomb timer and apply its explosion effects on the environment
 
-        Parameters:
-            environment: Environment
-                The game environment
+        :param environment: The game environment
         """
         self.timer -= 1
         if self.timer > 0:
@@ -119,14 +112,9 @@ class Bomb:
     ) -> "Bomb":
         """Instanciates a Bomb from a dict
 
-        Parameters:
-            data: Mapping[str, Any]
-                Mapping that should be like BombDict
-            players_list: Iterable[Player]
-                Players present in the game. This is used to find the bomb owner
-
-        Return value: Bomb
-            Bomb instance initialized from data
+        :param data: Mapping that should be like BombDict
+        :param players_list: Players present in the game. Used to find the bomb owner
+        :returns: Bomb instance initialized from data
         """
         player: Player | None
         for player in players_list:
@@ -148,8 +136,7 @@ class Bomb:
     def to_dict(self) -> BombDict:
         """Returns the current instance data serialized
 
-        Return value: BombDict
-            Serialized Bomb
+        :returns: Serialized Bomb
         """
         player_name: str | None
         if self.player is None:

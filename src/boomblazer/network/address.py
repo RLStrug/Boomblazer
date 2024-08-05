@@ -35,15 +35,11 @@ class Address(typing.NamedTuple):
     def from_string(cls, address_repr: str) -> "Address":
         """Parses a string of format HOST:PORT into an Address
 
-        Parameters:
-            address_repr: str
-                String representation of the address
-                If the host part is empty, it will default to 0.0.0.0
-                If the port part is empty, it will use the default value
-                defined in the config variables
+        If the host part is empty, it will default to 0.0.0.0
+        If the port part is empty, it will default to configured value
 
-        Return value: Address
-            Parsed Address
+        :param address_repr: String representation of the address
+        :returns: Parsed Address
         """
         # We only want the last split in case the host part contains ":"
         address = address_repr.rsplit(":", 1)
@@ -57,8 +53,7 @@ class Address(typing.NamedTuple):
     def __str__(self) -> str:
         """Returns the string representation of the address
 
-        Return value: str
-            String representation of the address
+        :returns: String representation of the address
         """
         return f"{self.host}:{self.port}"
 

@@ -36,18 +36,15 @@ class CommandLineInterface(BaseUI):
     def main_menu(self, args: argparse.Namespace) -> None:
         """Creates or joins the game and go to the lobby
 
-        Parameters:
-            args: argparse.Namespace
-                Arguments given through the command line.
-                It must contain the following:
-                    cmd: str
-                        Whether to join, or create the game
-                    address (join only): str
-                        Address of the server
-                    name: str
-                        Player name
-                    map_filename (create only): pathlib.Path
-                        File containing the map data
+        :param args: Arguments given through the command line. Must contain:
+            * cmd: str
+                Whether to join, or create the game
+            * address (join only): str
+                Address of the server
+            * name: str
+                Player name
+            * map_filename (create only): pathlib.Path
+                File containing the map data
         """
         if args.cmd == "join":
             self.join_game(args.address, args.name)
@@ -114,9 +111,7 @@ class CommandLineInterface(BaseUI):
 def main(argv: Sequence[str] | None = None) -> int:
     """Instanciates a CLI and launches the game
 
-    Parameters:
-        argv: Sequence[str] | None
-            If None, uses command line arguments
+    :param argv: If None, uses command line arguments
     """
     parser = argparse.ArgumentParser(parents=[base_parser])
     subparsers = parser.add_subparsers(dest="cmd")

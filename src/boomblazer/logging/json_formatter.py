@@ -103,21 +103,14 @@ class JsonFormatter(logging.Formatter):
     ) -> None:
         """Initializes the formatter
 
-        Parameters:
-            fmt: Iterable[str] | None = None
-                List of log record fields that should be included in the json object
-            datefmt: str | None = None
-                Date format that should be used for the field asctime.
-                Format is the same as for time.strftime
-            style: str | JsonFormatterStyleTuple = "compact-extra"
-                If a str is passed, a default style will be used.
-                "compact": (None, (",", ":"), False)
-                "space": (None, None, False)
-                "nl": ("\t", None, False)
-                "-extra" suffix sets extra to True
-        Keyword-only parameters:
-            defaults: Mapping[str, Any] = {}
-                Sets default values for fields
+        :param fmt: Log record fields that should be included in the json object
+        :param datefmt: Date format for asctime. Same as for time.strftime
+        :param style: If a str is passed, a default style will be used.
+            * "compact": (None, (",", ":"), False)
+            * "space": (None, None, False)
+            * "nl": ("\t", None, False)
+            "-extra" suffix sets extra to True
+        :param defaults: Sets default values for fields
         """
         if fmt is None:
             fmt = self.DEFAULT_FORMAT
@@ -141,20 +134,15 @@ class JsonFormatter(logging.Formatter):
     def usesTime(self) -> bool:
         """Checks if the format uses the creation time of the record
 
-        Return value: bool
-            True if "asctime" is in self.fmt_keys
+        :returns: True if "asctime" is in self.fmt_keys
         """
         return "asctime" in self.fmt_keys
 
     def format(self, record: logging.LogRecord) -> str:
         """Formats the specified record as json object
 
-        Parameters:
-            record: logging.LogRecord
-                Record to log
-
-        Return value: str
-            JSON representation of the record data
+        :param record: Record to log
+        :returns: JSON representation of the record data
         """
         record.message = record.getMessage()
         if self.usesTime():

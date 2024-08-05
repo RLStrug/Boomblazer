@@ -26,10 +26,9 @@ if typing.TYPE_CHECKING:
 
 
 def _get_default_cache_folder() -> pathlib.Path:
-    """Returns the default location of the cache folder
+    """Looks for the default location of the cache folder depending on the platform
 
-    Return value: pathlib.Path
-        Path where the cache folder should be
+    :returns: Path where the cache folder should be
     """
     os = platform.system()
     if os == "Linux":
@@ -45,17 +44,15 @@ def _get_default_cache_folder() -> pathlib.Path:
 def _get_default_log_folder() -> pathlib.Path:
     """Returns the default location of the log folder
 
-    Return value: pathlib.Path
-        Path where the log folder should be
+    :returns: Path where the log folder should be
     """
     return _get_default_cache_folder() / "log"
 
 
 def _get_default_data_folder() -> pathlib.Path:
-    """Returns the default location of the data folder
+    """Looks for the default location of the data folder depending on the platform
 
-    Return value: pathlib.Path
-        Path where the data folder should be
+    :returns: Path where the data folder should be
     """
     os = platform.system()
     if os == "Linux":
@@ -71,8 +68,7 @@ def _get_default_data_folder() -> pathlib.Path:
 def _get_default_custom_maps_folder() -> pathlib.Path:
     """Returns the default custom maps folder
 
-    Return value: pathlib.Path
-        Folder containing the custom maps
+    :returns: Folder containing the custom maps
     """
     return _get_default_data_folder() / "custom_maps"
 
@@ -97,42 +93,25 @@ class _GameFoldersConfig(BaseConfig):
 
     @functools.cached_property
     def resources_folder(self) -> Traversable:
-        """Return the folder containing the package resources
-
-        Return value: importlib.resources.abc.Traversable
-            Folder containing the package resources
-        """
+        """The folder containing the package resources"""
         return importlib.resources.files(PACKAGE_NAME)
 
     @functools.cached_property
     def official_maps_folder(self) -> Traversable:
-        """Return the folder containing the official maps
-
-        Return value: importlib.resources.abc.Traversable
-            Folder containing the official maps
-        """
+        """The folder containing the official maps"""
         return self.resources_folder / "official_maps"
 
     @property
     def maps_folders(self) -> list[Traversable]:
-        """Return the list of the folders containing maps
-
-        Return value: importlib.resources.abc.Traversable
-            List of the folders containing maps
-        """
+        """The list of the folders containing maps"""
         return [self.official_maps_folder, self.custom_maps_folder]
 
     # @override
     def load(self, new_field_values: Mapping[str, Any]) -> bool:
         """Loads field values from a dict
 
-        Parameters:
-            new_field_values: dict
-                Fields to be updated. Unknown fields will be ignored
-
-        Return value: bool
-            True if all fields could be loaded from new_field_values.
-            False if any field was missing
+        :param new_field_values: Fields to be updated. Ignore unknown fields
+        :returns: True if all fields could be loaded
         """
         # Cannot use super() because dataclass(slots=True) does not produce
         # true subclass. This feature is unavailable in python 3.9, but will be
@@ -146,8 +125,7 @@ class _GameFoldersConfig(BaseConfig):
     def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict
 
-        Return value: dict
-            The dataclass as a dict
+        :returns: The dataclass as a dict
         """
         return {
             "log_folder": str(self.log_folder),

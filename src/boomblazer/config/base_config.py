@@ -19,13 +19,8 @@ class BaseConfig(abc.ABC):
     def load(self, new_field_values: Mapping[str, Any]) -> bool:
         """Loads field values from a dict
 
-        Parameters:
-            new_field_values: Mapping[str, Any]
-                Fields new values. Unknown fields will be ignored
-
-        Return value: bool
-            True if all fields could be loaded from new_field_values.
-            False if any field was missing
+        :param new_field_values: Fields new values. Ignore unknown fields
+        :returns: True if all fields were loaded
         """
         all_fields_present = True
         fields = dataclasses.fields(self)
@@ -42,17 +37,14 @@ class BaseConfig(abc.ABC):
     def dump(self) -> dict[str, Any]:
         """Dumps field values to a dict
 
-        Return value: dict[str, Any]
-            The dataclass as a dict
+        :returns: The dataclass as a dict
         """
         return dataclasses.asdict(self)
 
     def reset(self, fields_to_reset: Sequence[str] | None = None) -> None:
         """Resets all, or some field values to default
 
-        Parameters:
-            members_to_reset: Sequence[str] | None (default = None)
-                Attributes to reset (all by default)
+        :param members_to_reset: Attributes to reset (all by default)
         """
         fields = dataclasses.fields(self)
         for field in fields:
