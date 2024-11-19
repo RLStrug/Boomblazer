@@ -1,4 +1,9 @@
-"""Implements a game map"""
+"""Implements a game map
+
+Constants:
+    NULL_MAP: Map
+        Uninitialized Map
+"""
 
 from __future__ import annotations
 
@@ -33,13 +38,6 @@ class MapCell(enum.Enum):
     SPAWN = "S"
 
 
-class MapDict(typing.TypedDict):
-    """Map Serialization"""
-
-    version: int
-    data: list[str]
-
-
 class Map:
     """Represents a game map current state"""
 
@@ -48,18 +46,14 @@ class Map:
         "_data": "(list[list[MapCell]]) Map cells",
     }
 
-    def __init__(
-        self,
-        version: int = 0,
-        data: list[list[MapCell]] | None = None,
-    ) -> None:
+    def __init__(self, version: int, data: list[list[MapCell]]) -> None:
         """Initializes a game Map
 
         :param version: Map version number.
         :param data: Map cells data
         """
         self.version = version
-        self._data = data or [[]]
+        self._data = data
 
     # ---------------------------------------- #
     # IMPORT
@@ -105,35 +99,6 @@ class Map:
         except OSError as exc:
             raise MapError(f"Cannot open {str(map_filepath)!r}") from exc
 
-    @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "Map":
-        """Instanciates a Map from a dict
-
-        Used as intermediate constructor from JSON data
-
-        :param data: A mapping that should be like MapDict
-        :returns: Map instance initialized from data
-        """
-        map_data = [[MapCell(cell) for cell in row] for row in data["data"]]
-        return cls(
-            version=int(data["version"]),
-            data=map_data,
-        )
-
-    # ---------------------------------------- #
-    # EXPORT
-    # ---------------------------------------- #
-
-    def to_dict(self) -> MapDict:
-        """Returns the current instance data serialized
-
-        :returns: Serialized Map
-        """
-        return MapDict(
-            version=self.version,
-            data=["".join(cell.value for cell in row) for row in self._data],
-        )
-
     # ---------------------------------------- #
     # CELL GET/SET
     # ---------------------------------------- #
@@ -170,3 +135,6 @@ class Map:
         :returns: Printable representation of the map
         """
         return "\n".join("".join(cell.value for cell in row) for row in self._data)
+
+
+NULL_MAP = Map(0, [])

@@ -16,7 +16,7 @@ class Repeater(threading.Thread):
 
     __slots__ = {
         "interval": "(float) Time between 2 repeats",
-        "function": "(Callable[[...], None]) Function to repeat",
+        "function": "(Callable[..., None]) Function to repeat",
         "finished": "(threading.Event) Determines if the repeater should stop",
     }
 
@@ -52,7 +52,7 @@ class Repeater(threading.Thread):
             if self.function is not None:
                 while not self.finished.wait(timer):
                     t0 = time.monotonic()
-                    self.function(*args, **kwargs)
+                    self.function(t0, *args, **kwargs)
                     # Remove the execution time from the wait time
                     timer = self.interval - (time.monotonic() - t0)
         finally:

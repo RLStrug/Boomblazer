@@ -10,15 +10,15 @@ from __future__ import annotations
 
 import argparse
 import logging
-import selectors
 import shutil
-import sys
 import typing
 
 from ..config.cli import cli_config
 from ..environment.entity.player import PlayerAction
+from ..environment.position import Position
 from ..metadata import GAME_NAME
 from ..network.address import Address
+from ..network.client import ClientState
 from ..utils.argument_parser import base_parser
 from ..utils.argument_parser import handle_base_arguments
 from .base_ui import BaseUI
@@ -26,6 +26,7 @@ from .base_ui import BaseUI
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Any
+    from ..environment.environment import Environment
 
 
 class CommandLineInterface(BaseUI):
@@ -52,60 +53,88 @@ class CommandLineInterface(BaseUI):
             self.create_game_and_join(args.address, args.name, args.map_filename)
         else:  # exit
             return
+        self.wait_in_lobby()
         self.play_game()
+
+    def wait_in_lobby(self) -> None:
+        """Waits for game to start"""
+        while self.client.state is ClientState.WAITING_IN_LOBBY:
+            print(
+                f"spawn at (x,y) coordinates: {cli_config.spawn_commands[0]} <x> <y>",
+                f"despawn: {cli_config.despawn_commands[0]} 0",
+                f"ready to start: {cli_config.ready_commands[0]}",
+                f"not ready to start: {cli_config.not_ready_commands[0]}",
+                f"quit game: {cli_config.quit_commands[0]}",
+                "The game will start when all players are ready",
+                "This UI will only update after pressing ENTER",
+                sep="\n",
+            )
+
+            for client_info in self.client.other_clients.values():
+                print(
+                    f"{client_info.name.decode('utf8')} {client_info.spawn_point}:",
+                    "READY" if client_info.is_ready else "NOT READY",
+                )
+
+            cmd = input()
+
+            if cmd in cli_config.spawn_commands:
+                print(
+                    f"Available spawn points: {self.client.environment.spawn_points}",
+                )
+                args = input("x y = ").split()
+
+                try:
+                    x = int(args[0])
+                    y = int(args[1])
+                except ValueError:
+                    pass
+                except IndexError:
+                    pass
+                self.client.send_spawn(Position(x, y))
+            elif cmd in cli_config.despawn_commands:
+                self.client.send_despawn()
+            elif cmd in cli_config.ready_commands:
+                self.client.send_ready()
+            elif cmd in cli_config.not_ready_commands:
+                self.client.send_not_ready()
+            elif cmd in cli_config.quit_commands:
+                self.client.state = ClientState.DISCONNECTED
 
     def play_game(self) -> None:
         """Sends player actions and displays game state"""
-        print(f"Send {cli_config.ready_commands[0]} when you are ready to start")
-        print("The game will start when all players are ready")
+        while self.client.state is ClientState.PLAYING:
+            cmd = input()
+
+            if cmd in cli_config.up_commands:
+                self.client.send_action(PlayerAction.MOVE_UP)
+            elif cmd in cli_config.down_commands:
+                self.client.send_action(PlayerAction.MOVE_DOWN)
+            elif cmd in cli_config.left_commands:
+                self.client.send_action(PlayerAction.MOVE_LEFT)
+            elif cmd in cli_config.right_commands:
+                self.client.send_action(PlayerAction.MOVE_RIGHT)
+            elif cmd in cli_config.bomb_commands:
+                self.client.send_action(PlayerAction.PLANT_BOMB)
+            elif cmd in cli_config.quit_commands:
+                self.client.state = ClientState.DISCONNECTED
+
+    def display_environment(self, environment: Environment) -> None:
+        """Displays the environment
+
+        :param environment: The environment data
+        """
+        print("\n" * shutil.get_terminal_size().lines)  # Clear screen
         print(
-            f"up: {cli_config.up_commands[0]} ; "
-            f"down: {cli_config.down_commands[0]} ; "
-            f"left: {cli_config.left_commands[0]} ; "
-            f"right: {cli_config.right_commands[0]} ; "
-            f"bomb: {cli_config.bomb_commands[0]} ; "
-            f"quit: {cli_config.quit_commands[0]}"
+            f"move up: {cli_config.up_commands[0]}",
+            f"move down: {cli_config.down_commands[0]}",
+            f"move left: {cli_config.left_commands[0]}",
+            f"move right: {cli_config.right_commands[0]}",
+            f"plant bomb: {cli_config.bomb_commands[0]}",
+            f"quit game: {cli_config.quit_commands[0]}",
+            sep="\n",
         )
-
-        sel = selectors.DefaultSelector()
-        sel.register(sys.stdin, selectors.EVENT_READ)
-
-        while self.client.is_game_running:
-            event = sel.select(0)  # [] if no event
-            if event:
-                cmd = input()
-                self.handle_user_input(cmd)
-            elif self.client.update_semaphore.acquire(blocking=False):
-                self.handle_network_input()
-
-    def handle_user_input(self, cmd: str) -> None:
-        """Sends user input to server as player actions"""
-        if cmd in cli_config.ready_commands:
-            self.client.send_ready()
-        elif cmd in cli_config.up_commands:
-            self.client.send_move(PlayerAction.MOVE_UP)
-        elif cmd in cli_config.down_commands:
-            self.client.send_move(PlayerAction.MOVE_DOWN)
-        elif cmd in cli_config.left_commands:
-            self.client.send_move(PlayerAction.MOVE_LEFT)
-        elif cmd in cli_config.right_commands:
-            self.client.send_move(PlayerAction.MOVE_RIGHT)
-        elif cmd in cli_config.bomb_commands:
-            self.client.send_plant_bomb()
-        elif cmd in cli_config.quit_commands:
-            self.client.send_quit()
-            self.client.is_game_running = False
-
-    def handle_network_input(self) -> None:
-        """Recieves game info from the server"""
-        if self.client.environment.map.version == 0:
-            print("Players:")
-            for player, is_ready in self.client.connected_players.items():
-                print(f"\t{player}", end="")
-                print(" (ready)" if is_ready else "")
-        else:
-            print("\n" * shutil.get_terminal_size().lines)
-            print(self.client.environment)
+        print(self.client.environment)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -141,4 +170,4 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

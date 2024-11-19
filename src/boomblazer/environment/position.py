@@ -47,3 +47,6 @@ class Position(typing.NamedTuple):
         :returns: Rightwards position
         """
         return Position(self.x + step, self.y)
+
+
+NULL_POSITION = Position(-1, -1)

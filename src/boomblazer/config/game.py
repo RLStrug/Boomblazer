@@ -59,15 +59,5 @@ class _GameConfig(BaseConfig):
         """Time between 2 ticks"""
         return 1 / self.ticks_per_second
 
-    @property
-    def bomb_timer_ticks(self) -> int:
-        """Number of ticks before a bomb explodes"""
-        return round(self.bomb_timer_seconds * self.ticks_per_second)
-
-    @property
-    def fire_timer_ticks(self) -> int:
-        """Number of ticks before a fire blast dissipates"""
-        return round(self.fire_timer_seconds * self.ticks_per_second)
-
 
 game_config = _GameConfig()

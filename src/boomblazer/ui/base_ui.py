@@ -22,6 +22,7 @@ from ..network.server import Server
 if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Self
+    from ..environment.environment import Environment
 
 
 _ALL_INTERFACES = "0.0.0.0"
@@ -47,6 +48,7 @@ class BaseUI(abc.ABC):
         "client": "(Client) Client associated with this UI",
         "server": "(Server) Server associated with this UI",
         "_server_thread": "(threading.Thread) Thread used to launch local server",
+        "_client_thread": "(threading.Thread) Thread used to launch local client",
     }
 
     def __init__(self, *, logger: logging.Logger) -> None:
@@ -57,30 +59,29 @@ class BaseUI(abc.ABC):
                 Game message logger
         """
         self._logger = logger
-        self.client = Client(logger=logger)
-        self.server: Server | None = None
+        self.client = Client(self.display_environment, logger)
+        self.server = Server(logger)
+        self._client_thread = threading.Thread()
         self._server_thread = threading.Thread()
 
-    def join_game(self, addr: Address, username: str) -> None:
+    def join_game(self, address: Address, username: str) -> None:
         """Joins a game
 
-        :param addr: Address of the server
+        :param address: Address of the server
         :param username: Player's name
         """
-        self.client.server_addr = addr
-        self.client.username = username.encode("utf8")
-        self.client.start()
+        self.client.connect(address, username.encode("utf8"))
+        self._client_thread = threading.Thread(target=self.client.start, name="client")
+        self._client_thread.start()
 
-    def create_game(self, addr: Address, map_filename: str) -> None:
+    def create_game(self, address: Address, map_filename: str) -> None:
         """Creates a game
 
-        :param addr: Interface and port of the server
+        :param address: Interface and port of the server
         :param map_filename: File containing the initial map environment data
         """
-        self.server = Server(addr, map_filename, logger=self._logger)
-        # Unlike Client.start, which returns after connection, Server.start
-        # returns after game is over. So we need to execute it in a different
-        # thread
+        self.server.bind(address)
+        self.server.load_map_from_file(map_filename)
         self._server_thread = threading.Thread(target=self.server.start, name="server")
         self._server_thread.start()
 
@@ -101,17 +102,28 @@ class BaseUI(abc.ABC):
             address_for_client = address
         self.join_game(address_for_client, username)
 
+    @abc.abstractmethod
+    def display_environment(self, environment: Environment) -> None:
+        """Displays the environment
+
+        :param environment: The environment data
+        """
+
     # ---------------------------------------- #
     # CONTEXT MANAGER
     # ---------------------------------------- #
 
     def close(self) -> None:
         """Closes the client and the local server"""
-        if self.server is not None:
-            self.server.close()
-            if self._server_thread.ident is not None:
-                self._server_thread.join()
+        self.client.stop()
+        if self._client_thread.ident is not None:
+            self._client_thread.join()
         self.client.close()
+
+        self.server.stop()
+        if self._server_thread.ident is not None:
+            self._server_thread.join()
+        self.server.close()
 
     def __enter__(self) -> Self:
         """Enters a context manager (with statement)

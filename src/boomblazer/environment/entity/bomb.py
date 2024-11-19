@@ -22,15 +22,6 @@ class BombError(Exception):
     """Error raised when something goes wrong within a Bomb instance"""
 
 
-class BombDict(typing.TypedDict):
-    """Serialization of a Bomb"""
-
-    player: str | None
-    position: Position
-    range: int
-    timer: int
-
-
 class Bomb:
     """Implements a bomb that will explode after a fixed amount of time
 
@@ -42,25 +33,19 @@ class Bomb:
         "position": "(Position) Position which the bomb is located",
         "player": "(Player | None) Player who planted the bomb.",
         "range": "(int) Range of the explosion blast",
-        "timer": "(int) Number of game ticks left before the bomb explodes",
+        "timer": "(float) Time mark after which the bomb will explode",
     }
 
     def __init__(
-        self,
-        position: Position,
-        player: Player | None,
-        range_: int,
-        timer: int | None = None,
+        self, position: Position, player: Player, range_: int, timer: float
     ) -> None:
         """Initializes a newly planted bomb
 
         :param position: Coordinates of the bomb
         :param player: Player who planted the bomb
         :param range_: Range of the explosion blast
-        :param timer: Number of game ticks left before the bomb explodes
+        :param timer: Time mark after which the bomb will explode
         """
-        if timer is None:
-            timer = game_config.bomb_timer_ticks
         self.position = position
         self.player = player
         self.range = range_
@@ -69,16 +54,18 @@ class Bomb:
     # ---------------------------------------- #
     # GAME LOGIC
     # ---------------------------------------- #
-    def tick(self, environment: "Environment") -> None:
+    def tick(self, environment: Environment, time: float) -> None:
         """Update bomb timer and apply its explosion effects on the environment
 
         :param environment: The game environment
+        :param time: The current time
         """
-        self.timer -= 1
-        if self.timer > 0:
+        # If bomb is still ticking
+        if self.timer > time:
             return
 
-        environment.fires.append(Fire(self.position))
+        # If bomb is exploding
+        environment.blast_fire(self.position, self.timer)
 
         directions = (
             self.position.up,
@@ -94,7 +81,7 @@ class Bomb:
                 if blasted_cell is MapCell.WALL:
                     break
 
-                environment.fires.append(Fire(blast_position))
+                environment.blast_fire(blast_position, self.timer)
 
                 if blasted_cell is MapCell.BOX:
                     environment.map[blast_position] = MapCell.EMPTY
@@ -102,51 +89,3 @@ class Bomb:
 
         if self.player is not None:
             self.player.current_bomb_count -= 1
-
-    # ---------------------------------------- #
-    # IMPORT
-    # ---------------------------------------- #
-    @classmethod
-    def from_dict(
-        cls, data: Mapping[str, Any], players_list: Iterable["Player"]
-    ) -> "Bomb":
-        """Instanciates a Bomb from a dict
-
-        :param data: Mapping that should be like BombDict
-        :param players_list: Players present in the game. Used to find the bomb owner
-        :returns: Bomb instance initialized from data
-        """
-        player: Player | None
-        for player in players_list:
-            if player.name == data["player"]:
-                break
-        else:  # If the for loop finished without finding a matching player
-            player = None
-
-        return cls(
-            position=Position(*data["position"]),
-            player=player,
-            range_=int(data["range"]),
-            timer=int(data["timer"]),
-        )
-
-    # ---------------------------------------- #
-    # EXPORT
-    # ---------------------------------------- #
-    def to_dict(self) -> BombDict:
-        """Returns the current instance data serialized
-
-        :returns: Serialized Bomb
-        """
-        player_name: str | None
-        if self.player is None:
-            player_name = None
-        else:
-            player_name = self.player.name
-
-        return BombDict(
-            position=self.position,
-            player=player_name,
-            range=self.range,
-            timer=self.timer,
-        )

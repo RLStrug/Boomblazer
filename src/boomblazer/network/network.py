@@ -1,38 +1,28 @@
 """Implements a network communication protocol for the game
 
 Constants:
-    _SEPARATOR: bytes
-        The bytes sequence that separtes the command from its argument
-
-Type aliases:
-    MessageType:
-        A message containing a command and an argument
+    NULL_SOCKET: socket.socket
+        Undefined socket
 """
 
 from __future__ import annotations
 
+import contextlib
 import logging
-import selectors
 import socket
 import typing
 
-from .address import Address
-
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
-
-MessageType = tuple[bytes, bytes]  # (command, argument)
-
-_SEPARATOR = b":"
+    from types import TracebackType
+    from typing import Self
 
 
 class Network:
-    """Base class for game network connection"""
+    """Base class for game client and server"""
 
     __slots__ = {
-        "sock": "(socket.socket) Socket that handles network communication with UDP",
-        "selector": "(selectors.DefaultSelector) Listenner for network message",
-        "_logger": "(logging.Logger) Logger that registers network traffic",
+        "logger": "(logging.Logger) Logger that registers network trafic",
     }
 
     def __init__(self, logger: logging.Logger) -> None:
@@ -40,45 +30,58 @@ class Network:
 
         :param logger: Network message logger
         """
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.selector = selectors.DefaultSelector()
-        self.selector.register(self.sock, selectors.EVENT_READ)
-        self._logger = logger
+        self.logger = logger
 
-    def bind(self, addr: Address) -> None:
-        """Binds the network socket to a local address
+    def recv(self, sock: socket.socket, length: int) -> bytes:
+        """Recieves a message from the network
 
-        :param addr: Local address to bind the socket to
+        :param sock: Socket from which data should be recieved
+        :param length: How many bytes should be recieved at most
+        :returns: Message data
         """
-        self.sock.bind(addr)
+        message = sock.recv(length)
+        self.logger.debug("Recieving %s", message.hex())
+        return message
 
-    def recv_message(self) -> tuple[MessageType | None, Address]:
-        """Recieves a message from the network and parses it
+    def send(self, sock: socket.socket, message: bytes) -> int:
+        """Sends a message through the network
 
-        :returns: Message and Address of sender
+        Ignores ECONNRESET and EPIPE errors
+
+        :param sock: Socket to which data should be sent
+        :param message: Message that should be sent
+        :returns: How many bytes were sent
         """
-        msg, addr = self.sock.recvfrom(65536)
-        self._logger.info("[%s:%d] > %s", *addr, msg)
-        if _SEPARATOR not in msg:
-            return None, addr
-        command, arg = msg.split(_SEPARATOR, 1)
-        return (command, arg), addr
-
-    def send_message(
-        self, command: bytes, arg: bytes, peers: Iterable[Address]
-    ) -> None:
-        """Constructs a message and sends it through the network
-
-        :param command: Command to send
-        :param arg: Argument associated to `command`
-        :param peers: Peers at whom the message will be sent
-        """
-        msg = command + _SEPARATOR + arg
-        for addr in peers:
-            self._logger.info("[%s:%d] < %s", *addr, msg)
-            self.sock.sendto(msg, addr)
+        self.logger.debug("Sending %s", message.hex())
+        with contextlib.suppress(ConnectionResetError, BrokenPipeError):
+            return sock.send(message)
+        return 0
 
     def close(self) -> None:
         """Closes the network connection"""
-        self.sock.close()
-        self.selector.close()
+        raise NotImplementedError
+
+    def __enter__(self) -> Self:
+        """Enters a context manager (with statement)
+
+        :returns: The instance itself
+        """
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """Exits a context manager (with statement)
+
+        :param exc_type: Type of the exception that occured during the context
+        :param exc_val: Value of the exception that occured during the context
+        :param exc_tb: Traceback of the exception that occured during the context
+        :returns: None (exceptions are propagated)
+        """
+        self.close()
+
+
+NULL_SOCKET = socket.socket()

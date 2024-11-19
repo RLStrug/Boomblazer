@@ -58,4 +58,4 @@ class Address(typing.NamedTuple):
         return f"{self.host}:{self.port}"
 
 
-UNDEFINED_ADDRESS = Address("", 0)
+NULL_ADDRESS = Address("", 0)

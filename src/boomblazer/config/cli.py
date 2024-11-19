@@ -22,6 +22,14 @@ class _CLI_Config(BaseConfig):
     """Dataclass containing the CLI configuration values
 
     Class constants:
+        _DEFAULT_SPAWN_COMMANDS: list[str]
+            Default list of commands that select a spawn point
+        _DEFAULT_DESPAWN_COMMANDS: list[str]
+            Default list of commands that unselect a spawn point
+        _DEFAULT_READY_COMMANDS: list[str]
+            Default list of commands that makrs the client as ready to play
+        _DEFAULT_NOT_READY_COMMANDS: list[str]
+            Default list of commands that makrs the client as not ready to play
         _DEFAULT_UP_COMMANDS: list[str]
             Default list of commands that move the player upwards
         _DEFAULT_DOWN_COMMANDS: list[str]
@@ -34,10 +42,16 @@ class _CLI_Config(BaseConfig):
             Default list of commands that drop a bomb
         _DEFAULT_QUIT_COMMANDS: list[str]
             Default list of commands that quit the game
-        _DEFAULT_READY_COMMANDS: list[str]
-            Default list of commands that start the game
 
     Members:
+        spawn_commands: MutableSequence[str]
+            List of commands that select a spawn point
+        despawn_commands: MutableSequence[str]
+            List of commands that unselect a spawn point
+        ready_commands: MutableSequence[str]
+            List of commands that makrs the client as ready to play
+        not_ready_commands: MutableSequence[str]
+            List of commands that makrs the client as not ready to play
         up_commands: MutableSequence[str]
             List of commands that move the player upwards
         down_commands: MutableSequence[str]
@@ -50,10 +64,21 @@ class _CLI_Config(BaseConfig):
             List of commands that drop a bomb
         quit_commands: MutableSequence[str]
             List of commands that quit the game
-        ready_commands: MutableSequence[str]
-            List of commands that start the game
     """
 
+    _DEFAULT_SPAWN_COMMANDS: typing.ClassVar[list[str]] = [
+        "spawn",
+    ]
+    _DEFAULT_DESPAWN_COMMANDS: typing.ClassVar[list[str]] = [
+        "despawn",
+    ]
+    _DEFAULT_READY_COMMANDS: typing.ClassVar[list[str]] = [
+        "ready",
+        "start",
+    ]
+    _DEFAULT_NOT_READY_COMMANDS: typing.ClassVar[list[str]] = [
+        "not_ready",
+    ]
     _DEFAULT_UP_COMMANDS: typing.ClassVar[list[str]] = [
         "z",
         "up",
@@ -80,11 +105,19 @@ class _CLI_Config(BaseConfig):
         "exit",
         "stop",
     ]
-    _DEFAULT_READY_COMMANDS: typing.ClassVar[list[str]] = [
-        "ready",
-        "start",
-    ]
 
+    spawn_commands: MutableSequence[str] = dataclasses.field(
+        default_factory=_DEFAULT_SPAWN_COMMANDS.copy
+    )
+    despawn_commands: MutableSequence[str] = dataclasses.field(
+        default_factory=_DEFAULT_DESPAWN_COMMANDS.copy
+    )
+    ready_commands: MutableSequence[str] = dataclasses.field(
+        default_factory=_DEFAULT_READY_COMMANDS.copy
+    )
+    not_ready_commands: MutableSequence[str] = dataclasses.field(
+        default_factory=_DEFAULT_NOT_READY_COMMANDS.copy
+    )
     up_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_UP_COMMANDS.copy
     )
@@ -102,9 +135,6 @@ class _CLI_Config(BaseConfig):
     )
     quit_commands: MutableSequence[str] = dataclasses.field(
         default_factory=_DEFAULT_QUIT_COMMANDS.copy
-    )
-    ready_commands: MutableSequence[str] = dataclasses.field(
-        default_factory=_DEFAULT_READY_COMMANDS.copy
     )
 
 
